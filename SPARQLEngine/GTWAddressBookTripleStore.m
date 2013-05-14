@@ -67,7 +67,7 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
     NSDictionary* multiPropertyPredicates    = @{
                                                  kABURLsProperty: @{@"url": @"http://xmlns.com/foaf/0.1/homepage", @"type": [GTWIRI class]},
                                                  kABHomePageProperty: @{@"url": @"http://xmlns.com/foaf/0.1/homepage", @"type": [GTWIRI class]},
-                                                 kABEmailProperty: @{@"url": @"http://xmlns.com/foaf/0.1/mbox", @"type": [GTWLiteral class], @"convert": ^(NSString* value){
+                                                 kABEmailProperty: @{@"url": @"http://xmlns.com/foaf/0.1/mbox_sha1sum", @"type": [GTWLiteral class], @"convert": ^(NSString* value){
                                                      NSString* mbox = [NSString stringWithFormat:@"mailto:%@", value];
                                                      NSData *data = [mbox dataUsingEncoding:NSUTF8StringEncoding];
                                                      uint8_t digest[CC_SHA1_DIGEST_LENGTH];
