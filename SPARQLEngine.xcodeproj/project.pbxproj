@@ -7,8 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		370C9A51172D6FA600575D09 /* GTWBlank.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A49172D6FA600575D09 /* GTWBlank.m */; };
+		370C9A52172D6FA600575D09 /* GTWIRI.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A4B172D6FA600575D09 /* GTWIRI.m */; };
+		370C9A53172D6FA600575D09 /* GTWLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A4D172D6FA600575D09 /* GTWLiteral.m */; };
+		370C9A54172D6FA600575D09 /* GTWTriple.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A50172D6FA600575D09 /* GTWTriple.m */; };
+		370C9A59172D746600575D09 /* GTWQuad.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A58172D746600575D09 /* GTWQuad.m */; };
+		370C9A5C172E2F2A00575D09 /* GTWErrorLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A5B172E2F2A00575D09 /* GTWErrorLogger.m */; };
+		370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */; };
+		370C9A66172E336C00575D09 /* GTWTurtleLexer.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A61172E336C00575D09 /* GTWTurtleLexer.m */; };
+		370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A63172E336C00575D09 /* GTWTurtleParser.m */; };
+		370C9A68172E336C00575D09 /* GTWTurtleToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A65172E336C00575D09 /* GTWTurtleToken.m */; };
+		37186E11173B99FB0089CD3B /* GTWVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E10173B99FB0089CD3B /* GTWVariable.m */; };
+		37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */; };
+		37186E18173BFE460089CD3B /* GTWTripleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E17173BFE460089CD3B /* GTWTripleModel.m */; };
+		37186E1C173C00530089CD3B /* GTWQuadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E1B173C00530089CD3B /* GTWQuadModel.m */; };
+		3798887A173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 37988879173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m */; };
+		3798887D173E8A2F0094B897 /* GTWQueryPlanner.m in Sources */ = {isa = PBXBuildFile; fileRef = 3798887C173E8A2F0094B897 /* GTWQueryPlanner.m */; };
+		37988881173F44390094B897 /* GTWAddressBookTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37988880173F44390094B897 /* GTWAddressBookTripleStore.m */; };
+		37988883173F45860094B897 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37988882173F45860094B897 /* AddressBook.framework */; };
+		37988886173FDC670094B897 /* GTWQueryDataset.m in Sources */ = {isa = PBXBuildFile; fileRef = 37988885173FDC660094B897 /* GTWQueryDataset.m */; };
+		37C37A491737FFA70078C98F /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A481737FFA70078C98F /* librdf.0.dylib */; };
+		37C37A4C1737FFE00078C98F /* GTWRedlandTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A4B1737FFE00078C98F /* GTWRedlandTripleStore.m */; };
+		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
+		37C37A511738ED320078C98F /* GTWTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A501738ED320078C98F /* GTWTree.m */; };
+		37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
+		37E1984C1741EC2700AB3D97 /* libcommonCrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E1984B1741EC2700AB3D97 /* libcommonCrypto.dylib */; };
+		37E198501741F49B00AB3D97 /* GTWRedlandParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */; };
 		37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
-		37E3D5EA172D647A00F54DC9 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 37E3D5E9172D647A00F54DC9 /* main.c */; };
+		37E3D5EA172D647A00F54DC9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E3D5E9172D647A00F54DC9 /* main.m */; };
 		37E3D5EC172D647A00F54DC9 /* SPARQLEngine.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */; };
 /* End PBXBuildFile section */
 
@@ -26,10 +52,58 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		370C9A48172D6FA600575D09 /* GTWBlank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWBlank.h; sourceTree = "<group>"; };
+		370C9A49172D6FA600575D09 /* GTWBlank.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWBlank.m; sourceTree = "<group>"; };
+		370C9A4A172D6FA600575D09 /* GTWIRI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWIRI.h; sourceTree = "<group>"; };
+		370C9A4B172D6FA600575D09 /* GTWIRI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWIRI.m; sourceTree = "<group>"; };
+		370C9A4C172D6FA600575D09 /* GTWLiteral.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWLiteral.h; sourceTree = "<group>"; };
+		370C9A4D172D6FA600575D09 /* GTWLiteral.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWLiteral.m; sourceTree = "<group>"; };
+		370C9A4F172D6FA600575D09 /* GTWTriple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTriple.h; sourceTree = "<group>"; };
+		370C9A50172D6FA600575D09 /* GTWTriple.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTriple.m; sourceTree = "<group>"; };
+		370C9A57172D746600575D09 /* GTWQuad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQuad.h; sourceTree = "<group>"; };
+		370C9A58172D746600575D09 /* GTWQuad.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWQuad.m; sourceTree = "<group>"; };
+		370C9A5A172E2F2A00575D09 /* GTWErrorLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWErrorLogger.h; sourceTree = "<group>"; };
+		370C9A5B172E2F2A00575D09 /* GTWErrorLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWErrorLogger.m; sourceTree = "<group>"; };
+		370C9A5D172E300200575D09 /* GTWMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWMemoryQuadStore.h; sourceTree = "<group>"; };
+		370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWMemoryQuadStore.m; sourceTree = "<group>"; };
+		370C9A60172E336C00575D09 /* GTWTurtleLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTurtleLexer.h; sourceTree = "<group>"; };
+		370C9A61172E336C00575D09 /* GTWTurtleLexer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTurtleLexer.m; sourceTree = "<group>"; };
+		370C9A62172E336C00575D09 /* GTWTurtleParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTurtleParser.h; sourceTree = "<group>"; };
+		370C9A63172E336C00575D09 /* GTWTurtleParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTurtleParser.m; sourceTree = "<group>"; };
+		370C9A64172E336C00575D09 /* GTWTurtleToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTurtleToken.h; sourceTree = "<group>"; };
+		370C9A65172E336C00575D09 /* GTWTurtleToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTurtleToken.m; sourceTree = "<group>"; };
+		37186E0F173B99FB0089CD3B /* GTWVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWVariable.h; sourceTree = "<group>"; };
+		37186E10173B99FB0089CD3B /* GTWVariable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWVariable.m; sourceTree = "<group>"; };
+		37186E16173BFE460089CD3B /* GTWTripleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTripleModel.h; sourceTree = "<group>"; };
+		37186E17173BFE460089CD3B /* GTWTripleModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTripleModel.m; sourceTree = "<group>"; };
+		37186E1A173C00530089CD3B /* GTWQuadModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQuadModel.h; sourceTree = "<group>"; };
+		37186E1B173C00530089CD3B /* GTWQuadModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWQuadModel.m; sourceTree = "<group>"; };
+		37988878173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+NSDictionary_QueryBindings.h"; sourceTree = "<group>"; };
+		37988879173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NSDictionary_QueryBindings.m"; sourceTree = "<group>"; };
+		3798887B173E8A2F0094B897 /* GTWQueryPlanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQueryPlanner.h; sourceTree = "<group>"; };
+		3798887C173E8A2F0094B897 /* GTWQueryPlanner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWQueryPlanner.m; sourceTree = "<group>"; };
+		3798887F173F44390094B897 /* GTWAddressBookTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWAddressBookTripleStore.h; sourceTree = "<group>"; };
+		37988880173F44390094B897 /* GTWAddressBookTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWAddressBookTripleStore.m; sourceTree = "<group>"; };
+		37988882173F45860094B897 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		37988884173FDC660094B897 /* GTWQueryDataset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQueryDataset.h; sourceTree = "<group>"; };
+		37988885173FDC660094B897 /* GTWQueryDataset.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWQueryDataset.m; sourceTree = "<group>"; };
+		37C37A481737FFA70078C98F /* librdf.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librdf.0.dylib; path = ../../../../../../../../usr/local/Cellar/redland/1.0.16/lib/librdf.0.dylib; sourceTree = "<group>"; };
+		37C37A4A1737FFE00078C98F /* GTWRedlandTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandTripleStore.h; sourceTree = "<group>"; };
+		37C37A4B1737FFE00078C98F /* GTWRedlandTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandTripleStore.m; sourceTree = "<group>"; };
+		37C37A4D1738089E0078C98F /* libraptor2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libraptor2.0.dylib; path = ../../../../../../../../usr/local/Cellar/raptor/2.0.9/lib/libraptor2.0.dylib; sourceTree = "<group>"; };
+		37C37A4F1738ED320078C98F /* GTWTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTree.h; sourceTree = "<group>"; };
+		37C37A501738ED320078C98F /* GTWTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTree.m; sourceTree = "<group>"; };
+		37C37A521739472A0078C98F /* librasqal.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librasqal.3.dylib; path = ../../../../../../../../usr/local/Cellar/rasqal/0.9.30/lib/librasqal.3.dylib; sourceTree = "<group>"; };
+		37C37A54173947640078C98F /* GTWRasqalSPARQLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRasqalSPARQLParser.h; sourceTree = "<group>"; };
+		37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRasqalSPARQLParser.m; sourceTree = "<group>"; };
+		37E1984B1741EC2700AB3D97 /* libcommonCrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcommonCrypto.dylib; path = usr/lib/system/libcommonCrypto.dylib; sourceTree = SDKROOT; };
+		37E1984E1741F49B00AB3D97 /* GTWRedlandParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandParser.h; sourceTree = "<group>"; };
+		37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandParser.m; sourceTree = "<group>"; };
 		37E3D5E3172D647A00F54DC9 /* SPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
-		37E3D5E9172D647A00F54DC9 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = SPARQLEngine.1; sourceTree = "<group>"; };
+		37E3D5F3172D650900F54DC9 /* SPARQLEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPARQLEngine.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,13 +111,127 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37E1984C1741EC2700AB3D97 /* libcommonCrypto.dylib in Frameworks */,
+				37988883173F45860094B897 /* AddressBook.framework in Frameworks */,
 				37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */,
+				37C37A491737FFA70078C98F /* librdf.0.dylib in Frameworks */,
+				37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */,
+				37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		370C9A55172D743300575D09 /* Terms */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A48172D6FA600575D09 /* GTWBlank.h */,
+				370C9A49172D6FA600575D09 /* GTWBlank.m */,
+				370C9A4A172D6FA600575D09 /* GTWIRI.h */,
+				370C9A4B172D6FA600575D09 /* GTWIRI.m */,
+				370C9A4C172D6FA600575D09 /* GTWLiteral.h */,
+				370C9A4D172D6FA600575D09 /* GTWLiteral.m */,
+				37186E0F173B99FB0089CD3B /* GTWVariable.h */,
+				37186E10173B99FB0089CD3B /* GTWVariable.m */,
+			);
+			name = Terms;
+			sourceTree = "<group>";
+		};
+		370C9A56172D744600575D09 /* Statements */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A4F172D6FA600575D09 /* GTWTriple.h */,
+				370C9A50172D6FA600575D09 /* GTWTriple.m */,
+				370C9A57172D746600575D09 /* GTWQuad.h */,
+				370C9A58172D746600575D09 /* GTWQuad.m */,
+			);
+			name = Statements;
+			sourceTree = "<group>";
+		};
+		370C9A69172E337100575D09 /* Turtle Parser */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A60172E336C00575D09 /* GTWTurtleLexer.h */,
+				370C9A61172E336C00575D09 /* GTWTurtleLexer.m */,
+				370C9A62172E336C00575D09 /* GTWTurtleParser.h */,
+				370C9A63172E336C00575D09 /* GTWTurtleParser.m */,
+				370C9A64172E336C00575D09 /* GTWTurtleToken.h */,
+				370C9A65172E336C00575D09 /* GTWTurtleToken.m */,
+			);
+			name = "Turtle Parser";
+			sourceTree = "<group>";
+		};
+		370C9A6A172E365600575D09 /* Data Sources */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A5D172E300200575D09 /* GTWMemoryQuadStore.h */,
+				370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */,
+				37C37A4A1737FFE00078C98F /* GTWRedlandTripleStore.h */,
+				37C37A4B1737FFE00078C98F /* GTWRedlandTripleStore.m */,
+				3798887F173F44390094B897 /* GTWAddressBookTripleStore.h */,
+				37988880173F44390094B897 /* GTWAddressBookTripleStore.m */,
+			);
+			name = "Data Sources";
+			sourceTree = "<group>";
+		};
+		37186E13173BFC220089CD3B /* SPARQL Parser */ = {
+			isa = PBXGroup;
+			children = (
+				37C37A54173947640078C98F /* GTWRasqalSPARQLParser.h */,
+				37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */,
+			);
+			name = "SPARQL Parser";
+			sourceTree = "<group>";
+		};
+		37186E14173BFC300089CD3B /* Loggers */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A5A172E2F2A00575D09 /* GTWErrorLogger.h */,
+				370C9A5B172E2F2A00575D09 /* GTWErrorLogger.m */,
+			);
+			name = Loggers;
+			sourceTree = "<group>";
+		};
+		37186E15173BFC3F0089CD3B /* Algebra and Plan Trees */ = {
+			isa = PBXGroup;
+			children = (
+				37C37A4F1738ED320078C98F /* GTWTree.h */,
+				37C37A501738ED320078C98F /* GTWTree.m */,
+			);
+			name = "Algebra and Plan Trees";
+			sourceTree = "<group>";
+		};
+		37186E19173BFFD90089CD3B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				37186E16173BFE460089CD3B /* GTWTripleModel.h */,
+				37186E17173BFE460089CD3B /* GTWTripleModel.m */,
+				37186E1A173C00530089CD3B /* GTWQuadModel.h */,
+				37186E1B173C00530089CD3B /* GTWQuadModel.m */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		3798887E173E8C350094B897 /* Query Planner */ = {
+			isa = PBXGroup;
+			children = (
+				3798887B173E8A2F0094B897 /* GTWQueryPlanner.h */,
+				3798887C173E8A2F0094B897 /* GTWQueryPlanner.m */,
+			);
+			name = "Query Planner";
+			sourceTree = "<group>";
+		};
+		37E1984D1741F48800AB3D97 /* RDF Parsers */ = {
+			isa = PBXGroup;
+			children = (
+				370C9A69172E337100575D09 /* Turtle Parser */,
+				37E1984E1741F49B00AB3D97 /* GTWRedlandParser.h */,
+				37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */,
+			);
+			name = "RDF Parsers";
+			sourceTree = "<group>";
+		};
 		37E3D5DA172D647A00F54DC9 = {
 			isa = PBXGroup;
 			children = (
@@ -64,6 +252,11 @@
 		37E3D5E5172D647A00F54DC9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				37C37A521739472A0078C98F /* librasqal.3.dylib */,
+				37C37A481737FFA70078C98F /* librdf.0.dylib */,
+				37C37A4D1738089E0078C98F /* libraptor2.0.dylib */,
+				37E1984B1741EC2700AB3D97 /* libcommonCrypto.dylib */,
+				37988882173F45860094B897 /* AddressBook.framework */,
 				37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */,
 			);
 			name = Frameworks;
@@ -72,8 +265,22 @@
 		37E3D5E8172D647A00F54DC9 /* SPARQLEngine */ = {
 			isa = PBXGroup;
 			children = (
-				37E3D5E9172D647A00F54DC9 /* main.c */,
+				37E3D5E9172D647A00F54DC9 /* main.m */,
+				37E3D5F3172D650900F54DC9 /* SPARQLEngine.h */,
 				37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */,
+				37988878173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.h */,
+				37988879173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m */,
+				37186E19173BFFD90089CD3B /* Models */,
+				3798887E173E8C350094B897 /* Query Planner */,
+				370C9A55172D743300575D09 /* Terms */,
+				370C9A56172D744600575D09 /* Statements */,
+				37E1984D1741F48800AB3D97 /* RDF Parsers */,
+				37186E14173BFC300089CD3B /* Loggers */,
+				370C9A6A172E365600575D09 /* Data Sources */,
+				37186E15173BFC3F0089CD3B /* Algebra and Plan Trees */,
+				37186E13173BFC220089CD3B /* SPARQL Parser */,
+				37988884173FDC660094B897 /* GTWQueryDataset.h */,
+				37988885173FDC660094B897 /* GTWQueryDataset.m */,
 			);
 			path = SPARQLEngine;
 			sourceTree = "<group>";
@@ -129,7 +336,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37E3D5EA172D647A00F54DC9 /* main.c in Sources */,
+				37E3D5EA172D647A00F54DC9 /* main.m in Sources */,
+				370C9A51172D6FA600575D09 /* GTWBlank.m in Sources */,
+				370C9A52172D6FA600575D09 /* GTWIRI.m in Sources */,
+				370C9A53172D6FA600575D09 /* GTWLiteral.m in Sources */,
+				370C9A54172D6FA600575D09 /* GTWTriple.m in Sources */,
+				370C9A59172D746600575D09 /* GTWQuad.m in Sources */,
+				370C9A5C172E2F2A00575D09 /* GTWErrorLogger.m in Sources */,
+				370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */,
+				370C9A66172E336C00575D09 /* GTWTurtleLexer.m in Sources */,
+				370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */,
+				370C9A68172E336C00575D09 /* GTWTurtleToken.m in Sources */,
+				37C37A4C1737FFE00078C98F /* GTWRedlandTripleStore.m in Sources */,
+				37C37A511738ED320078C98F /* GTWTree.m in Sources */,
+				37186E11173B99FB0089CD3B /* GTWVariable.m in Sources */,
+				37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */,
+				37186E18173BFE460089CD3B /* GTWTripleModel.m in Sources */,
+				37186E1C173C00530089CD3B /* GTWQuadModel.m in Sources */,
+				3798887A173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m in Sources */,
+				3798887D173E8A2F0094B897 /* GTWQueryPlanner.m in Sources */,
+				37988881173F44390094B897 /* GTWAddressBookTripleStore.m in Sources */,
+				37988886173FDC670094B897 /* GTWQueryDataset.m in Sources */,
+				37E198501741F49B00AB3D97 /* GTWRedlandParser.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,6 +426,18 @@
 		37E3D5F0172D647A00F54DC9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/usr/local/include/raptor2,
+					/usr/local/include/rasqal,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/redland/1.0.16/lib,
+					/usr/local/Cellar/raptor/2.0.9/lib,
+					/usr/local/Cellar/rasqal/0.9.30/lib,
+					"\"$(SDKROOT)/usr/lib/system\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -205,6 +445,18 @@
 		37E3D5F1172D647A00F54DC9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					/usr/local/include/raptor2,
+					/usr/local/include/rasqal,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/redland/1.0.16/lib,
+					/usr/local/Cellar/raptor/2.0.9/lib,
+					/usr/local/Cellar/rasqal/0.9.30/lib,
+					"\"$(SDKROOT)/usr/lib/system\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -228,6 +480,7 @@
 				37E3D5F1172D647A00F54DC9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
