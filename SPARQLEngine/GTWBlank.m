@@ -36,4 +36,14 @@
     return NO;
 }
 
+- (NSComparisonResult)compare:(id<GTWTerm>)term {
+    if (!term)
+        return NSOrderedDescending;
+    if (self.termType != term.termType) {
+        return NSOrderedAscending;
+    } else {
+        return [self.value compare:term.value];
+    }
+}
+
 @end

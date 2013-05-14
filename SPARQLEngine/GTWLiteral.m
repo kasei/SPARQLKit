@@ -62,4 +62,31 @@
     return NO;
 }
 
+- (NSComparisonResult)compare:(id<GTWTerm>)term {
+    if (!term)
+        return NSOrderedDescending;
+    if (self.termType != term.termType) {
+        if (term.termType == GTWTermBlank || term.termType == GTWTermIRI)
+            return NSOrderedDescending;
+        return NSOrderedAscending;
+    } else {
+        NSComparisonResult cmp;
+        if (!self.datatype && !term.datatype) {
+            return [self.value compare:term.value];
+        } else if (self.datatype && term.datatype) {
+            cmp = [self.datatype compare:term.datatype];
+            if (cmp != NSOrderedSame)
+                return cmp;
+            return [self.value compare:term.value];
+        } else {
+            if (!self.datatype) {
+                return NSOrderedAscending;
+            } else {
+                return NSOrderedDescending;
+            }
+        }
+    }
+    return NSOrderedSame;
+}
+
 @end

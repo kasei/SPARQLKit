@@ -11,6 +11,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (id<GTWTerm>) initWithValue: (NSString*) value;
 - (GTWTermType) termType;
 - (NSString*) value;
+- (NSComparisonResult)compare:(id<GTWTerm>)term;
 @optional
 - (NSString*) language;
 - (NSString*) datatype;
