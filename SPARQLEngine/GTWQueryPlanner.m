@@ -8,11 +8,17 @@
     id<Triple> t;
     NSInteger count;
     NSArray* defaultGraphs;
+    NSArray* list;
     switch (algebra.type) {
+        case ALGEBRA_DISTINCT:
+            return [[GTWTree alloc] initWithType:PLAN_DISTINCT pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
         case ALGEBRA_PROJECT:
-            return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
+            return [[GTWTree alloc] initWithType:PLAN_PROJECT pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
         case ALGEBRA_BGP:
             return [self planBGP: algebra.arguments usingDataset: dataset];
+        case ALGEBRA_ORDERBY:
+            list    = algebra.arguments[1];
+            return [[GTWTree alloc] initWithType:PLAN_ORDER pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
         case TREE_TRIPLE:
             t   = algebra.arguments[0];
             defaultGraphs   = [dataset defaultGraphs];
@@ -42,7 +48,7 @@
 }
 
 - (GTWTree*) planBGP: (NSArray*) triples usingDataset: (GTWQueryDataset*) dataset {
-    NSLog(@"planning BGP: %@\n", triples);
+//    NSLog(@"planning BGP: %@\n", triples);
     NSArray* defaultGraphs   = [dataset defaultGraphs];
     NSInteger count   = [defaultGraphs count];
     NSInteger i;
