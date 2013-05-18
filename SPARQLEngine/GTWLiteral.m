@@ -20,7 +20,7 @@
 - (GTWLiteral*) initWithString: (NSString*) string language: (NSString*) language {
     if (self = [self init]) {
         self.value      = string;
-        self.language   = language;
+        self.language   = [language lowercaseString];
         self.datatype   = @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
     }
     return self;

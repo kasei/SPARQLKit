@@ -150,4 +150,9 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
     } error: error];
 }
 
+- (NSEnumerator*) tripleEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error {
+    NSArray* triples    = [self getTriplesMatchingSubject:s predicate:p object:o error:error];
+    return [triples objectEnumerator];
+}
+
 @end

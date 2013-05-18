@@ -169,6 +169,11 @@
     return YES;
 }
 
+- (NSEnumerator*) quadEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error {
+    NSArray* quads  = [self getQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
+    return [quads objectEnumerator];
+}
+
 - (BOOL) addQuad: (id<Quad>) q error:(NSError **)error {
 //    NSLog(@"+ %8lu %@", [self.quads count], q);
     [self.quads addObject:q];

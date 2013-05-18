@@ -134,6 +134,11 @@
     return YES;
 }
 
+- (NSEnumerator*) tripleEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error {
+    NSArray* triples    = [self getTriplesMatchingSubject:s predicate:p object:o error:error];
+    return [triples objectEnumerator];
+}
+
 - (BOOL) addTriple: (id<Triple>) t error:(NSError **)error {
     librdf_node *s  = [self objectToRaptorTerm:t.subject];
     librdf_node *p  = [self objectToRaptorTerm:t.predicate];
