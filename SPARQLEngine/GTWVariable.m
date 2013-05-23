@@ -25,12 +25,31 @@
     if ([object conformsToProtocol:@protocol(GTWTerm)]){
         id<GTWTerm> term    = object;
         if (self.termType == term.termType) {
+            NSLog(@"comparing equality: %@ %@", self, term);
             if ([self.value isEqual:term.value]) {
+                NSLog(@"-> YES");
                 return YES;
             }
         }
     }
+    NSLog(@"-> NO");
     return NO;
+}
+
+- (NSComparisonResult)compare:(id<GTWTerm>)term {
+    if (!term)
+        return NSOrderedDescending;
+    if (self.termType != term.termType) {
+        NSLog(@"not the same type: %@ %@", self, term);
+        return NSOrderedAscending;
+    } else {
+        NSLog(@"comparing values: %@ %@", self, term);
+        return [self.value compare:term.value];
+    }
+}
+
+- (NSUInteger)hash {
+    return [self.value hash];
 }
 
 @end

@@ -189,27 +189,29 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     } else if (type == PLAN_PROJECT) {
         NSArray* results    = evaluateQueryPlan(plan.arguments[0], model);
         NSMutableArray* projected   = [NSMutableArray arrayWithCapacity:[results count]];
-        GTWTree* listtree   = plan.arguments[1];
+        GTWTree* listtree   = plan.value;
         NSArray* list       = listtree.arguments;
         for (id r in results) {
             NSMutableDictionary* result = [NSMutableDictionary dictionary];
             for (GTWTree* treenode in list) {
-                GTWVariable* v  = treenode.arguments[0];
+                GTWVariable* v  = treenode.value;
                 NSString* name  = [v value];
-                result[name]    = r[name];
+                if (r[name]) {
+                    result[name]    = r[name];
+                }
             }
             [projected addObject:result];
         }
         return projected;
     } else if (type == TREE_TRIPLE) {
-        id<Triple> t    = plan.arguments[0];
+        id<Triple> t    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:t.subject predicate:t.predicate object:t.object graph:nil usingBlock:^(NSDictionary* r) {
             [results addObject:r];
         } error:nil];
         return results;
     } else if (type == TREE_QUAD) {
-        id<Quad> q    = plan.arguments[0];
+        id<Quad> q    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
             [results addObject:r];
@@ -223,8 +225,8 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
         for (i = 0; i < [list.arguments count]; i+=2) {
             GTWTree* vtree  = list.arguments[i];
             GTWTree* dtree  = list.arguments[i+1];
-            id<GTWTerm> dirterm     = dtree.arguments[0];
-            id<GTWTerm> variable    = vtree.arguments[0];
+            id<GTWTerm> dirterm     = dtree.value;
+            id<GTWTerm> variable    = vtree.value;
             NSInteger direction     = [[dirterm value] integerValue];
             [orderTerms addObject:@{ @"variable": variable, @"direction": [NSNumber numberWithInteger:direction] }];
         }
@@ -268,11 +270,22 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     GTWTree* plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset];
     NSLog(@"plan:\n%@", plan);
-    NSLog(@"executing query...");
-    NSArray* results    = evaluateQueryPlan(plan, model);
-    for (id r in results) {
-        NSLog(@"result: %@\n", r);
+    
+    if (YES) {
+        NSLog(@"executing query...");
+        NSArray* results    = evaluateQueryPlan(plan, model);
+        for (id r in results) {
+            NSLog(@"result: %@\n", r);
+        }
     }
+    
+    if (NO) {
+        [plan computeScopeVariables];
+        NSSet* variables    = [plan annotationForKey:kUsedVariables];
+        NSLog(@"plan variables: %@", variables);
+    }
+    
+    
     
 //    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
 //    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
@@ -323,14 +336,15 @@ int main(int argc, const char * argv[]) {
     //    NSString* query = @"SELECT DISTINCT ?s ?p WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; ?p ?o } ORDER BY ?p DESC(?s)";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name }";
-        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT * WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox } ORDER BY ASC(?s) DESC(?mbox)";
+//        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(ISIRI(?s)) } ORDER BY ASC(?s) DESC(?mbox)";
+        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(?s = 1 || ISURI(?mbox)) }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> }";
         runQuery(query, filename, @"http://query-base.example.com/");
     }
     
     NSLog(@"entering runloop...\n");
     int i;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 1; i++) {
         sleep(1);
     }
     NSLog(@"done\n");

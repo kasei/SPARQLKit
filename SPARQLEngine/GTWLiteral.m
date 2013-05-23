@@ -54,7 +54,16 @@
         id<GTWTerm> term    = object;
         if (self.termType == term.termType) {
             if ([self.value isEqual:term.value]) {
-                // TODO check language/datatype
+                if ([self.language isEqual:term.language]) {
+                    return YES;
+                } else if (self.language || term.language) {
+                    return NO;
+                }
+                if ([self.datatype isEqual:term.datatype]) {
+                    return YES;
+                } else if (self.datatype || term.datatype) {
+                    return NO;
+                }
                 return YES;
             }
         }
@@ -87,6 +96,10 @@
         }
     }
     return NSOrderedSame;
+}
+
+- (NSUInteger)hash {
+    return [[self.value description] hash];
 }
 
 @end

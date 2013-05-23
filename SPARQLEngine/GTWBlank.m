@@ -46,4 +46,8 @@
     }
 }
 
+- (NSUInteger)hash {
+    return [self.value hash];
+}
+
 @end

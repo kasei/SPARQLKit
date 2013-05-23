@@ -21,7 +21,7 @@ static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutable
 //		gtw_tree_node* lhs;
 //		gtw_tree_node* rhs	= tree_child(c, 0);
 		if (*size == 0) {
-            lhs = [[GTWTree alloc] initWithType:ALGEBRA_BGP pointer:NULL arguments:@[]];
+            lhs = [[GTWTree alloc] initWithType:ALGEBRA_BGP arguments:@[]];
 //			lhs	= gtw_new_tree(ALGEBRA_BGP, NULL, 0, NULL);
 		} else {
 			(*size)--;
@@ -45,10 +45,10 @@ static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutable
 //			}
 //			array[(*size)++]	= gtw_new_tree_va(type, NULL, 3, lhs, rhs, e);
             // TODO: this should include the filter expression
-            array[(*size)++]    = [[GTWTree alloc] initWithType:type pointer:NULL arguments:@[lhs, rhs]];
+            array[(*size)++]    = [[GTWTree alloc] initWithType:type arguments:@[lhs, rhs]];
             
 		} else {
-            array[(*size)++]    = [[GTWTree alloc] initWithType:type pointer:NULL arguments:@[lhs, rhs]];
+            array[(*size)++]    = [[GTWTree alloc] initWithType:type arguments:@[lhs, rhs]];
 //			array[(*size)++]	= gtw_new_tree_va(type, NULL, 2, lhs, rhs);
 		}
 		return 1;
@@ -106,6 +106,274 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 			break;
 	};
 }
+
+static GTWTreeType rasqal_op_type_to_tree_type ( rasqal_op type ) {
+    switch (type) {
+        case RASQAL_EXPR_AND:
+            return EXPR_AND;
+        case RASQAL_EXPR_OR:
+            return EXPR_OR;
+        case RASQAL_EXPR_EQ:
+            return EXPR_EQ;
+        case RASQAL_EXPR_NEQ:
+            return EXPR_NEQ;
+        case RASQAL_EXPR_LT:
+            return EXPR_LT;
+        case RASQAL_EXPR_GT:
+            return EXPR_GT;
+        case RASQAL_EXPR_LE:
+            return EXPR_LE;
+        case RASQAL_EXPR_GE:
+            return EXPR_GE;
+        case RASQAL_EXPR_UMINUS:
+            return EXPR_UMINUS;
+        case RASQAL_EXPR_PLUS:
+            return EXPR_PLUS;
+        case RASQAL_EXPR_MINUS:
+            return EXPR_MINUS;
+		case RASQAL_EXPR_BANG:
+            return EXPR_BANG;
+		case RASQAL_EXPR_LITERAL:
+            return EXPR_LITERAL;
+		case RASQAL_EXPR_FUNCTION:
+            return EXPR_FUNCTION;
+		case RASQAL_EXPR_BOUND:
+            return EXPR_BOUND;
+		case RASQAL_EXPR_STR:
+            return EXPR_STR;
+		case RASQAL_EXPR_LANG:
+            return EXPR_LANG;
+		case RASQAL_EXPR_DATATYPE:
+            return EXPR_DATATYPE;
+		case RASQAL_EXPR_ISURI:
+            return EXPR_ISURI;
+		case RASQAL_EXPR_ISBLANK:
+            return EXPR_ISBLANK;
+		case RASQAL_EXPR_ISLITERAL:
+            return EXPR_ISLITERAL;
+		case RASQAL_EXPR_CAST:
+            return EXPR_CAST;
+		case RASQAL_EXPR_LANGMATCHES:
+            return EXPR_LANGMATCHES;
+		case RASQAL_EXPR_REGEX:
+            return EXPR_REGEX;
+		case RASQAL_EXPR_COUNT:
+            return EXPR_COUNT;
+		case RASQAL_EXPR_SAMETERM:
+            return EXPR_SAMETERM;
+		case RASQAL_EXPR_SUM:
+            return EXPR_SUM;
+		case RASQAL_EXPR_AVG:
+            return EXPR_AVG;
+		case RASQAL_EXPR_MIN:
+            return EXPR_MIN;
+		case RASQAL_EXPR_MAX:
+            return EXPR_MAX;
+		case RASQAL_EXPR_COALESCE:
+            return EXPR_COALESCE;
+		case RASQAL_EXPR_IF:
+            return EXPR_IF;
+		case RASQAL_EXPR_URI:
+            return EXPR_URI;
+		case RASQAL_EXPR_IRI:
+            return EXPR_IRI;
+		case RASQAL_EXPR_STRLANG:
+            return EXPR_STRLANG;
+		case RASQAL_EXPR_STRDT:
+            return EXPR_STRDT;
+		case RASQAL_EXPR_BNODE:
+            return EXPR_BNODE;
+		case RASQAL_EXPR_GROUP_CONCAT:
+            return EXPR_GROUP_CONCAT;
+		case RASQAL_EXPR_SAMPLE:
+            return EXPR_SAMPLE;
+		case RASQAL_EXPR_IN:
+            return EXPR_IN;
+		case RASQAL_EXPR_NOT_IN:
+            return EXPR_NOT_IN;
+		case RASQAL_EXPR_ISNUMERIC:
+            return EXPR_ISNUMERIC;
+		case RASQAL_EXPR_YEAR:
+            return EXPR_YEAR;
+		case RASQAL_EXPR_MONTH:
+            return EXPR_MONTH;
+		case RASQAL_EXPR_DAY:
+            return EXPR_DAY;
+		case RASQAL_EXPR_HOURS:
+            return EXPR_HOURS;
+		case RASQAL_EXPR_MINUTES:
+            return EXPR_MINUTES;
+		case RASQAL_EXPR_SECONDS:
+            return EXPR_SECONDS;
+		case RASQAL_EXPR_TIMEZONE:
+            return EXPR_TIMEZONE;
+		case RASQAL_EXPR_CURRENT_DATETIME:
+            return EXPR_CURRENT_DATETIME;
+		case RASQAL_EXPR_NOW:
+            return EXPR_NOW;
+		case RASQAL_EXPR_FROM_UNIXTIME:
+            return EXPR_FROM_UNIXTIME;
+		case RASQAL_EXPR_TO_UNIXTIME:
+            return EXPR_TO_UNIXTIME;
+		case RASQAL_EXPR_CONCAT:
+            return EXPR_CONCAT;
+		case RASQAL_EXPR_STRLEN:
+            return EXPR_STRLEN;
+		case RASQAL_EXPR_SUBSTR:
+            return EXPR_SUBSTR;
+		case RASQAL_EXPR_UCASE:
+            return EXPR_UCASE;
+		case RASQAL_EXPR_LCASE:
+            return EXPR_LCASE;
+		case RASQAL_EXPR_STRSTARTS:
+            return EXPR_STRSTARTS;
+		case RASQAL_EXPR_STRENDS:
+            return EXPR_STRENDS;
+		case RASQAL_EXPR_CONTAINS:
+            return EXPR_CONTAINS;
+		case RASQAL_EXPR_ENCODE_FOR_URI:
+            return EXPR_ENCODE_FOR_URI;
+		case RASQAL_EXPR_TZ:
+            return EXPR_TZ;
+		case RASQAL_EXPR_RAND:
+            return EXPR_RAND;
+		case RASQAL_EXPR_ABS:
+            return EXPR_ABS;
+		case RASQAL_EXPR_ROUND:
+            return EXPR_ROUND;
+		case RASQAL_EXPR_CEIL:
+            return EXPR_CEIL;
+		case RASQAL_EXPR_FLOOR:
+            return EXPR_FLOOR;
+		case RASQAL_EXPR_MD5:
+            return EXPR_MD5;
+		case RASQAL_EXPR_SHA1:
+            return EXPR_SHA1;
+		case RASQAL_EXPR_SHA224:
+            return EXPR_SHA224;
+		case RASQAL_EXPR_SHA256:
+            return EXPR_SHA256;
+		case RASQAL_EXPR_SHA384:
+            return EXPR_SHA384;
+		case RASQAL_EXPR_SHA512:
+            return EXPR_SHA512;
+		case RASQAL_EXPR_STRBEFORE:
+            return EXPR_STRBEFORE;
+		case RASQAL_EXPR_STRAFTER:
+            return EXPR_STRAFTER;
+		case RASQAL_EXPR_REPLACE:
+            return EXPR_REPLACE;
+		case RASQAL_EXPR_UUID:
+            return EXPR_UUID;
+		case RASQAL_EXPR_STRUUID:
+            return EXPR_STRUUID;
+        default:
+            NSLog(@"unknown rasqal type: %s", rasqal_expression_op_label(type));
+            return 0;
+    }
+}
+
+static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
+    fprintf( stderr, "expression op: %s\n", rasqal_expression_op_label(expr->op) );
+    id<GTWTerm> term;
+    GTWTreeType ttype   = rasqal_op_type_to_tree_type(expr->op);
+    switch (expr->op) {
+        // 0-ary
+        case RASQAL_EXPR_NOW:
+        case RASQAL_EXPR_RAND:
+        case RASQAL_EXPR_UUID:
+        case RASQAL_EXPR_STRUUID:
+            return [[GTWTree alloc] initLeafWithType:ttype value:nil pointer:NULL];
+        // 1-ary
+        case RASQAL_EXPR_UMINUS:
+        case RASQAL_EXPR_BANG:
+        case RASQAL_EXPR_BOUND:
+        case RASQAL_EXPR_STR:
+        case RASQAL_EXPR_LANG:
+        case RASQAL_EXPR_DATATYPE:
+        case RASQAL_EXPR_ISURI:
+        case RASQAL_EXPR_ISBLANK:
+        case RASQAL_EXPR_ISLITERAL:
+        case RASQAL_EXPR_URI:
+        case RASQAL_EXPR_IRI:
+        case RASQAL_EXPR_ISNUMERIC:
+        case RASQAL_EXPR_YEAR:
+        case RASQAL_EXPR_MONTH:
+        case RASQAL_EXPR_DAY:
+        case RASQAL_EXPR_HOURS:
+        case RASQAL_EXPR_MINUTES:
+        case RASQAL_EXPR_SECONDS:
+        case RASQAL_EXPR_TIMEZONE:
+        case RASQAL_EXPR_TZ:
+        case RASQAL_EXPR_STRLEN:
+        case RASQAL_EXPR_UCASE:
+        case RASQAL_EXPR_LCASE:
+        case RASQAL_EXPR_ENCODE_FOR_URI:
+        case RASQAL_EXPR_ABS:
+        case RASQAL_EXPR_ROUND:
+        case RASQAL_EXPR_CEIL:
+        case RASQAL_EXPR_FLOOR:
+        case RASQAL_EXPR_MD5:
+        case RASQAL_EXPR_SHA1:
+        case RASQAL_EXPR_SHA224:
+        case RASQAL_EXPR_SHA256:
+        case RASQAL_EXPR_SHA384:
+        case RASQAL_EXPR_SHA512:
+            return [[GTWTree alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1)]];
+        // 2-ary
+        case RASQAL_EXPR_EQ:
+        case RASQAL_EXPR_NEQ:
+        case RASQAL_EXPR_LT:
+        case RASQAL_EXPR_GT:
+        case RASQAL_EXPR_LE:
+        case RASQAL_EXPR_GE:
+        case RASQAL_EXPR_MINUS:
+        case RASQAL_EXPR_PLUS:
+        case RASQAL_EXPR_OR:
+        case RASQAL_EXPR_AND:
+        case RASQAL_EXPR_LANGMATCHES:
+        case RASQAL_EXPR_SAMETERM:
+        case RASQAL_EXPR_STRLANG:
+        case RASQAL_EXPR_STRDT:
+        case RASQAL_EXPR_STRSTARTS:
+        case RASQAL_EXPR_STRENDS:
+        case RASQAL_EXPR_CONTAINS:
+        case RASQAL_EXPR_STRBEFORE:
+        case RASQAL_EXPR_STRAFTER:
+            return [[GTWTree alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1), rasqal_expression_to_tree(expr->arg2)]];
+        // other
+        case RASQAL_EXPR_LITERAL:
+            term    = rasqal_literal_to_object(expr->literal);
+            return [[GTWTree alloc] initWithType:TREE_NODE arguments:nil];
+        case RASQAL_EXPR_BNODE:
+        case RASQAL_EXPR_REGEX:
+        case RASQAL_EXPR_SUBSTR:
+        case RASQAL_EXPR_FUNCTION:
+        case RASQAL_EXPR_REPLACE:
+        case RASQAL_EXPR_COALESCE:
+        case RASQAL_EXPR_CONCAT:
+        case RASQAL_EXPR_COUNT:
+        case RASQAL_EXPR_SUM:
+        case RASQAL_EXPR_AVG:
+        case RASQAL_EXPR_MIN:
+        case RASQAL_EXPR_MAX:
+        case RASQAL_EXPR_SAMPLE:
+        case RASQAL_EXPR_GROUP_CONCAT:
+        case RASQAL_EXPR_CAST:
+        case RASQAL_EXPR_IF:
+        case RASQAL_EXPR_IN:
+        case RASQAL_EXPR_NOT_IN:
+        case RASQAL_EXPR_CURRENT_DATETIME:
+        case RASQAL_EXPR_FROM_UNIXTIME:
+        case RASQAL_EXPR_TO_UNIXTIME:
+            // TODO
+            fprintf(stderr, "*** don't know how to convert this op: %s\n", rasqal_expression_op_label(expr->op));
+        default:
+            break;
+    }
+    return nil;
+}
+
 
 static void
 roqet_query_write_variable(FILE* fh, rasqal_variable* v)
@@ -184,13 +452,13 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			id<GTWTerm> p	= rasqal_literal_to_object(t->predicate);
 			id<GTWTerm> o	= rasqal_literal_to_object(t->object);
 			
-            NSLog(@"triple: %@ %@ %@", s, p, o);
+//            NSLog(@"triple: %@ %@ %@", s, p, o);
             
             GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
-			triples[i]          = [[GTWTree alloc] initWithType:TREE_TRIPLE pointer:NULL arguments:@[triple]];
+			triples[i]          = [[GTWTree alloc] initLeafWithType:TREE_TRIPLE value: triple pointer:NULL];
 		}
 		//		fprintf(fh, "bgp\t%d\n", triple_index);
-        a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP pointer:NULL arguments:triples];
+        a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP arguments:triples];
 	}
 	
 	/* look for sub-graph patterns */
@@ -207,11 +475,12 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			rasqal_graph_pattern* sgp;
 			sgp = rasqal_graph_pattern_get_sub_graph_pattern(gp, gp_index);
 			if(!sgp) {
-				children[gp_index]	= NULL;
+//				children[gp_index]	= NULL;
 				break;
 			}
 			
-			children[gp_index]	= roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh);
+            [children addObject:roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh)];
+//			children[gp_index]	= roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh);
 			
             //			fprintf(stderr, "Pattern child #%d:\n", gp_index);
             //			gtw_tree_print(children[gp_index], stderr);
@@ -222,19 +491,20 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			gp_index++;
 		}
 		
-		size	= gp_index;
+//		size	= gp_index;
+        size    = (int) [children count];
 		if (op == RASQAL_GRAPH_PATTERN_OPERATOR_UNION) {
 			//			fprintf(stderr, "union\n");
 			//			fprintf(fh, "union\t%d\n", gp_index);
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_UNION pointer:NULL arguments:children];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_UNION arguments:children];
 		} else if (op == RASQAL_GRAPH_PATTERN_OPERATOR_OPTIONAL) {
 			//			fprintf(stderr, "optional\n");
 			//			fprintf(fh, "optional\t%d\n", gp_index);
 			//			fprintf(stderr, "LeftJoin size %d\n", size);
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_LEFTJOIN pointer:NULL arguments:@[children[0]]];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_LEFTJOIN arguments:@[children[0]]];
 		} else if (op == RASQAL_GRAPH_PATTERN_OPERATOR_MINUS) {
 			//			fprintf(stderr, "minus\n");
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_MINUS pointer:NULL arguments:@[children[0]]];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_MINUS arguments:@[children[0]]];
 		} else if (size > 0) {
 			//			fprintf(stderr, "group\n");
 			//			fprintf(fh, "group\t%d\n", gp_index);
@@ -246,19 +516,30 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
                 GTWTree* c  = children[i];
 //				gtw_tree_node* c	= children[i];
 				if (_fix_leftjoin(rasqal_world_ptr, c, children2, &size2)) {
-				} else if (c.type == ALGEBRA_FILTER && c.arguments[1] == nil) {
+				} else if (c.type == ALGEBRA_FILTER && [c.arguments count] == 0) {
 					GTWTree* pat;
 					if (size2 == 0) {
-                        pat = [[GTWTree alloc] initWithType:ALGEBRA_BGP pointer:NULL arguments:@[]];
+                        pat = [[GTWTree alloc] initWithType:ALGEBRA_BGP arguments:@[]];
 //						pat	= gtw_new_tree(ALGEBRA_BGP, NULL, 0, NULL);
 					} else {
 						size2--;
 						pat	= children2[size2];
-						children2[size2]	= NULL;
+                        [children2 removeObject:pat];
+//						children2[size2]	= NULL;
 					}
 //					children2[size2++]	= gtw_new_tree_va(ALGEBRA_FILTER, NULL, 2, gtw_tree_copy(tree_child(c,0)), pat);
                     //					gtw_free_tree(c);
-                    children2[size2++]  = [[GTWTree alloc] initWithType:ALGEBRA_FILTER pointer:NULL arguments:@[c.arguments[0], pat]];
+                    
+                    GTWTree* expr       = c.value;
+                    NSLog(@"FILTER expression: %@", expr);
+//                    NSLog(@"expression tree: %@", expr);
+                    
+                    if (expr) {
+                        children2[size2++]  = [[GTWTree alloc] initWithType:ALGEBRA_FILTER value: expr arguments:@[pat]];
+                    } else {
+                        NSLog(@"Failed to construct filter expression tree");
+                        children2[size2++]  = pat;
+                    }
 				} else {
 					children2[size2++]	= c;
 				}
@@ -266,14 +547,14 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			
 			// @@ don't produce groups here. instead, produce joins.
 			if (size2 == 0) {
-                a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP pointer:NULL arguments:@[]];
+                a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP arguments:@[]];
 //				a	= gtw_new_tree(ALGEBRA_BGP, NULL, 0, NULL);
 			} else if (size2 == 1) {
 				a	= children2[0];
 			} else {
 				a	= children2[0];
 				for (i = 1; i < size2; i++) {
-                    a   = [[GTWTree alloc] initWithType:ALGEBRA_JOIN pointer:NULL arguments:@[a, children2[i]]];
+                    a   = [[GTWTree alloc] initWithType:ALGEBRA_JOIN arguments:@[a, children2[i]]];
 //					a	= gtw_new_tree_va(ALGEBRA_JOIN, NULL, 2, a, children2[i]);
 				}
 			}
@@ -288,9 +569,11 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 	if (expr) {
         //		fprintf(stderr, "filter\n");
         //		rasqal_expression_print(expr, stderr);
-        GTWTree* e  = [[GTWTree alloc] initWithType:TREE_EXPRESSION pointer:rasqal_new_expression_from_expression(expr) arguments:@[]];
+        
+        GTWTree* expression = rasqal_expression_to_tree(expr);
+//        GTWTree* e  = [[GTWTree alloc] initLeafWithType:TREE_EXPRESSION value: nil pointer:rasqal_new_expression_from_expression(expr)];
 //		gtw_tree_node* e	= gtw_new_tree_va(TREE_EXPRESSION, rasqal_new_expression_from_expression(expr), 0);
-        a   = [[GTWTree alloc] initWithType:ALGEBRA_FILTER pointer:NULL arguments:@[e]];
+        a   = [[GTWTree alloc] initWithType:ALGEBRA_FILTER value: expression arguments:@[]];
 //		a	= gtw_new_tree_va(ALGEBRA_FILTER, NULL, 1, e);
 		if (!a) {
 			return NULL;
@@ -301,7 +584,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 	//	fprintf(stderr, ")\n");
 	
 	if (!a) {
-        a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP pointer:NULL arguments:@[]];
+        a   = [[GTWTree alloc] initWithType:ALGEBRA_BGP arguments:@[]];
 //		a	= gtw_new_tree(ALGEBRA_BGP, NULL, 0, NULL);
 	}
 	
@@ -313,9 +596,9 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //		gtw_term* t	= rasqal_literal_to_term(literal);
 //		gtw_node* n	= gtw_new_node(NODE_NULL, t);
 //		gtw_free_term(t);
-        GTWTree* g  = [[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[t]];
+        GTWTree* g  = [[GTWTree alloc] initLeafWithType:TREE_NODE value: t pointer:NULL];
 //		gtw_tree_node* g	= gtw_new_tree_va(TREE_NODE, n, 0);
-        a   = [[GTWTree alloc] initWithType:ALGEBRA_GRAPH pointer:NULL arguments:@[g, a]];
+        a   = [[GTWTree alloc] initWithType:ALGEBRA_GRAPH arguments:@[g, a]];
 //		a	= gtw_new_tree_va(ALGEBRA_GRAPH, NULL, 2, g, a);
 	}
 	
@@ -393,7 +676,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
             NSMutableArray* vars    = [NSMutableArray arrayWithCapacity:osize];
 //			gtw_tree_node** vars	= (gtw_tree_node**) alloca(sizeof(gtw_tree_node*) * osize);
 			for (i = 0; i < osize; i++) {
-                NSLog(@"array: %@", vars);
+//                NSLog(@"array: %@", vars);
 				rasqal_expression* e	= raptor_sequence_get_at(order, i);
 				int order	= 0;
 				if (e->op == RASQAL_EXPR_ORDER_COND_ASC) {
@@ -411,8 +694,8 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				if (e->op == RASQAL_EXPR_LITERAL) {
 					rasqal_literal* l		= e->literal;
                     id<GTWTerm> t   = rasqal_literal_to_object(l);
-                    [vars addObject:[[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[t]]];
-                    [vars addObject:[[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[[GTWLiteral integerLiteralWithValue:order]]]];
+                    [vars addObject:[[GTWTree alloc] initLeafWithType:TREE_NODE value: t pointer:NULL]];
+                    [vars addObject:[[GTWTree alloc] initLeafWithType:TREE_NODE value: [GTWLiteral integerLiteralWithValue:order] pointer:NULL]];
 //					gtw_term* t	= rasqal_literal_to_term(l);
 //					vars[i]	= gtw_new_tree_va(TREE_NODE, gtw_new_node(NODE_NULL, t), 0);
 //					gtw_free_term(t);
@@ -425,9 +708,9 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				}
 			}
             
-            GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST pointer:NULL arguments:vars];
+            GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST arguments:vars];
 //			gtw_tree_node* vlist	= gtw_new_tree(TREE_LIST, NULL, osize, vars);
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_ORDERBY pointer:NULL arguments:@[a, vlist]];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_ORDERBY arguments:@[a, vlist]];
 //			a	= gtw_new_tree_va(ALGEBRA_ORDERBY, NULL, 2, a, vlist);
 		}
 	}
@@ -444,23 +727,23 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				if(!v)
 					break;
                 id<GTWTerm> t   = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
-                GTWTree* var = [[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[t]];
+                GTWTree* var = [[GTWTree alloc] initLeafWithType:TREE_NODE value: t pointer:NULL];
                 vars[i]         = var;
 //				gtw_term* t	= gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL);
 //				vars[i]	= gtw_new_tree_va(TREE_NODE, gtw_new_node(NODE_NULL, t), 0);
 //				gtw_free_term(t);
                 
                 // TODO: re-implement
-//				if(v->expression) {
+				if(v->expression) {
 //					gtw_tree_node* expr	= gtw_new_tree_va(TREE_EXPRESSION, rasqal_new_expression_from_expression(v->expression), 0);
 //					a	= gtw_new_tree_va(ALGEBRA_EXTEND, NULL, 3, a, gtw_new_tree_va(TREE_NODE, gtw_new_node(NODE_NULL, gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL)), 0), expr);
-//				}
+				}
 				i++;
 			}
-            GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST pointer:NULL arguments:vars];
+            GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST arguments:vars];
 //			gtw_tree_node* vlist	= gtw_new_tree(TREE_LIST, NULL, psize, vars);
 			//		fprintf(fh, "project\t%d\n", raptor_sequence_size(seq));
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_PROJECT pointer:NULL arguments:@[a, vlist]];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_PROJECT value: vlist arguments:@[a]];
 //			a	= gtw_new_tree_va(ALGEBRA_PROJECT, NULL, 2, a, vlist);
 		}
 	}
@@ -468,7 +751,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 	i = rasqal_query_get_distinct(rq);
 	if(i != 0) {
 		//		fprintf(fh, "distinct\n");
-		a   = [[GTWTree alloc] initWithType:ALGEBRA_DISTINCT pointer:NULL arguments:@[a]];
+		a   = [[GTWTree alloc] initWithType:ALGEBRA_DISTINCT arguments:@[a]];
 //        a	= gtw_new_tree_va(ALGEBRA_DISTINCT, NULL, 1, a);
 	}
 	
@@ -494,10 +777,10 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 //			
 //			gtw_node* limit		= gtw_new_node(lid, length);
 //			gtw_node* offset	= gtw_new_node(sid, start);
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_SLICE pointer:NULL arguments:@[
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_SLICE arguments:@[
                    a,
-                   [[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[offset]],
-                   [[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[limit]],
+                   [[GTWTree alloc] initLeafWithType:TREE_NODE value: offset pointer:NULL],
+                   [[GTWTree alloc] initLeafWithType:TREE_NODE value: limit pointer:NULL],
                    ]];
 //			a	= gtw_new_tree_va(
 //                                  ALGEBRA_SLICE, NULL, 3,
@@ -523,13 +806,13 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 					rasqal_literal* l	= raptor_sequence_get_at(seq, i);
                     id<GTWTerm> t   = rasqal_literal_to_object(l);
 //					gtw_term* t	= rasqal_literal_to_term(l);
-                    vars[i] = [[GTWTree alloc] initWithType:TREE_NODE pointer:NULL arguments:@[t]];
+                    vars[i] = [[GTWTree alloc] initLeafWithType:TREE_NODE value: t pointer:NULL];
 //					vars[i]	= gtw_new_tree_va(TREE_NODE, gtw_new_node(NODE_NULL, t), 0);
 //					gtw_free_term(t);
 				}
-                GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST pointer:NULL arguments:vars];
+                GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST arguments:vars];
 //				gtw_tree_node* vlist	= gtw_new_tree(TREE_LIST, NULL, size, vars);
-                a   = [[GTWTree alloc] initWithType:ALGEBRA_DESCRIBE pointer:NULL arguments:@[a, vlist]];
+                a   = [[GTWTree alloc] initWithType:ALGEBRA_DESCRIBE arguments:@[a, vlist]];
 //				a	= gtw_new_tree_va(ALGEBRA_DESCRIBE, NULL, 2, a, vlist);
 			}
 		}

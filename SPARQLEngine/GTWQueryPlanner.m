@@ -11,27 +11,31 @@
     NSArray* list;
     switch (algebra.type) {
         case ALGEBRA_DISTINCT:
-            return [[GTWTree alloc] initWithType:PLAN_DISTINCT pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+            return [[GTWTree alloc] initWithType:PLAN_DISTINCT arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
         case ALGEBRA_PROJECT:
-            return [[GTWTree alloc] initWithType:PLAN_PROJECT pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
+            return [[GTWTree alloc] initWithType:PLAN_PROJECT value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+        case ALGEBRA_JOIN:
+            return [[GTWTree alloc] initWithType:PLAN_NLJOIN arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset]]];
         case ALGEBRA_BGP:
             return [self planBGP: algebra.arguments usingDataset: dataset];
+        case ALGEBRA_FILTER:
+            return [[GTWTree alloc] initWithType:PLAN_FILTER value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
         case ALGEBRA_ORDERBY:
             list    = algebra.arguments[1];
-            return [[GTWTree alloc] initWithType:PLAN_ORDER pointer:nil arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
+            return [[GTWTree alloc] initWithType:PLAN_ORDER arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
         case TREE_TRIPLE:
-            t   = algebra.arguments[0];
+            t   = algebra.value;
             defaultGraphs   = [dataset defaultGraphs];
             count   = [defaultGraphs count];
             if (count == 0) {
-                return [[GTWTree alloc] initWithType:PLAN_EMPTY pointer:nil arguments:@[]];
+                return [[GTWTree alloc] initWithType:PLAN_EMPTY arguments:@[]];
             } else if (count == 1) {
-                return [[GTWTree alloc] initWithType:TREE_QUAD pointer:nil arguments:@[[[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]]];
+                return [[GTWTree alloc] initLeafWithType:TREE_QUAD value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]] pointer:NULL];
             } else {
-                GTWTree* plan   = [[GTWTree alloc] initWithType:TREE_QUAD pointer:nil arguments:@[[[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]]];
+                GTWTree* plan   = [[GTWTree alloc] initLeafWithType:TREE_QUAD value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]] pointer:NULL];
                 NSInteger i;
                 for (i = 1; i < count; i++) {
-                    plan    = [[GTWTree alloc] initWithType:PLAN_UNION pointer:nil arguments:@[plan, [[GTWTree alloc] initWithType:TREE_QUAD pointer:nil arguments:@[[[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]]]]]];
+                    plan    = [[GTWTree alloc] initWithType:PLAN_UNION arguments:@[plan, [[GTWTree alloc] initLeafWithType:TREE_QUAD value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]] pointer:NULL]]];
                 }
                 return plan;
             }
@@ -54,12 +58,12 @@
     NSInteger i;
     GTWTree* plan;
     if (count == 0) {
-        return [[GTWTree alloc] initWithType:PLAN_EMPTY pointer:nil arguments:@[]];
+        return [[GTWTree alloc] initWithType:PLAN_EMPTY arguments:@[]];
     } else {
         plan   = [self queryPlanForAlgebra:triples[0] usingDataset:dataset];
         for (i = 1; i < [triples count]; i++) {
             GTWTree* quad    = [self queryPlanForAlgebra:triples[i] usingDataset:dataset];
-            plan    = [[GTWTree alloc] initWithType:PLAN_NLJOIN pointer:NULL arguments:@[plan, quad]];
+            plan    = [[GTWTree alloc] initWithType:PLAN_NLJOIN arguments:@[plan, quad]];
         }
     }
     return plan;
