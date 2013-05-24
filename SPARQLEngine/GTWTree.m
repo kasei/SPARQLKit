@@ -444,15 +444,23 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 
 - (void) computeScopeVariables {
     [self applyPrefixBlock:nil postfixBlock:^id(GTWTree *node, NSUInteger level, BOOL *stop) {
-        if (node.value) {
-            if (node.type == TREE_NODE) {
-                id<GTWTerm> term    = node.value;
-                // TODO: This should be using a protocol to check if the term is a variable
+        if (node.type == TREE_NODE) {
+            id<GTWTerm> term    = node.value;
+            // TODO: This should be using a protocol to check if the term is a variable
+            if ([term isKindOfClass:[GTWVariable class]]) {
+                NSSet* set          = [NSSet setWithObject:term];
+//                    NSLog(@"variables: %@ for plan: %@", set, node);
+                [node.annotations setObject:set forKey:kUsedVariables];
+            }
+        } else if (node.type == TREE_QUAD) {
+            id<Quad> q  = node.value;
+            NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
+            NSMutableSet* set   = [NSMutableSet set];
+            for (id<GTWTerm> term in array) {
                 if ([term isKindOfClass:[GTWVariable class]]) {
-                    NSSet* set          = [NSSet setWithObject:term];
-    //                NSLog(@"variables: %@ for plan: %@", set, node);
-                    [node.annotations setObject:set forKey:kUsedVariables];
+                    [set addObject:term];
                 }
+                [node.annotations setObject:set forKey:kUsedVariables];
             }
         } else {
             NSUInteger count    = [node.arguments count];
@@ -467,6 +475,15 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
                         [set unionSet:newset];
                     }
                 }
+                if (node.value && [node.value isKindOfClass:[GTWTree class]]) {
+                    GTWTree* tree   = node.value;
+                    [tree computeScopeVariables];
+                    NSSet* newset  = [tree.annotations objectForKey:kUsedVariables];
+                    if (newset) {
+                        [set unionSet:newset];
+                    }
+                }
+                
                 [node.annotations setObject:set forKey:kUsedVariables];
             }
         }
@@ -475,7 +492,6 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 }
 
 - (BOOL) isExpression {
-    NSLog(@"checking for expression tree: %s\n", gtw_tree_type_name(self.type));
     switch (self.type) {
         case EXPR_AND:
         case EXPR_OR:
@@ -556,10 +572,8 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         case EXPR_REPLACE:
         case EXPR_UUID:
         case EXPR_STRUUID:
-            NSLog(@"YES");
             return YES;
         default:
-            NSLog(@"NO");
             return NO;
     }
 }
