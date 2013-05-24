@@ -447,9 +447,9 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         if (node.type == TREE_NODE) {
             id<GTWTerm> term    = node.value;
             // TODO: This should be using a protocol to check if the term is a variable
-            if ([term isKindOfClass:[GTWVariable class]]) {
+            if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                 NSSet* set          = [NSSet setWithObject:term];
-//                    NSLog(@"variables: %@ for plan: %@", set, node);
+//                NSLog(@"variables: %@ for plan: %@", set, node);
                 [node.annotations setObject:set forKey:kUsedVariables];
             }
         } else if (node.type == TREE_QUAD) {
@@ -457,7 +457,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
             NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
             NSMutableSet* set   = [NSMutableSet set];
             for (id<GTWTerm> term in array) {
-                if ([term isKindOfClass:[GTWVariable class]]) {
+                if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                     [set addObject:term];
                 }
                 [node.annotations setObject:set forKey:kUsedVariables];

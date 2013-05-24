@@ -185,9 +185,9 @@
 }
 
 - (librdf_node*) objectToRaptorTerm: (id<GTWTerm>) term {
-    if ([term isKindOfClass:[GTWIRI class]]) {
+    if ([term conformsToProtocol:@protocol(GTWIRI)]) {
         return librdf_new_node_from_uri_string(self.librdf_world_ptr, (const unsigned char*) [[term value] UTF8String]);
-    } else if ([term isKindOfClass:[GTWLiteral class]]) {
+    } else if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
         GTWLiteral* l   = (GTWLiteral*) term;
         if (l.datatype) {
             librdf_uri* dt  = librdf_new_uri(self.librdf_world_ptr, (const unsigned char*) [[l datatype] UTF8String]);
@@ -195,7 +195,7 @@
         } else {
             return librdf_new_node_from_literal(self.librdf_world_ptr, (const unsigned char*) [[l value] UTF8String], [[l language] UTF8String], 0);
         }
-    } else if ([term isKindOfClass:[GTWBlank class]]) {
+    } else if ([term conformsToProtocol:@protocol(GTWBlank)]) {
         return librdf_new_node_from_blank_identifier(self.librdf_world_ptr, (const unsigned char*) [[term value] UTF8String]);
     } else {
         return nil;

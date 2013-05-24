@@ -116,7 +116,7 @@ int run2(NSString* filename, NSString* base) {
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     //    NSLog(@"parser: %p\n", p);
     if (p) {
-        GTWTriple* t   = nil;
+        id<GTWTriple> t   = nil;
         while ((t = [p nextObject])) {
             [store addTriple:t error:nil];
         }
@@ -161,7 +161,6 @@ int run3(NSString* filename, NSString* base) {
     return 0;
 }
 
-static 
 static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     GTWTreeType type    = plan.type;
     if (type == PLAN_NLJOIN) {

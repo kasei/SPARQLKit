@@ -1,6 +1,6 @@
 #import "SPARQLEngine.h"
 
-@interface GTWIRI : NSObject<GTWTerm>
+@interface GTWIRI : NSObject<GTWIRI>
 
 @property (retain, readwrite) NSString* value;
 

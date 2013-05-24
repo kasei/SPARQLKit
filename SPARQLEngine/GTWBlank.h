@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLEngine.h"
 
-@interface GTWBlank : NSObject<GTWTerm>
+@interface GTWBlank : NSObject<GTWBlank>
 
 @property (retain, readwrite) NSString* value;
 

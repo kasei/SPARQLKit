@@ -41,19 +41,19 @@
 - (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError **)error {
     //    NSLog(@"%@ %@ %@ %@", s, p, o, g);
     NSMutableDictionary* vars  = [NSMutableDictionary dictionary];
-    if ([s isKindOfClass:[GTWVariable class]]) {
+    if ([s conformsToProtocol:@protocol(GTWVariable)]) {
         [vars setObject:s.value forKey:@"subject"];
         s   = nil;
     }
-    if ([p isKindOfClass:[GTWVariable class]]) {
+    if ([p conformsToProtocol:@protocol(GTWVariable)]) {
         [vars setObject:p.value forKey:@"predicate"];
         p   = nil;
     }
-    if ([o isKindOfClass:[GTWVariable class]]) {
+    if ([o conformsToProtocol:@protocol(GTWVariable)]) {
         [vars setObject:o.value forKey:@"object"];
         o   = nil;
     }
-    if ([g isKindOfClass:[GTWVariable class]]) {
+    if ([g conformsToProtocol:@protocol(GTWVariable)]) {
         [vars setObject:g.value forKey:@"graph"];
         g   = nil;
     }

@@ -18,7 +18,7 @@
     id<GTWTerm> value;
     switch (expr.type) {
         case TREE_NODE:
-            if ([expr.value isKindOfClass:[GTWVariable class]]) {
+            if ([expr.value conformsToProtocol:@protocol(GTWVariable)]) {
                 value   = [result objectForKey:[expr.value value]];
             } else {
                 value   = expr.value;
@@ -68,7 +68,7 @@
         case EXPR_ISURI:
             lhs = [self evaluateExpression:expr.arguments[0] WithResult:result];
             NSLog(@"ISIRI(%@)", lhs);
-            if ([lhs isKindOfClass:[GTWIRI class]]) {
+            if ([lhs conformsToProtocol:@protocol(GTWIRI)]) {
                 return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
             } else {
                 return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];

@@ -4,7 +4,7 @@
 #import "GTWLiteral.h"
 #import "GTWTriple.h"
 
-static GTWLiteral* emitProperty (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<GTWTriple> t)) {
+static id<GTWTerm> emitProperty (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<GTWTriple> t)) {
     id<GTWTriple> t    = [[GTWTriple alloc] init];
     t.subject       = subject;
     t.predicate     = predicate;
@@ -102,8 +102,8 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
 //        NSLog(@"person as company: %d", showAsFlags);
         if (!(showAsFlags & kABShowAsCompany)) {
             block([[GTWTriple alloc] initWithSubject:person predicate:rdftype object:foafPerson]);
-            GTWLiteral* fname   = emitProperty(p, person, kABFirstNameProperty, foaffname, [GTWLiteral class], block);
-            GTWLiteral* lname   = emitProperty(p, person, kABLastNameProperty, foaflname, [GTWLiteral class], block);
+            id<GTWTerm> fname   = emitProperty(p, person, kABFirstNameProperty, foaffname, [GTWLiteral class], block);
+            id<GTWTerm> lname   = emitProperty(p, person, kABLastNameProperty, foaflname, [GTWLiteral class], block);
             
             for (NSString* property in propertyPredicates) {
                 NSDictionary* data  = propertyPredicates[property];

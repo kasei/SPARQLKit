@@ -17,6 +17,20 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (NSString*) datatype;
 @end
 
+@protocol GTWBlank <GTWTerm>
+@end
+
+@protocol GTWIRI <GTWTerm>
+@end
+
+@protocol GTWLiteral <GTWTerm>
+- (NSString*) datatype;
+- (NSString*) language;
+@end
+
+@protocol GTWVariable <GTWTerm>
+@end
+
 @protocol GTWTriple
 @property id<GTWTerm> subject;
 @property id<GTWTerm> predicate;

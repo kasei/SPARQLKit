@@ -57,8 +57,8 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
     raptor_parser_set_statement_handler(self.parser, user_data, statement_handler);
     
     raptor_uri* base_uri    = raptor_new_uri(self.raptor_world_ptr, (const unsigned char*) [self.baseURI UTF8String]);
-    const unsigned char *buffer;
-    size_t buffer_len;
+//    const unsigned char *buffer;
+//    size_t buffer_len;
     
     raptor_parser_parse_start(self.parser, base_uri);
     
