@@ -8,5 +8,6 @@
 
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra;
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset;
+- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset optimize: (BOOL) opt;
 
 @end

@@ -4,6 +4,14 @@
 
 @implementation GTWQueryPlanner
 
+- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset optimize: (BOOL) opt {
+    GTWTree* plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset];
+    if (opt) {
+        [plan computeScopeVariables];
+    }
+    return plan;
+}
+
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset {
     id<Triple> t;
     NSInteger count;
