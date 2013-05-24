@@ -14,6 +14,7 @@
 #import "GTWAddressBookTripleStore.h"
 #import "GTWQueryDataset.h"
 #import "GTWRedlandParser.h"
+#import "GTWExpression.h"
 #import "NSObject+NSDictionary_QueryBindings.h"
 
 rasqal_world* rasqal_world_ptr;
@@ -160,6 +161,7 @@ int run3(NSString* filename, NSString* base) {
     return 0;
 }
 
+static 
 static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     GTWTreeType type    = plan.type;
     if (type == PLAN_NLJOIN) {
@@ -247,6 +249,19 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             return NSOrderedSame;
         }];
         return ordered;
+    } else if (type == PLAN_FILTER) {
+        GTWTree* expr       = plan.value;
+        GTWTree* subplan    = plan.arguments[0];
+        NSArray* results    = evaluateQueryPlan(subplan, model);
+        NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
+        for (id result in results) {
+            GTWLiteral* f   = [GTWExpression evaluateExpression:expr WithResult:result];
+//            NSLog(@"-> %@", f);
+            if ([f booleanValue]) {
+                [filtered addObject:result];
+            }
+        }
+        return filtered;
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);
     }
@@ -268,7 +283,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
     GTWTree* algebra    = [parser parserSPARQL:query withBaseURI:base];
     NSLog(@"query:\n%@", algebra);
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
-    GTWTree* plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset];
+    GTWTree* plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
     NSLog(@"plan:\n%@", plan);
     
     if (YES) {
@@ -279,8 +294,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
         }
     }
     
-    if (NO) {
-        [plan computeScopeVariables];
+    if (YES) {
         NSSet* variables    = [plan annotationForKey:kUsedVariables];
         NSLog(@"plan variables: %@", variables);
     }
@@ -337,7 +351,8 @@ int main(int argc, const char * argv[]) {
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name }";
 //        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(ISIRI(?s)) } ORDER BY ASC(?s) DESC(?mbox)";
-        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(?s = 1 || ISURI(?mbox)) }";
+        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?s ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . }";
+//        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' . FILTER(ISURI(?s)) }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> }";
         runQuery(query, filename, @"http://query-base.example.com/");
     }
