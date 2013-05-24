@@ -13,4 +13,6 @@
 - (GTWLiteral*) initWithString: (NSString*) string language: (NSString*) language;
 - (GTWLiteral*) initWithString: (NSString*) string datatype: (NSString*) datatype;
 
+- (BOOL) booleanValue;
+
 @end

@@ -102,4 +102,12 @@
     return [[self.value description] hash];
 }
 
+- (BOOL) booleanValue {
+    if (!self.datatype)
+        return NO;
+    if (![self.datatype isEqualToString:@"http://www.w3.org/2001/XMLSchema#boolean"])
+        return NO;
+    return [self.value isEqualToString:@"true"];
+}
+
 @end
