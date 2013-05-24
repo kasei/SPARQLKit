@@ -601,7 +601,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         if (count > 0) {
             [s appendFormat:@"%@", [node.arguments[0] conciseDescription]];
             for (i = 1; i < count; i++) {
-                [s appendFormat:@", %@", [node.arguments[0] conciseDescription]];
+                [s appendFormat:@", %@", [node.arguments[i] conciseDescription]];
             }
         }
         [s appendString:@")"];
