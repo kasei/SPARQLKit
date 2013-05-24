@@ -13,7 +13,7 @@
 }
 
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset {
-    id<Triple> t;
+    id<GTWTriple> t;
     NSInteger count;
     NSArray* defaultGraphs;
     NSArray* list;

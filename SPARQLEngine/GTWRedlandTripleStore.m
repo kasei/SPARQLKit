@@ -32,13 +32,13 @@
 
 - (NSArray*) getTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error {
     NSMutableArray* array   = [NSMutableArray array];
-    [self enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<Triple>t){
+    [self enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple>t){
         [array addObject:t];
     } error:error];
     return nil;
 }
 
-- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<Triple> t)) block error:(NSError **)error {
+- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
     NSMutableString* queryString    = [NSMutableString stringWithString:@"SELECT * WHERE { "];
     if (s) {
         [queryString appendFormat:@"%@ ", s];
@@ -70,7 +70,7 @@
         }
         
         if (names) {
-            GTWTriple* t    = [[GTWTriple alloc] init];
+            id<GTWTriple> t    = [[GTWTriple alloc] init];
             if (s) {
                 t.subject   = s;
             }
@@ -113,7 +113,7 @@
                     }
                     
                     if (term != NULL) {
-                        [t setValue:term forKey:[NSString stringWithCString:name encoding:NSUTF8StringEncoding]];
+                        [(NSObject<GTWTerm>*)t setValue:term forKey:[NSString stringWithCString:name encoding:NSUTF8StringEncoding]];
 //                        int var	= gtw_execution_context_variable_number(t->ctx, name);
 //                        gtw_solution_set_mapping(r, var, n);
                     }
@@ -139,7 +139,7 @@
     return [triples objectEnumerator];
 }
 
-- (BOOL) addTriple: (id<Triple>) t error:(NSError **)error {
+- (BOOL) addTriple: (id<GTWTriple>) t error:(NSError **)error {
     librdf_node *s  = [self objectToRaptorTerm:t.subject];
     librdf_node *p  = [self objectToRaptorTerm:t.predicate];
     librdf_node *o  = [self objectToRaptorTerm:t.object];
@@ -147,7 +147,7 @@
     return YES;
 }
 
-- (BOOL) removeTriple: (id<Triple>) t error:(NSError **)error {
+- (BOOL) removeTriple: (id<GTWTriple>) t error:(NSError **)error {
     librdf_node *s  = [self objectToRaptorTerm:t.subject];
     librdf_node *p  = [self objectToRaptorTerm:t.predicate];
     librdf_node *o  = [self objectToRaptorTerm:t.object];

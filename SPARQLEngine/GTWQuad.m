@@ -2,7 +2,7 @@
 
 @implementation GTWQuad
 
-+ (GTWQuad*) quadFromTriple: (id<Triple>) t withGraph: (id<GTWTerm>) graph {
++ (GTWQuad*) quadFromTriple: (id<GTWTriple>) t withGraph: (id<GTWTerm>) graph {
     GTWQuad* q  = [[self alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:graph];
     return q;
 }
@@ -22,8 +22,8 @@
 }
 
 - (BOOL) isEqual:(id)object {
-    if ([object conformsToProtocol:@protocol(Quad)]){
-        id<Quad> t = object;
+    if ([object conformsToProtocol:@protocol(GTWQuad)]){
+        id<GTWQuad> t = object;
         if (![self.subject isEqual:t.subject])
             return NO;
         if (![self.predicate isEqual:t.predicate])

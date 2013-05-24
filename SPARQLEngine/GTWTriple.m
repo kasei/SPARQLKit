@@ -2,7 +2,7 @@
 
 @implementation GTWTriple
 
-+ (GTWTriple*) tripleFromQuad: (id<Quad>) q {
++ (GTWTriple*) tripleFromQuad: (id<GTWQuad>) q {
     return [[GTWTriple alloc] initWithSubject:q.subject predicate:q.predicate object:q.object];
 }
 
@@ -24,8 +24,8 @@
 }
 
 - (BOOL) isEqual:(id)object {
-    if ([object conformsToProtocol:@protocol(Triple)]){
-        id<Triple> t = object;
+    if ([object conformsToProtocol:@protocol(GTWTriple)]){
+        id<GTWTriple> t = object;
         if (![self.subject isEqual:t.subject])
             return NO;
         if (![self.predicate isEqual:t.predicate])

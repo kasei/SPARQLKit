@@ -34,8 +34,8 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
     return self;
 }
 
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<Triple> t)) block error:(NSError **)error {
-    GTWTriple* t;
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
+    id<GTWTriple> t;
     while ((t = [self nextObject])) {
         block(t);
     }
@@ -50,7 +50,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
     return t;
 }
 
-- (GTWTriple*) nextObject {
+- (id<GTWTriple>) nextObject {
     while (YES) {
         GTWTurtleToken* t   = [self nextNonCommentToken];
         if (t == nil) {
@@ -72,7 +72,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
                 id<GTWTerm> subj    = self.currentSubject;
                 id<GTWTerm> pred    = self.currentPredicate;
                 if (subj && pred && b) {
-                    GTWTriple* st    = [[GTWTriple alloc] initWithSubject:subj predicate:pred object:b];
+                    id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:subj predicate:pred object:b];
                     return st;
                 }
             }
@@ -107,7 +107,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
                 }
                 
                 
-                GTWTriple* st    = [[GTWTriple alloc] initWithSubject:[self currentSubject] predicate:[self currentPredicate] object:term];
+                id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:[self currentSubject] predicate:[self currentPredicate] object:term];
                 return st;
             } else if ([self haveSubject]) {
                 //                NSLog(@"--> got predicate");

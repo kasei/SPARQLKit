@@ -2,9 +2,9 @@
 
 @implementation GTWMemoryQuadStore
 
-- (void) _addQuad: (id<Quad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
+- (void) _addQuad: (id<GTWQuad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
     // caller is responsible for using @synchronized(idx)
-    NSObject<Quad>* qq  = (NSObject<Quad>*) q;
+    NSObject<GTWQuad>* qq  = (NSObject<GTWQuad>*) q;
     //    NSLog(@"indexing quad: %@\n", q);
     NSMutableArray* keyarray    = [NSMutableArray array];
     for (NSString* p in positions) {
@@ -24,9 +24,9 @@
     [set addObject:q];
 }
 
-- (void) _removeQuad: (id<Quad>) q fromIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
+- (void) _removeQuad: (id<GTWQuad>) q fromIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
     // caller is responsible for using @synchronized(idx)
-    NSObject<Quad>* qq  = (NSObject<Quad>*) q;
+    NSObject<GTWQuad>* qq  = (NSObject<GTWQuad>*) q;
     //    NSLog(@"indexing quad: %@\n", q);
     NSMutableArray* keyarray    = [NSMutableArray array];
     for (NSString* p in positions) {
@@ -89,7 +89,7 @@
                 NSEnumerator* e = [self.quads objectEnumerator];
                 dispatch_async(self.queue, ^{
                     @synchronized(idx) {
-                        for (NSObject<Quad>* q in e) {
+                        for (NSObject<GTWQuad>* q in e) {
                             [self _addQuad:q toIndex:idx withPositions:positions];
                         }
                     }
@@ -102,7 +102,7 @@
         
         if (sync) {
             @synchronized(idx) {
-                for (NSObject<Quad>* q in self.quads) {
+                for (NSObject<GTWQuad>* q in self.quads) {
                     [self _addQuad:q toIndex:idx withPositions:positions];
                 }
             }
@@ -117,7 +117,7 @@
 - (NSArray*) getGraphsWithOutError:(NSError **)error {
     NSMutableArray* graphs  = [NSMutableArray array];
     NSMutableSet* seen  = [NSMutableSet set];
-    for (id<Quad> q in self.quads) {
+    for (id<GTWQuad> q in self.quads) {
         if (![seen containsObject:q.graph]) {
             [graphs addObject:q.graph];
             [seen addObject:q.graph];
@@ -128,7 +128,7 @@
 
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
     NSMutableSet* seen  = [NSMutableSet set];
-    [self.quads enumerateObjectsUsingBlock:^(id<Quad> q, BOOL* stop){
+    [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
         if (![seen containsObject:q.graph]) {
             block(q.graph);
             [seen addObject:q.graph];
@@ -139,14 +139,14 @@
 
 - (NSArray*) getQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error {
     NSMutableArray* quads    = [NSMutableArray array];
-    [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<Quad> q){
+    [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q){
         [quads addObject:q];
     } error:error];
     return quads;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<Quad> q)) block error:(NSError **)error {
-    [self.quads enumerateObjectsUsingBlock:^(id<Quad> q, BOOL* stop){
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
+    [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
         if (s) {
             if (![s isEqual:q.subject])
                 return;
@@ -174,7 +174,7 @@
     return [quads objectEnumerator];
 }
 
-- (BOOL) addQuad: (id<Quad>) q error:(NSError **)error {
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
 //    NSLog(@"+ %8lu %@", [self.quads count], q);
     [self.quads addObject:q];
     dispatch_barrier_async(self.queue, ^{
@@ -192,7 +192,7 @@
     return YES;
 }
 
-- (BOOL) removeQuad: (id<Quad>) q error:(NSError **)error {
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
     [self.quads removeObject:q];
     dispatch_barrier_async(self.queue, ^{
         for (NSString* name in self.indexes) {

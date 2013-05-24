@@ -16,9 +16,9 @@ typedef GTWBlank*(^IDGenerator)(NSString* name);
 @property (nonatomic, copy) IDGenerator bnodeIDGenerator;
 @property NSError* error;
 
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<Triple> t)) block error:(NSError **)error;
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 - (GTWTurtleParser*) initWithLexer: (GTWTurtleLexer*) lex base: (GTWIRI*) base;
-- (GTWTriple*) nextObject;
+- (id<GTWTriple>) nextObject;
 
 - (id<GTWTerm>) currentSubject;
 - (id<GTWTerm>) currentPredicate;

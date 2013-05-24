@@ -4,8 +4,8 @@
 #import "GTWLiteral.h"
 #import "GTWTriple.h"
 
-static GTWLiteral* emitProperty (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<Triple> t)) {
-    GTWTriple* t    = [[GTWTriple alloc] init];
+static GTWLiteral* emitProperty (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<GTWTriple> t)) {
+    id<GTWTriple> t    = [[GTWTriple alloc] init];
     t.subject       = subject;
     t.predicate     = predicate;
     
@@ -19,8 +19,8 @@ static GTWLiteral* emitProperty (ABPerson* person, GTWIRI* subject, NSString* pr
     }
 }
 
-static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<Triple> t), NSString* (^convert)(NSString* value)) {
-    GTWTriple* t    = [[GTWTriple alloc] init];
+static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<GTWTriple> t), NSString* (^convert)(NSString* value)) {
+    id<GTWTriple> t    = [[GTWTriple alloc] init];
     t.subject       = subject;
     t.predicate     = predicate;
     
@@ -52,13 +52,13 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
 
 - (NSArray*) getTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error {
     NSMutableArray* triples = [NSMutableArray array];
-    [self enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<Triple> t) {
+    [self enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t) {
         [triples addObject:t];
     } error:error];
     return triples;
 }
 
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<Triple> t)) block error: (NSError**) error {
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error: (NSError**) error {
     NSDictionary* propertyPredicates    = @{
 //                                            kABFirstNameProperty: @"http://xmlns.com/foaf/0.1/givenName",
 //                                            kABLastNameProperty: @"http://xmlns.com/foaf/0.1/familyName",
@@ -130,8 +130,8 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
     return YES;
 }
 
-- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<Triple> t)) block error:(NSError **)error {
-    return [self enumerateTriplesWithBlock:^(id<Triple> t){
+- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
+    return [self enumerateTriplesWithBlock:^(id<GTWTriple> t){
         if (s) {
             if (![s isEqual:t.subject])
                 return;

@@ -17,13 +17,13 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (NSString*) datatype;
 @end
 
-@protocol Triple
+@protocol GTWTriple
 @property id<GTWTerm> subject;
 @property id<GTWTerm> predicate;
 @property id<GTWTerm> object;
 @end
 
-@protocol Quad <Triple>
+@protocol GTWQuad <GTWTriple>
 @property id<GTWTerm> subject;
 @property id<GTWTerm> predicate;
 @property id<GTWTerm> object;
@@ -54,7 +54,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 @protocol GTWTripleStore
 @property id<GTWLogger> logger;
 - (NSArray*) getTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error;
-- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<Triple> t)) block error:(NSError **)error;
+- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 @optional
 - (NSEnumerator*) tripleEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error;
 - (NSString*) etagForTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error;
@@ -62,8 +62,8 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 @end
 
 @protocol MutableTripleStore
-- (BOOL) addTriple: (id<Triple>) t error:(NSError **)error;
-- (BOOL) removeTriple: (id<Triple>) t error:(NSError **)error;
+- (BOOL) addTriple: (id<GTWTriple>) t error:(NSError **)error;
+- (BOOL) removeTriple: (id<GTWTriple>) t error:(NSError **)error;
 @end
 
 #pragma mark -
@@ -74,7 +74,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (NSArray*) getGraphsWithOutError:(NSError **)error;
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error;
 - (NSArray*) getQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error;
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<Quad> q)) block error:(NSError **)error;
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error;
 @optional
 - (NSEnumerator*) quadEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error;
 - (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError**) error;
@@ -84,8 +84,8 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 @end
 
 @protocol MutableQuadStore
-- (BOOL) addQuad: (id<Quad>) q error:(NSError **)error;
-- (BOOL) removeQuad: (id<Quad>) q error:(NSError **)error;
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error;
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error;
 @end
 
 
@@ -93,7 +93,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 @protocol GTWModel
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error;
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<Quad> q)) block error:(NSError **)error;
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error;
 - (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError **)error;
 @end
 
@@ -151,6 +151,6 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 #pragma mark -
 
 @protocol GTWRDFParser
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<Triple> t)) block error:(NSError **)error;
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 @end
 

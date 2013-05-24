@@ -28,9 +28,9 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
     id<GTWTerm> s   = raptorTermToObject(statement->subject);
     id<GTWTerm> p   = raptorTermToObject(statement->predicate);
     id<GTWTerm> o   = raptorTermToObject(statement->object);
-    void(^block)(id<Triple>)        = (__bridge void(^)(id<Triple>)) user_data;
+    void(^block)(id<GTWTriple>)        = (__bridge void(^)(id<GTWTriple>)) user_data;
     if (s && p && o) {
-        GTWTriple* t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+        id<GTWTriple> t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
         block(t);
     }
     /* do something with the statement */
@@ -52,7 +52,7 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
     raptor_free_parser(self.parser);
 }
 
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<Triple> t)) block error:(NSError **)error {
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
     void* user_data         = (__bridge void*) block;;
     raptor_parser_set_statement_handler(self.parser, user_data, statement_handler);
     

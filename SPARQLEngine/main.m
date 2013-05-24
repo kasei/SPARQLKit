@@ -42,7 +42,7 @@ int loadFile (id<MutableQuadStore> store, NSString* filename, NSString* base) {
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     if (p) {
         //    NSLog(@"parser: %p\n", p);
-        [p enumerateTriplesWithBlock:^(id<Triple> t) {
+        [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
             [store addQuad:q error:nil];
         } error:nil];
@@ -70,7 +70,7 @@ int run(NSString* filename, NSString* base) {
     //    {
     //        __block NSUInteger count    = 0;
     //        NSLog(@"Quads:\n");
-    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(id<Quad> q){
+    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(id<GTWQuad> q){
     //            count++;
     //            NSLog(@"-> %@\n", q);
     //        } error:nil];
@@ -86,7 +86,7 @@ int run(NSString* filename, NSString* base) {
     //    {
     //        __block NSUInteger count    = 0;
     //        NSLog(@"Quads:\n");
-    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(NSObject<Quad>* q){
+    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(NSObject<GTWQuad>* q){
     //            count++;
     //            NSLog(@"-> %@\n", q);
     //            //            NSLog(@"      subject -> %@\n", [q valueForKey: @"subject"]);
@@ -132,7 +132,7 @@ int run2(NSString* filename, NSString* base) {
     {
         __block NSUInteger count    = 0;
         NSLog(@"Quads:\n");
-        [store enumerateTriplesMatchingSubject:greg predicate:rdftype object:nil usingBlock:^(id<Triple> t){
+        [store enumerateTriplesMatchingSubject:greg predicate:rdftype object:nil usingBlock:^(id<GTWTriple> t){
             count++;
             NSLog(@"-> %@\n", t);
         } error:nil];
@@ -150,7 +150,7 @@ int run3(NSString* filename, NSString* base) {
     id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" WithRaptorWorld:raptor_world_ptr];
     {
         __block NSUInteger count    = 0;
-        [parser enumerateTriplesWithBlock:^(id<Triple> t){
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
             count++;
             NSLog(@"-> %@\n", t);
         } error:nil];
@@ -206,14 +206,14 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
         }
         return projected;
     } else if (type == TREE_TRIPLE) {
-        id<Triple> t    = plan.value;
+        id<GTWTriple> t    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:t.subject predicate:t.predicate object:t.object graph:nil usingBlock:^(NSDictionary* r) {
             [results addObject:r];
         } error:nil];
         return results;
     } else if (type == TREE_QUAD) {
-        id<Quad> q    = plan.value;
+        id<GTWQuad> q    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
             [results addObject:r];
@@ -309,7 +309,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
     
 //    __block NSUInteger count    = 0;
 //    NSLog(@"enumerating quads...");
-//    [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<Quad> q){
+//    [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
 //        NSLog(@"%3ld -> %@", ++count, q);
 //    } error:nil];
 

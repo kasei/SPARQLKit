@@ -454,7 +454,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			
 //            NSLog(@"triple: %@ %@ %@", s, p, o);
             
-            GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+            id<GTWTriple> triple   = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
 			triples[i]          = [[GTWTree alloc] initLeafWithType:TREE_TRIPLE value: triple pointer:NULL];
 		}
 		//		fprintf(fh, "bgp\t%d\n", triple_index);

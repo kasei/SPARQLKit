@@ -15,12 +15,12 @@
     return self;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<Quad> q)) block error:(NSError **)error {
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
     if (g) {
         id<GTWTripleStore> store   = [self.graphs objectForKey:g.value];
         if (store) {
-            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<Triple> t){
-                GTWQuad* q      = [GTWQuad quadFromTriple:t withGraph:g];
+            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+                id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:g];
                 block(q);
             } error:error];
         }
@@ -29,8 +29,8 @@
         for (NSString* graphName in [self.graphs allKeys]) {
             GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
             id<GTWTripleStore> store    = [self.graphs objectForKey:graphName];
-            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<Triple> t){
-                GTWQuad* q      = [GTWQuad quadFromTriple:t withGraph:graph];
+            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+                id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
                 block(q);
             } error:error];
         }
@@ -58,7 +58,7 @@
         g   = nil;
     }
     
-    return [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<Quad> q) {
+    return [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
         //        NSLog(@"creating bindings for quad: %@", q);
         NSMutableDictionary* r = [NSMutableDictionary dictionary];
         BOOL ok = YES;

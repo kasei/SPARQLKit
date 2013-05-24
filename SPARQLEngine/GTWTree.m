@@ -453,7 +453,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
                 [node.annotations setObject:set forKey:kUsedVariables];
             }
         } else if (node.type == TREE_QUAD) {
-            id<Quad> q  = node.value;
+            id<GTWQuad> q  = node.value;
             NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
             NSMutableSet* set   = [NSMutableSet set];
             for (id<GTWTerm> term in array) {

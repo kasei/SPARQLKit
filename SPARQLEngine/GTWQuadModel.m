@@ -10,7 +10,7 @@
     return self;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<Quad> q)) block error:(NSError **)error {
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
 //    NSLog(@"GTWQuadModel enumerateQuadsMatching...");
     return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:block error:error];
 }
@@ -35,7 +35,7 @@
         g   = nil;
     }
     
-    return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<Quad> q) {
+    return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
 //        NSLog(@"creating bindings for quad: %@", q);
         NSMutableDictionary* r = [NSMutableDictionary dictionary];
         BOOL ok = YES;
