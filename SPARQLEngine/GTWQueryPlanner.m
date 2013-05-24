@@ -29,8 +29,8 @@
         case ALGEBRA_FILTER:
             return [[GTWTree alloc] initWithType:PLAN_FILTER value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
         case ALGEBRA_ORDERBY:
-            list    = algebra.arguments[1];
-            return [[GTWTree alloc] initWithType:PLAN_ORDER arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], algebra.arguments[1]]];
+            list    = algebra.value;
+            return [[GTWTree alloc] initWithType:PLAN_ORDER value: list arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
         case TREE_TRIPLE:
             t   = algebra.value;
             defaultGraphs   = [dataset defaultGraphs];

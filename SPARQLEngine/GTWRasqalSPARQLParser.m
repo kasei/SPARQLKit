@@ -695,9 +695,6 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
                     id<GTWTerm> t   = rasqal_literal_to_object(l);
                     [vars addObject:[[GTWTree alloc] initLeafWithType:TREE_NODE value: t pointer:NULL]];
                     [vars addObject:[[GTWTree alloc] initLeafWithType:TREE_NODE value: [GTWLiteral integerLiteralWithValue:order] pointer:NULL]];
-//					gtw_term* t	= rasqal_literal_to_term(l);
-//					vars[i]	= gtw_new_tree_va(TREE_NODE, gtw_new_node(NODE_NULL, t), 0);
-//					gtw_free_term(t);
 				} else {
                     NSLog(@"ORDERing by non-literal not implemented yet");
                     NSLog(@"order expression = %s\n", rasqal_expression_op_label(e->op));
@@ -709,7 +706,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
             
             GTWTree* vlist  = [[GTWTree alloc] initWithType:TREE_LIST arguments:vars];
 //			gtw_tree_node* vlist	= gtw_new_tree(TREE_LIST, NULL, osize, vars);
-            a   = [[GTWTree alloc] initWithType:ALGEBRA_ORDERBY arguments:@[a, vlist]];
+            a   = [[GTWTree alloc] initWithType:ALGEBRA_ORDERBY value: vlist arguments:@[a]];
 //			a	= gtw_new_tree_va(ALGEBRA_ORDERBY, NULL, 2, a, vlist);
 		}
 	}

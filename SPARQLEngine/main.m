@@ -220,7 +220,7 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
         return results;
     } else if (type == PLAN_ORDER) {
         NSArray* results    = evaluateQueryPlan(plan.arguments[0], model);
-        GTWTree* list       = plan.arguments[1];
+        GTWTree* list       = plan.value;
         NSMutableArray* orderTerms  = [NSMutableArray array];
         NSInteger i;
         for (i = 0; i < [list.arguments count]; i+=2) {
@@ -350,7 +350,7 @@ int main(int argc, const char * argv[]) {
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name }";
 //        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(ISIRI(?s)) } ORDER BY ASC(?s) DESC(?mbox)";
-        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?s ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . }";
+        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?s ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . } ORDER BY ?mbox";
 //        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' . FILTER(ISURI(?s)) }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> }";
         runQuery(query, filename, @"http://query-base.example.com/");
