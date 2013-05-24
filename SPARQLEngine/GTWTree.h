@@ -1,16 +1,10 @@
 #import <Foundation/Foundation.h>
+#import "SPARQLEngine.h"
 
 extern NSString * __strong const kUsedVariables;
+extern NSString * __strong const kProjectVariables;
 
-@interface GTWTree : NSObject
-
-typedef id(^GTWTreeAccessorBlock)(GTWTree* node, NSUInteger level, BOOL* stop);
-
-typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
-    GTWTreePrefixOrder  = -1,
-    GTWTreeInfixOrder   = 0,
-    GTWTreePostfixOrder = 1
-};
+@interface GTWTree : NSObject<GTWTree>
 
 typedef NS_ENUM(NSInteger, GTWTreeType) {
 	// plan tree nodes:
@@ -179,4 +173,7 @@ typedef NS_ENUM(NSInteger, GTWTreeType) {
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
 
+@end
+
+@interface GTWQueryPlan : GTWTree<GTWQueryPlan>
 @end

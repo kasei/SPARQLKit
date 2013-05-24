@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLEngine.h"
 
-@interface GTWQueryDataset : NSObject
+@interface GTWQueryDataset : NSObject<GTWQueryDataset>
 
 typedef NS_ENUM(NSInteger, GTWQueryDatasetAvailability) {
     GTWFullDataset,

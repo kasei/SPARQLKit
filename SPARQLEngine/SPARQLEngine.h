@@ -1,5 +1,4 @@
 #import <Foundation/Foundation.h>
-#import "GTWTree.h"
 
 @protocol GTWTerm <NSObject>
 typedef NS_ENUM(NSInteger, GTWTermType) {
@@ -121,6 +120,24 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 #pragma mark -
 
+@protocol GTWTree
+typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, NSUInteger level, BOOL* stop);
+
+typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
+    GTWTreePrefixOrder  = -1,
+    GTWTreeInfixOrder   = 0,
+    GTWTreePostfixOrder = 1
+};
+
+- (NSString*) treeTypeName;
+- (id) applyBlock: (GTWTreeAccessorBlock)block inOrder: (GTWTreeTraversalOrder) order;
+- (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
+- (id) annotationForKey: (NSString*) key;
+- (void) computeScopeVariables;
+@end
+
+#pragma mark -
+
 @protocol GTWQueryPlan
 @end
 @protocol GTWQueryAlgebra
@@ -137,9 +154,15 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 #pragma mark -
 
+@protocol GTWQueryDataset
+- (NSArray*) defaultGraphs;
+- (NSArray*) availableGraphsFromModel: (id<GTWModel>) model;
+@end
+
 @protocol GTWQueryPlanner
 @property id<GTWLogger> logger;
-- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWQueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
+- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWQueryDataset>) dataset optimize: (BOOL) opt;
+//- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWQueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
 @end
 
 
@@ -159,7 +182,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 #pragma mark -
 
 @protocol GTWSPARQLParser
-- (GTWTree*) parserSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
+- (id<GTWTree>) parserSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
 @end
 
 #pragma mark -

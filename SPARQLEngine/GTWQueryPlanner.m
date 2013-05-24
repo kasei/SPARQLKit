@@ -1,10 +1,11 @@
 #import "GTWQueryPlanner.h"
 #import "GTWQuad.h"
 #import "SPARQLEngine.h"
+#import <objc/runtime.h>
 
 @implementation GTWQueryPlanner
 
-- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset optimize: (BOOL) opt {
+- (id<GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset optimize: (BOOL) opt {
     GTWTree* plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset];
     if (opt) {
         [plan computeScopeVariables];
@@ -12,7 +13,7 @@
     return plan;
 }
 
-- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset {
+- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset {
     id<GTWTriple> t;
     NSInteger count;
     NSArray* defaultGraphs;
@@ -59,7 +60,7 @@
     return [self queryPlanForAlgebra:algebra usingDataset:dataset];
 }
 
-- (GTWTree*) planBGP: (NSArray*) triples usingDataset: (GTWQueryDataset*) dataset {
+- (GTWTree*) planBGP: (NSArray*) triples usingDataset: (id<GTWQueryDataset>) dataset {
 //    NSLog(@"planning BGP: %@\n", triples);
     NSArray* defaultGraphs   = [dataset defaultGraphs];
     NSInteger count   = [defaultGraphs count];

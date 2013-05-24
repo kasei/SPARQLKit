@@ -2,7 +2,8 @@
 #import "SPARQLEngine.h"
 #import "GTWVariable.h"
 
-NSString* __strong const kUsedVariables   = @"us.kasei.sparql.variables.used";
+NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
+NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
 
 static const char* gtw_tree_type_name ( GTWTreeType t ) {
 	switch (t) {
@@ -379,7 +380,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
     return [NSString stringWithCString:gtw_tree_type_name(self.type) encoding:NSUTF8StringEncoding];
 }
 
-- (id) _applyBlock: (id(^)(GTWTree* node, NSUInteger level, BOOL* stop))block inOrder: (GTWTreeTraversalOrder) order level: (NSUInteger) level {
+- (id) _applyBlock: (id(^)(id<GTWTree> node, NSUInteger level, BOOL* stop))block inOrder: (GTWTreeTraversalOrder) order level: (NSUInteger) level {
     BOOL stop   = NO;
     id value    = nil;
     if (order == GTWTreePrefixOrder) {
