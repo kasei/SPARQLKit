@@ -4,7 +4,7 @@
 #import "GTWIRI.h"
 #import "GTWQueryDataset.h"
 
-@interface GTWQueryPlanner : NSObject
+@interface GTWQueryPlanner : NSObject<GTWQueryPlanner>
 
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra;
 - (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset;

@@ -3,7 +3,7 @@
 #import "GTWTriple.h"
 #include <redland.h>
 
-@interface GTWRedlandTripleStore : NSObject<GTWTripleStore, MutableTripleStore>
+@interface GTWRedlandTripleStore : NSObject<GTWTripleStore, GTWMutableTripleStore>
 
 @property librdf_model* model;
 @property librdf_world* librdf_world_ptr;

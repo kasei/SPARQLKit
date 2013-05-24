@@ -52,7 +52,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 #pragma mark -
 
-@protocol CostValue
+@protocol GTWCostValue
 //opaque
 @end
 
@@ -75,7 +75,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (NSUInteger) countTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError **)error;
 @end
 
-@protocol MutableTripleStore
+@protocol GTWMutableTripleStore
 - (BOOL) addTriple: (id<GTWTriple>) t error:(NSError **)error;
 - (BOOL) removeTriple: (id<GTWTriple>) t error:(NSError **)error;
 @end
@@ -97,7 +97,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 - (NSUInteger) countQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error;
 @end
 
-@protocol MutableQuadStore
+@protocol GTWMutableQuadStore
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error;
 - (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error;
 @end
@@ -116,14 +116,14 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 @protocol GTWCostEvaluator
 @property id<GTWLogger> logger;
-- (NSComparisonResult)compare:(id<CostValue>)ca with:(id<CostValue>)cb;
+- (NSComparisonResult)compare:(id<GTWCostValue>)ca with:(id<GTWCostValue>)cb;
 @end
 
 #pragma mark -
 
-@protocol QueryPlan
+@protocol GTWQueryPlan
 @end
-@protocol QueryAlgebra
+@protocol GTWQueryAlgebra
 @end
 
 #pragma mark -
@@ -132,14 +132,14 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 @property Class costValueClass;
 @property Class costEvaluatorClass;
 @property id<GTWCostEvaluator> costEvaluator;
-- (id<CostValue>) costForPlan: (id<QueryPlan>) plan;
+- (id<GTWCostValue>) costForPlan: (id<GTWQueryPlan>) plan;
 @end
 
 #pragma mark -
 
-@protocol QueryPlanner
+@protocol GTWQueryPlanner
 @property id<GTWLogger> logger;
-- (id<QueryPlan>) queryPlanForAlgebra: (id<QueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
+- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWQueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
 @end
 
 

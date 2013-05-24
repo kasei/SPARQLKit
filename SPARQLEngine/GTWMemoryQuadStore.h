@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLEngine.h"
 
-@interface GTWMemoryQuadStore : NSObject<GTWQuadStore,MutableQuadStore>
+@interface GTWMemoryQuadStore : NSObject<GTWQuadStore,GTWMutableQuadStore>
 
 @property id<GTWLogger> logger;
 @property NSMutableSet* quads;

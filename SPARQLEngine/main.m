@@ -21,7 +21,7 @@ rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
 raptor_world* raptor_world_ptr;
 
-int loadFile (id<MutableQuadStore> store, NSString* filename, NSString* base) {
+int loadFile (id<GTWMutableQuadStore> store, NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
     
