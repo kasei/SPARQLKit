@@ -96,7 +96,7 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 			break;
 		case RASQAL_LITERAL_VARIABLE:
 			v	= rasqal_literal_as_variable(l);
-            //			fprintf(fh, "?%s\n", v->name);
+//			fprintf(stderr, "?%s\n", v->name);
             return [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
 //			return gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL);
 			break;
@@ -274,7 +274,7 @@ static GTWTreeType rasqal_op_type_to_tree_type ( rasqal_op type ) {
 }
 
 static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
-    fprintf( stderr, "expression op: %s\n", rasqal_expression_op_label(expr->op) );
+//    fprintf( stderr, "expression op: %s\n", rasqal_expression_op_label(expr->op) );
     id<GTWTerm> term;
     GTWTreeType ttype   = rasqal_op_type_to_tree_type(expr->op);
     switch (expr->op) {
@@ -344,7 +344,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         // other
         case RASQAL_EXPR_LITERAL:
             term    = rasqal_literal_to_object(expr->literal);
-            return [[GTWTree alloc] initWithType:TREE_NODE arguments:nil];
+            return [[GTWTree alloc] initLeafWithType:TREE_NODE value:term pointer:NULL];
         case RASQAL_EXPR_BNODE:
         case RASQAL_EXPR_REGEX:
         case RASQAL_EXPR_SUBSTR:
@@ -366,9 +366,9 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_CURRENT_DATETIME:
         case RASQAL_EXPR_FROM_UNIXTIME:
         case RASQAL_EXPR_TO_UNIXTIME:
+        default:
             // TODO
             fprintf(stderr, "*** don't know how to convert this op: %s\n", rasqal_expression_op_label(expr->op));
-        default:
             break;
     }
     return nil;
@@ -531,8 +531,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
                     //					gtw_free_tree(c);
                     
                     GTWTree* expr       = c.value;
-                    NSLog(@"FILTER expression: %@", expr);
-//                    NSLog(@"expression tree: %@", expr);
+//                    NSLog(@"FILTER expression: %@", expr);
                     
                     if (expr) {
                         children2[size2++]  = [[GTWTree alloc] initWithType:ALGEBRA_FILTER value: expr arguments:@[pat]];
