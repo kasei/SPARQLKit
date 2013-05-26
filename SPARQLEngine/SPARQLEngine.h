@@ -25,6 +25,7 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 @protocol GTWLiteral <GTWTerm>
 - (NSString*) datatype;
 - (NSString*) language;
+- (BOOL) booleanValue;
 @end
 
 @protocol GTWVariable <GTWTerm>

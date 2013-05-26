@@ -5,274 +5,408 @@
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
 
-static const char* gtw_tree_type_name ( GTWTreeType t ) {
-	switch (t) {
-        case PLAN_EMPTY:
-            return "Empty";
-		case PLAN_JOIN_IDENTITY:
-			return "JoinIdentity";
-		case PLAN_SCAN:
-			return "Scan";
-		case PLAN_BKAJOIN:
-			return "BKAJoin";
-		case PLAN_FEDSTUB:
-			return "FedStub";
-		case PLAN_NLJOIN:
-			return "NLJoin";
-		case PLAN_HASHJOIN:
-			return "HashJoin";
-		case PLAN_NLLEFTJOIN:
-			return "NLLeftJoin";
-		case PLAN_PROJECT:
-			return "Project";
-		case PLAN_FILTER:
-			return "Filter";
-		case PLAN_UNION:
-			return "Union";
-		case PLAN_EXTEND:
-			return "Extend";
-		case PLAN_MINUS:
-			return "Minus";
-		case PLAN_ORDER:
-			return "Order";
-		case PLAN_DISTINCT:
-			return "Distinct";
-		case PLAN_SLICE:
-			return "Slice";
-		case PLAN_DESCRIBE:
-			return "Describe";
-		case ALGEBRA_BGP:
-			return "BGP";
-		case ALGEBRA_JOIN:
-			return "Join";
-		case ALGEBRA_LEFTJOIN:
-			return "LeftJoin";
-		case ALGEBRA_FILTER:
-			return "Filter";
-		case ALGEBRA_UNION:
-			return "Union";
-		case ALGEBRA_GRAPH:
-			return "Graph";
-		case ALGEBRA_EXTEND:
-			return "Extend";
-		case ALGEBRA_MINUS:
-			return "Minus";
-		case ALGEBRA_ZEROLENGTHPATH:
-			return "ZeroLengthPath";
-		case ALGEBRA_ZEROORMOREPATH:
-			return "ZeroOrMorePath";
-		case ALGEBRA_ONEORMOREPATH:
-			return "OneOrMorePath";
-		case ALGEBRA_NEGATEDPROPERTYSET:
-			return "NegatedPropertySet";
-		case ALGEBRA_GROUP:
-			return "Group";
-		case ALGEBRA_AGGREGATION:
-			return "Aggregation";
-		case ALGEBRA_AGGREGATEJOIN:
-			return "AggregateJoin";
-		case ALGEBRA_TOLIST:
-			return "ToList";
-		case ALGEBRA_ORDERBY:
-			return "OrderBy";
-		case ALGEBRA_PROJECT:
-			return "Project";
-		case ALGEBRA_DISTINCT:
-			return "Distinct";
-		case ALGEBRA_REDUCED:
-			return "Reduced";
-		case ALGEBRA_SLICE:
-			return "Slice";
-		case ALGEBRA_TOMULTISET:
-			return "ToMultiset";
-		case ALGEBRA_DESCRIBE:
-			return "Describe";
-		case TREE_SET:
-			return "set";
-		case TREE_LIST:
-			return "list";
-		case TREE_DICTIONARY:
-			return "dictionary";
-		case TREE_AGGREGATE:
-			return "aggregate";
-		case TREE_TRIPLE:
-			return "triple";
-		case TREE_QUAD:
-			return "quad";
-		case TREE_EXPRESSION:
-			return "expr";
-		case TREE_NODE:
-			return "node";
-		case TREE_PATH:
-			return "path";
-		case TREE_ORDER_CONDITION:
-			return "ordercondition";
-		case TREE_SOLUTION_SEQUENCE:
-			return "solutionsequence";
-		case TREE_STRING:
-			return "string";
-		case EXPR_AND:
-			return "EXPR_AND";
-		case EXPR_OR:
-			return "EXPR_OR";
-		case EXPR_EQ:
-			return "EXPR_EQ";
-		case EXPR_NEQ:
-			return "EXPR_NEQ";
-		case EXPR_LT:
-			return "EXPR_LT";
-		case EXPR_GT:
-			return "EXPR_GT";
-		case EXPR_LE:
-			return "EXPR_LE";
-		case EXPR_GE:
-			return "EXPR_GE";
-		case EXPR_UMINUS:
-			return "EXPR_UMINUS";
-		case EXPR_PLUS:
-			return "EXPR_PLUS";
-		case EXPR_MINUS:
-			return "EXPR_MINUS";
-		case EXPR_BANG:
-            return "EXPR_BANG";
-		case EXPR_LITERAL:
-            return "EXPR_LITERAL";
-		case EXPR_FUNCTION:
-            return "EXPR_FUNCTION";
-		case EXPR_BOUND:
-            return "EXPR_BOUND";
-		case EXPR_STR:
-            return "EXPR_STR";
-		case EXPR_LANG:
-            return "EXPR_LANG";
-		case EXPR_DATATYPE:
-            return "EXPR_DATATYPE";
-		case EXPR_ISURI:
-            return "EXPR_ISURI";
-		case EXPR_ISBLANK:
-            return "EXPR_ISBLANK";
-		case EXPR_ISLITERAL:
-            return "EXPR_ISLITERAL";
-		case EXPR_CAST:
-            return "EXPR_CAST";
-		case EXPR_LANGMATCHES:
-            return "EXPR_LANGMATCHES";
-		case EXPR_REGEX:
-            return "EXPR_REGEX";
-		case EXPR_COUNT:
-            return "EXPR_COUNT";
-		case EXPR_SAMETERM:
-            return "EXPR_SAMETERM";
-		case EXPR_SUM:
-            return "EXPR_SUM";
-		case EXPR_AVG:
-            return "EXPR_AVG";
-		case EXPR_MIN:
-            return "EXPR_MIN";
-		case EXPR_MAX:
-            return "EXPR_MAX";
-		case EXPR_COALESCE:
-            return "EXPR_COALESCE";
-		case EXPR_IF:
-            return "EXPR_IF";
-		case EXPR_URI:
-            return "EXPR_URI";
-		case EXPR_IRI:
-            return "EXPR_IRI";
-		case EXPR_STRLANG:
-            return "EXPR_STRLANG";
-		case EXPR_STRDT:
-            return "EXPR_STRDT";
-		case EXPR_BNODE:
-            return "EXPR_BNODE";
-		case EXPR_GROUP_CONCAT:
-            return "EXPR_GROUP_CONCAT";
-		case EXPR_SAMPLE:
-            return "EXPR_SAMPLE";
-		case EXPR_IN:
-            return "EXPR_IN";
-		case EXPR_NOT_IN:
-            return "EXPR_NOT_IN";
-		case EXPR_ISNUMERIC:
-            return "EXPR_ISNUMERIC";
-		case EXPR_YEAR:
-            return "EXPR_YEAR";
-		case EXPR_MONTH:
-            return "EXPR_MONTH";
-		case EXPR_DAY:
-            return "EXPR_DAY";
-		case EXPR_HOURS:
-            return "EXPR_HOURS";
-		case EXPR_MINUTES:
-            return "EXPR_MINUTES";
-		case EXPR_SECONDS:
-            return "EXPR_SECONDS";
-		case EXPR_TIMEZONE:
-            return "EXPR_TIMEZONE";
-		case EXPR_CURRENT_DATETIME:
-            return "EXPR_CURRENT_DATETIME";
-		case EXPR_NOW:
-            return "EXPR_NOW";
-		case EXPR_FROM_UNIXTIME:
-            return "EXPR_FROM_UNIXTIME";
-		case EXPR_TO_UNIXTIME:
-            return "EXPR_TO_UNIXTIME";
-		case EXPR_CONCAT:
-            return "EXPR_CONCAT";
-		case EXPR_STRLEN:
-            return "EXPR_STRLEN";
-		case EXPR_SUBSTR:
-            return "EXPR_SUBSTR";
-		case EXPR_UCASE:
-            return "EXPR_UCASE";
-		case EXPR_LCASE:
-            return "EXPR_LCASE";
-		case EXPR_STRSTARTS:
-            return "EXPR_STRSTARTS";
-		case EXPR_STRENDS:
-            return "EXPR_STRENDS";
-		case EXPR_CONTAINS:
-            return "EXPR_CONTAINS";
-		case EXPR_ENCODE_FOR_URI:
-            return "EXPR_ENCODE_FOR_URI";
-		case EXPR_TZ:
-            return "EXPR_TZ";
-		case EXPR_RAND:
-            return "EXPR_RAND";
-		case EXPR_ABS:
-            return "EXPR_ABS";
-		case EXPR_ROUND:
-            return "EXPR_ROUND";
-		case EXPR_CEIL:
-            return "EXPR_CEIL";
-		case EXPR_FLOOR:
-            return "EXPR_FLOOR";
-		case EXPR_MD5:
-            return "EXPR_MD5";
-		case EXPR_SHA1:
-            return "EXPR_SHA1";
-		case EXPR_SHA224:
-            return "EXPR_SHA224";
-		case EXPR_SHA256:
-            return "EXPR_SHA256";
-		case EXPR_SHA384:
-            return "EXPR_SHA384";
-		case EXPR_SHA512:
-            return "EXPR_SHA512";
-		case EXPR_STRBEFORE:
-            return "EXPR_STRBEFORE";
-		case EXPR_STRAFTER:
-            return "EXPR_STRAFTER";
-		case EXPR_REPLACE:
-            return "EXPR_REPLACE";
-		case EXPR_UUID:
-            return "EXPR_UUID";
-		case EXPR_STRUUID:
-            return "EXPR_STRUUID";
-		default:
-			return "(unknown)";
-	}
-}
+GTWTreeType __strong const kPlanEmpty					= @"PlanEmpty";
+GTWTreeType __strong const kPlanScan					= @"PlanScan";
+GTWTreeType __strong const kPlanBKAjoin					= @"PlanBKAjoin";
+GTWTreeType __strong const kPlanHashJoin				= @"PlanHashJoin";
+GTWTreeType __strong const kPlanNLjoin					= @"PlanNLjoin";
+GTWTreeType __strong const kPlanNLLeftJoin				= @"PlanNLLeftJoin";
+GTWTreeType __strong const kPlanProject					= @"PlanProject";
+GTWTreeType __strong const kPlanFilter					= @"PlanFilter";
+GTWTreeType __strong const kPlanUnion					= @"PlanUnion";
+GTWTreeType __strong const kPlanExtend					= @"PlanExtend";
+GTWTreeType __strong const kPlanMinus					= @"PlanMinus";
+GTWTreeType __strong const kPlanOrder					= @"PlanOrder";
+GTWTreeType __strong const kPlanDistinct				= @"PlanDistinct";
+GTWTreeType __strong const kPlanSlice					= @"PlanSlice";
+GTWTreeType __strong const kPlanResultSet				= @"PlanResultSet";
+GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
+GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
+GTWTreeType __strong const kPlanDescribe				= @"PlanDescribe";
+GTWTreeType __strong const kAlgebraBGP					= @"AlgebraBGP";
+GTWTreeType __strong const kAlgebraJoin					= @"AlgebraJoin";
+GTWTreeType __strong const kAlgebraLeftJoin				= @"AlgebraLeftJoin";
+GTWTreeType __strong const kAlgebraFilter				= @"AlgebraFilter";
+GTWTreeType __strong const kAlgebraUnion				= @"AlgebraUnion";
+GTWTreeType __strong const kAlgebraGraph				= @"AlgebraGraph";
+GTWTreeType __strong const kAlgebraExtend				= @"AlgebraExtend";
+GTWTreeType __strong const kAlgebraMinus				= @"AlgebraMinus";
+GTWTreeType __strong const kAlgebraZeroLengthPath		= @"AlgebraZeroLengthPath";
+GTWTreeType __strong const kAlgebraZeroOrMorePath		= @"AlgebraZeroOrMorePath";
+GTWTreeType __strong const kAlgebraOneOrMorePath		= @"AlgebraOneOrMorePath";
+GTWTreeType __strong const kAlgebraNegatedPropertySet	= @"AlgebraNegatedPropertySet";
+GTWTreeType __strong const kAlgebraGroup				= @"AlgebraGroup";
+GTWTreeType __strong const kAlgebraAggregation			= @"AlgebraAggregation";
+GTWTreeType __strong const kAlgebraAggregateJoin		= @"AlgebraAggregateJoin";
+GTWTreeType __strong const kAlgebraToList				= @"AlgebraToList";
+GTWTreeType __strong const kAlgebraOrderBy				= @"AlgebraOrderBy";
+GTWTreeType __strong const kAlgebraProject				= @"AlgebraProject";
+GTWTreeType __strong const kAlgebraDistinct				= @"AlgebraDistinct";
+GTWTreeType __strong const kAlgebraReduced				= @"AlgebraReduced";
+GTWTreeType __strong const kAlgebraSlice				= @"AlgebraSlice";
+GTWTreeType __strong const kAlgebraToMultiset			= @"AlgebraToMultiset";
+GTWTreeType __strong const kAlgebraDescribe				= @"AlgebraDescribe";
+GTWTreeType __strong const kTreeSet						= @"TreeSet";
+GTWTreeType __strong const kTreeList					= @"TreeList";
+GTWTreeType __strong const kTreeDictionary				= @"TreeDictionary";
+GTWTreeType __strong const kTreeAggregate				= @"TreeAggregate";
+GTWTreeType __strong const kTreeTriple					= @"TreeTriple";
+GTWTreeType __strong const kTreeQuad					= @"TreeQuad";
+GTWTreeType __strong const kTreeExpression				= @"TreeExpression";
+GTWTreeType __strong const kTreeNode					= @"TreeNode";
+GTWTreeType __strong const kTreePath					= @"TreePath";
+GTWTreeType __strong const kTreeOrderCondition			= @"TreeOrderCondition";
+GTWTreeType __strong const kTreeSolutionSequence		= @"TreeSolutionSequence";
+GTWTreeType __strong const kTreeString					= @"TreeString";
+GTWTreeType __strong const kExprAnd						= @"ExprAnd";
+GTWTreeType __strong const kExprOr						= @"ExprOr";
+GTWTreeType __strong const kExprEq						= @"ExprEq";
+GTWTreeType __strong const kExprNeq						= @"ExprNeq";
+GTWTreeType __strong const kExprLt						= @"ExprLt";
+GTWTreeType __strong const kExprGt						= @"ExprGt";
+GTWTreeType __strong const kExprLe						= @"ExprLe";
+GTWTreeType __strong const kExprGe						= @"ExprGe";
+GTWTreeType __strong const kExprUMinus					= @"ExprUMinus";
+GTWTreeType __strong const kExprPlus					= @"ExprPlus";
+GTWTreeType __strong const kExprMinus					= @"ExprMinus";
+GTWTreeType __strong const kExprBang					= @"ExprBang";
+GTWTreeType __strong const kExprLiteral					= @"ExprLiteral";
+GTWTreeType __strong const kExprFunction				= @"ExprFunction";
+GTWTreeType __strong const kExprBound					= @"ExprBound";
+GTWTreeType __strong const kExprStr						= @"ExprStr";
+GTWTreeType __strong const kExprLang					= @"ExprLang";
+GTWTreeType __strong const kExprDatatype				= @"ExprDatatype";
+GTWTreeType __strong const kExprIsURI					= @"ExprIsURI";
+GTWTreeType __strong const kExprIsBlank					= @"ExprIsBlank";
+GTWTreeType __strong const kExprIsLiteral				= @"ExprIsLiteral";
+GTWTreeType __strong const kExprCast					= @"ExprCast";
+GTWTreeType __strong const kExprLangMatches				= @"ExprLangMatches";
+GTWTreeType __strong const kExprRegex					= @"ExprRegex";
+GTWTreeType __strong const kExprCount					= @"ExprCount";
+GTWTreeType __strong const kExprSameTerm				= @"ExprSameTerm";
+GTWTreeType __strong const kExprSum						= @"ExprSum";
+GTWTreeType __strong const kExprAvg						= @"ExprAvg";
+GTWTreeType __strong const kExprMin						= @"ExprMin";
+GTWTreeType __strong const kExprMax						= @"ExprMax";
+GTWTreeType __strong const kExprCoalesce				= @"ExprCoalesce";
+GTWTreeType __strong const kExprIf						= @"ExprIf";
+GTWTreeType __strong const kExprURI						= @"ExprURI";
+GTWTreeType __strong const kExprIRI						= @"ExprIRI";
+GTWTreeType __strong const kExprStrLang					= @"ExprStrLang";
+GTWTreeType __strong const kExprStrDT					= @"ExprStrDT";
+GTWTreeType __strong const kExprBNode					= @"ExprBNode";
+GTWTreeType __strong const kExprGroupConcat				= @"ExprGroupConcat";
+GTWTreeType __strong const kExprSample					= @"ExprSample";
+GTWTreeType __strong const kExprIn						= @"ExprIn";
+GTWTreeType __strong const kExprNotIn					= @"ExprNotIn";
+GTWTreeType __strong const kExprIsNumeric				= @"ExprIsNumeric";
+GTWTreeType __strong const kExprYear					= @"ExprYear";
+GTWTreeType __strong const kExprMonth					= @"ExprMonth";
+GTWTreeType __strong const kExprDay						= @"ExprDay";
+GTWTreeType __strong const kExprHours					= @"ExprHours";
+GTWTreeType __strong const kExprMinutes					= @"ExprMinutes";
+GTWTreeType __strong const kExprSeconds					= @"ExprSeconds";
+GTWTreeType __strong const kExprTimeZone				= @"ExprTimeZone";
+GTWTreeType __strong const kExprCurrentDatetime			= @"ExprCurrentDatetime";
+GTWTreeType __strong const kExprNow						= @"ExprNow";
+GTWTreeType __strong const kExprFromUnixTime			= @"ExprFromUnixTime";
+GTWTreeType __strong const kExprToUnixTime				= @"ExprToUnixTime";
+GTWTreeType __strong const kExprConcat					= @"ExprConcat";
+GTWTreeType __strong const kExprStrLen					= @"ExprStrLen";
+GTWTreeType __strong const kExprSubStr					= @"ExprSubStr";
+GTWTreeType __strong const kExprUCase					= @"ExprUCase";
+GTWTreeType __strong const kExprLCase					= @"ExprLCase";
+GTWTreeType __strong const kExprStrStarts				= @"ExprStrStarts";
+GTWTreeType __strong const kExprStrEnds					= @"ExprStrEnds";
+GTWTreeType __strong const kExprContains				= @"ExprContains";
+GTWTreeType __strong const kExprEncodeForURI			= @"ExprEncodeForURI";
+GTWTreeType __strong const kExprTZ						= @"ExprTZ";
+GTWTreeType __strong const kExprRand					= @"ExprRand";
+GTWTreeType __strong const kExprAbs						= @"ExprAbs";
+GTWTreeType __strong const kExprRound					= @"ExprRound";
+GTWTreeType __strong const kExprCeil					= @"ExprCeil";
+GTWTreeType __strong const kExprFloor					= @"ExprFloor";
+GTWTreeType __strong const kExprMD5						= @"ExprMD5";
+GTWTreeType __strong const kExprSHA1					= @"ExprSHA1";
+GTWTreeType __strong const kExprSHA224					= @"ExprSHA224";
+GTWTreeType __strong const kExprSHA256					= @"ExprSHA256";
+GTWTreeType __strong const kExprSHA384					= @"ExprSHA384";
+GTWTreeType __strong const kExprSHA512					= @"ExprSHA512";
+GTWTreeType __strong const kExprStrBefore				= @"ExprStrBefore";
+GTWTreeType __strong const kExprStrAfter				= @"ExprStrAfter";
+GTWTreeType __strong const kExprReplace					= @"ExprReplace";
+GTWTreeType __strong const kExprUUID					= @"ExprUUID";
+GTWTreeType __strong const kExprStrUUID					= @"ExprStrUUID";
+GTWTreeType __strong const kTreeResult					= @"TreeResult";
+
+//static const char* gtw_tree_type_name ( GTWTreeType t ) {
+//	switch (t) {
+//        case PLAN_EMPTY:
+//            return "Empty";
+//		case PLAN_JOIN_IDENTITY:
+//			return "JoinIdentity";
+//		case PLAN_SCAN:
+//			return "Scan";
+//		case PLAN_BKAJOIN:
+//			return "BKAJoin";
+//		case PLAN_FEDSTUB:
+//			return "FedStub";
+//		case PLAN_NLJOIN:
+//			return "NLJoin";
+//		case PLAN_HASHJOIN:
+//			return "HashJoin";
+//		case PLAN_NLLEFTJOIN:
+//			return "NLLeftJoin";
+//		case PLAN_PROJECT:
+//			return "Project";
+//		case PLAN_FILTER:
+//			return "Filter";
+//		case PLAN_UNION:
+//			return "Union";
+//		case PLAN_EXTEND:
+//			return "Extend";
+//		case PLAN_MINUS:
+//			return "Minus";
+//		case PLAN_ORDER:
+//			return "Order";
+//		case PLAN_DISTINCT:
+//			return "Distinct";
+//		case PLAN_SLICE:
+//			return "Slice";
+//		case PLAN_DESCRIBE:
+//			return "Describe";
+//		case ALGEBRA_BGP:
+//			return "BGP";
+//		case ALGEBRA_JOIN:
+//			return "Join";
+//		case ALGEBRA_LEFTJOIN:
+//			return "LeftJoin";
+//		case ALGEBRA_FILTER:
+//			return "Filter";
+//		case ALGEBRA_UNION:
+//			return "Union";
+//		case ALGEBRA_GRAPH:
+//			return "Graph";
+//		case ALGEBRA_EXTEND:
+//			return "Extend";
+//		case ALGEBRA_MINUS:
+//			return "Minus";
+//		case ALGEBRA_ZEROLENGTHPATH:
+//			return "ZeroLengthPath";
+//		case ALGEBRA_ZEROORMOREPATH:
+//			return "ZeroOrMorePath";
+//		case ALGEBRA_ONEORMOREPATH:
+//			return "OneOrMorePath";
+//		case ALGEBRA_NEGATEDPROPERTYSET:
+//			return "NegatedPropertySet";
+//		case ALGEBRA_GROUP:
+//			return "Group";
+//		case ALGEBRA_AGGREGATION:
+//			return "Aggregation";
+//		case ALGEBRA_AGGREGATEJOIN:
+//			return "AggregateJoin";
+//		case ALGEBRA_TOLIST:
+//			return "ToList";
+//		case ALGEBRA_ORDERBY:
+//			return "OrderBy";
+//		case ALGEBRA_PROJECT:
+//			return "Project";
+//		case ALGEBRA_DISTINCT:
+//			return "Distinct";
+//		case ALGEBRA_REDUCED:
+//			return "Reduced";
+//		case ALGEBRA_SLICE:
+//			return "Slice";
+//		case ALGEBRA_TOMULTISET:
+//			return "ToMultiset";
+//		case ALGEBRA_DESCRIBE:
+//			return "Describe";
+//		case TREE_SET:
+//			return "set";
+//		case TREE_LIST:
+//			return "list";
+//		case TREE_DICTIONARY:
+//			return "dictionary";
+//		case TREE_AGGREGATE:
+//			return "aggregate";
+//		case TREE_TRIPLE:
+//			return "triple";
+//		case TREE_QUAD:
+//			return "quad";
+//		case TREE_EXPRESSION:
+//			return "expr";
+//		case TREE_NODE:
+//			return "node";
+//		case TREE_PATH:
+//			return "path";
+//		case TREE_ORDER_CONDITION:
+//			return "ordercondition";
+//		case TREE_SOLUTION_SEQUENCE:
+//			return "solutionsequence";
+//		case TREE_STRING:
+//			return "string";
+//		case EXPR_AND:
+//			return "EXPR_AND";
+//		case EXPR_OR:
+//			return "EXPR_OR";
+//		case EXPR_EQ:
+//			return "EXPR_EQ";
+//		case EXPR_NEQ:
+//			return "EXPR_NEQ";
+//		case EXPR_LT:
+//			return "EXPR_LT";
+//		case EXPR_GT:
+//			return "EXPR_GT";
+//		case EXPR_LE:
+//			return "EXPR_LE";
+//		case EXPR_GE:
+//			return "EXPR_GE";
+//		case EXPR_UMINUS:
+//			return "EXPR_UMINUS";
+//		case EXPR_PLUS:
+//			return "EXPR_PLUS";
+//		case EXPR_MINUS:
+//			return "EXPR_MINUS";
+//		case EXPR_BANG:
+//            return "EXPR_BANG";
+//		case EXPR_LITERAL:
+//            return "EXPR_LITERAL";
+//		case EXPR_FUNCTION:
+//            return "EXPR_FUNCTION";
+//		case EXPR_BOUND:
+//            return "EXPR_BOUND";
+//		case EXPR_STR:
+//            return "EXPR_STR";
+//		case EXPR_LANG:
+//            return "EXPR_LANG";
+//		case EXPR_DATATYPE:
+//            return "EXPR_DATATYPE";
+//		case EXPR_ISURI:
+//            return "EXPR_ISURI";
+//		case EXPR_ISBLANK:
+//            return "EXPR_ISBLANK";
+//		case EXPR_ISLITERAL:
+//            return "EXPR_ISLITERAL";
+//		case EXPR_CAST:
+//            return "EXPR_CAST";
+//		case EXPR_LANGMATCHES:
+//            return "EXPR_LANGMATCHES";
+//		case EXPR_REGEX:
+//            return "EXPR_REGEX";
+//		case EXPR_COUNT:
+//            return "EXPR_COUNT";
+//		case EXPR_SAMETERM:
+//            return "EXPR_SAMETERM";
+//		case EXPR_SUM:
+//            return "EXPR_SUM";
+//		case EXPR_AVG:
+//            return "EXPR_AVG";
+//		case EXPR_MIN:
+//            return "EXPR_MIN";
+//		case EXPR_MAX:
+//            return "EXPR_MAX";
+//		case EXPR_COALESCE:
+//            return "EXPR_COALESCE";
+//		case EXPR_IF:
+//            return "EXPR_IF";
+//		case EXPR_URI:
+//            return "EXPR_URI";
+//		case EXPR_IRI:
+//            return "EXPR_IRI";
+//		case EXPR_STRLANG:
+//            return "EXPR_STRLANG";
+//		case EXPR_STRDT:
+//            return "EXPR_STRDT";
+//		case EXPR_BNODE:
+//            return "EXPR_BNODE";
+//		case EXPR_GROUP_CONCAT:
+//            return "EXPR_GROUP_CONCAT";
+//		case EXPR_SAMPLE:
+//            return "EXPR_SAMPLE";
+//		case EXPR_IN:
+//            return "EXPR_IN";
+//		case EXPR_NOT_IN:
+//            return "EXPR_NOT_IN";
+//		case EXPR_ISNUMERIC:
+//            return "EXPR_ISNUMERIC";
+//		case EXPR_YEAR:
+//            return "EXPR_YEAR";
+//		case EXPR_MONTH:
+//            return "EXPR_MONTH";
+//		case EXPR_DAY:
+//            return "EXPR_DAY";
+//		case EXPR_HOURS:
+//            return "EXPR_HOURS";
+//		case EXPR_MINUTES:
+//            return "EXPR_MINUTES";
+//		case EXPR_SECONDS:
+//            return "EXPR_SECONDS";
+//		case EXPR_TIMEZONE:
+//            return "EXPR_TIMEZONE";
+//		case EXPR_CURRENT_DATETIME:
+//            return "EXPR_CURRENT_DATETIME";
+//		case EXPR_NOW:
+//            return "EXPR_NOW";
+//		case EXPR_FROM_UNIXTIME:
+//            return "EXPR_FROM_UNIXTIME";
+//		case EXPR_TO_UNIXTIME:
+//            return "EXPR_TO_UNIXTIME";
+//		case EXPR_CONCAT:
+//            return "EXPR_CONCAT";
+//		case EXPR_STRLEN:
+//            return "EXPR_STRLEN";
+//		case EXPR_SUBSTR:
+//            return "EXPR_SUBSTR";
+//		case EXPR_UCASE:
+//            return "EXPR_UCASE";
+//		case EXPR_LCASE:
+//            return "EXPR_LCASE";
+//		case EXPR_STRSTARTS:
+//            return "EXPR_STRSTARTS";
+//		case EXPR_STRENDS:
+//            return "EXPR_STRENDS";
+//		case EXPR_CONTAINS:
+//            return "EXPR_CONTAINS";
+//		case EXPR_ENCODE_FOR_URI:
+//            return "EXPR_ENCODE_FOR_URI";
+//		case EXPR_TZ:
+//            return "EXPR_TZ";
+//		case EXPR_RAND:
+//            return "EXPR_RAND";
+//		case EXPR_ABS:
+//            return "EXPR_ABS";
+//		case EXPR_ROUND:
+//            return "EXPR_ROUND";
+//		case EXPR_CEIL:
+//            return "EXPR_CEIL";
+//		case EXPR_FLOOR:
+//            return "EXPR_FLOOR";
+//		case EXPR_MD5:
+//            return "EXPR_MD5";
+//		case EXPR_SHA1:
+//            return "EXPR_SHA1";
+//		case EXPR_SHA224:
+//            return "EXPR_SHA224";
+//		case EXPR_SHA256:
+//            return "EXPR_SHA256";
+//		case EXPR_SHA384:
+//            return "EXPR_SHA384";
+//		case EXPR_SHA512:
+//            return "EXPR_SHA512";
+//		case EXPR_STRBEFORE:
+//            return "EXPR_STRBEFORE";
+//		case EXPR_STRAFTER:
+//            return "EXPR_STRAFTER";
+//		case EXPR_REPLACE:
+//            return "EXPR_REPLACE";
+//		case EXPR_UUID:
+//            return "EXPR_UUID";
+//		case EXPR_STRUUID:
+//            return "EXPR_STRUUID";
+//		default:
+//			return "(unknown)";
+//	}
+//}
 
 @implementation GTWTree
 
@@ -316,7 +450,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         //	fprintf(stderr, "constructing %s with locations:\n", gtw_tree_type_name(type));
         NSUInteger locsize	= size;
         
-        if (type == PLAN_HASHJOIN) {
+        if (type == kPlanHashJoin) {
             // PLAN_HASHJOIN's 3rd child is the list of join vars, not a subplan, so it shouldn't participate in invocation counting
             locsize--;
         }
@@ -364,7 +498,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         // 			gtw_error_trap();
         // 		}
         // 	}
-        if (type == PLAN_HASHJOIN && size >= 3) {
+        if (type == kPlanHashJoin && size >= 3) {
             GTWTree* n	= [args objectAtIndex:2];
             NSUInteger count	= [n.arguments count];
             if (count == 0) {
@@ -377,7 +511,8 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 }
 
 - (NSString*) treeTypeName {
-    return [NSString stringWithCString:gtw_tree_type_name(self.type) encoding:NSUTF8StringEncoding];
+    return self.type;
+//    return [NSString stringWithCString:gtw_tree_type_name(self.type) encoding:NSUTF8StringEncoding];
 }
 
 - (id) _applyBlock: (id(^)(id<GTWTree> node, NSUInteger level, BOOL* stop))block inOrder: (GTWTreeTraversalOrder) order level: (NSUInteger) level {
@@ -445,7 +580,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 
 - (void) computeScopeVariables {
     [self applyPrefixBlock:nil postfixBlock:^id(GTWTree *node, NSUInteger level, BOOL *stop) {
-        if (node.type == TREE_NODE) {
+        if (node.type == kTreeNode) {
             id<GTWTerm> term    = node.value;
             // TODO: This should be using a protocol to check if the term is a variable
             if ([term conformsToProtocol:@protocol(GTWVariable)]) {
@@ -453,7 +588,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 //                NSLog(@"variables: %@ for plan: %@", set, node);
                 [node.annotations setObject:set forKey:kUsedVariables];
             }
-        } else if (node.type == TREE_QUAD) {
+        } else if (node.type == kTreeQuad) {
             id<GTWQuad> q  = node.value;
             NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
             NSMutableSet* set   = [NSMutableSet set];
@@ -493,97 +628,172 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 }
 
 - (BOOL) isExpression {
-    switch (self.type) {
-        case EXPR_AND:
-        case EXPR_OR:
-        case EXPR_EQ:
-        case EXPR_NEQ:
-        case EXPR_LT:
-        case EXPR_GT:
-        case EXPR_LE:
-        case EXPR_GE:
-        case EXPR_UMINUS:
-        case EXPR_PLUS:
-        case EXPR_MINUS:
-        case EXPR_BANG:
-        case EXPR_LITERAL:
-        case EXPR_FUNCTION:
-        case EXPR_BOUND:
-        case EXPR_STR:
-        case EXPR_LANG:
-        case EXPR_DATATYPE:
-        case EXPR_ISURI:
-        case EXPR_ISBLANK:
-        case EXPR_ISLITERAL:
-        case EXPR_CAST:
-        case EXPR_LANGMATCHES:
-        case EXPR_REGEX:
-        case EXPR_COUNT:
-        case EXPR_SAMETERM:
-        case EXPR_SUM:
-        case EXPR_AVG:
-        case EXPR_MIN:
-        case EXPR_MAX:
-        case EXPR_COALESCE:
-        case EXPR_IF:
-        case EXPR_URI:
-        case EXPR_IRI:
-        case EXPR_STRLANG:
-        case EXPR_STRDT:
-        case EXPR_BNODE:
-        case EXPR_GROUP_CONCAT:
-        case EXPR_SAMPLE:
-        case EXPR_IN:
-        case EXPR_NOT_IN:
-        case EXPR_ISNUMERIC:
-        case EXPR_YEAR:
-        case EXPR_MONTH:
-        case EXPR_DAY:
-        case EXPR_HOURS:
-        case EXPR_MINUTES:
-        case EXPR_SECONDS:
-        case EXPR_TIMEZONE:
-        case EXPR_CURRENT_DATETIME:
-        case EXPR_NOW:
-        case EXPR_FROM_UNIXTIME:
-        case EXPR_TO_UNIXTIME:
-        case EXPR_CONCAT:
-        case EXPR_STRLEN:
-        case EXPR_SUBSTR:
-        case EXPR_UCASE:
-        case EXPR_LCASE:
-        case EXPR_STRSTARTS:
-        case EXPR_STRENDS:
-        case EXPR_CONTAINS:
-        case EXPR_ENCODE_FOR_URI:
-        case EXPR_TZ:
-        case EXPR_RAND:
-        case EXPR_ABS:
-        case EXPR_ROUND:
-        case EXPR_CEIL:
-        case EXPR_FLOOR:
-        case EXPR_MD5:
-        case EXPR_SHA1:
-        case EXPR_SHA224:
-        case EXPR_SHA256:
-        case EXPR_SHA384:
-        case EXPR_SHA512:
-        case EXPR_STRBEFORE:
-        case EXPR_STRAFTER:
-        case EXPR_REPLACE:
-        case EXPR_UUID:
-        case EXPR_STRUUID:
-            return YES;
-        default:
-            return NO;
-    }
+    if (self.type == kExprAnd)
+        return YES;
+    if (self.type == kExprOr)
+        return YES;
+    if (self.type == kExprEq)
+        return YES;
+    if (self.type == kExprNeq)
+        return YES;
+    if (self.type == kExprLt)
+        return YES;
+    if (self.type == kExprGt)
+        return YES;
+    if (self.type == kExprLe)
+        return YES;
+    if (self.type == kExprGe)
+        return YES;
+    if (self.type == kExprUMinus)
+        return YES;
+    if (self.type == kExprPlus)
+        return YES;
+    if (self.type == kExprMinus)
+        return YES;
+    if (self.type == kExprBang)
+        return YES;
+    if (self.type == kExprLiteral)
+        return YES;
+    if (self.type == kExprFunction)
+        return YES;
+    if (self.type == kExprBound)
+        return YES;
+    if (self.type == kExprStr)
+        return YES;
+    if (self.type == kExprLang)
+        return YES;
+    if (self.type == kExprDatatype)
+        return YES;
+    if (self.type == kExprIsURI)
+        return YES;
+    if (self.type == kExprIsBlank)
+        return YES;
+    if (self.type == kExprIsLiteral)
+        return YES;
+    if (self.type == kExprCast)
+        return YES;
+    if (self.type == kExprLangMatches)
+        return YES;
+    if (self.type == kExprRegex)
+        return YES;
+    if (self.type == kExprCount)
+        return YES;
+    if (self.type == kExprSameTerm)
+        return YES;
+    if (self.type == kExprSum)
+        return YES;
+    if (self.type == kExprAvg)
+        return YES;
+    if (self.type == kExprMin)
+        return YES;
+    if (self.type == kExprMax)
+        return YES;
+    if (self.type == kExprCoalesce)
+        return YES;
+    if (self.type == kExprIf)
+        return YES;
+    if (self.type == kExprURI)
+        return YES;
+    if (self.type == kExprIRI)
+        return YES;
+    if (self.type == kExprStrLang)
+        return YES;
+    if (self.type == kExprStrDT)
+        return YES;
+    if (self.type == kExprBNode)
+        return YES;
+    if (self.type == kExprGroupConcat)
+        return YES;
+    if (self.type == kExprSample)
+        return YES;
+    if (self.type == kExprIn)
+        return YES;
+    if (self.type == kExprNotIn)
+        return YES;
+    if (self.type == kExprIsNumeric)
+        return YES;
+    if (self.type == kExprYear)
+        return YES;
+    if (self.type == kExprMonth)
+        return YES;
+    if (self.type == kExprDay)
+        return YES;
+    if (self.type == kExprHours)
+        return YES;
+    if (self.type == kExprMinutes)
+        return YES;
+    if (self.type == kExprSeconds)
+        return YES;
+    if (self.type == kExprTimeZone)
+        return YES;
+    if (self.type == kExprCurrentDatetime)
+        return YES;
+    if (self.type == kExprNow)
+        return YES;
+    if (self.type == kExprFromUnixTime)
+        return YES;
+    if (self.type == kExprToUnixTime)
+        return YES;
+    if (self.type == kExprConcat)
+        return YES;
+    if (self.type == kExprStrLen)
+        return YES;
+    if (self.type == kExprSubStr)
+        return YES;
+    if (self.type == kExprUCase)
+        return YES;
+    if (self.type == kExprLCase)
+        return YES;
+    if (self.type == kExprStrStarts)
+        return YES;
+    if (self.type == kExprStrEnds)
+        return YES;
+    if (self.type == kExprContains)
+        return YES;
+    if (self.type == kExprEncodeForURI)
+        return YES;
+    if (self.type == kExprTZ)
+        return YES;
+    if (self.type == kExprRand)
+        return YES;
+    if (self.type == kExprAbs)
+        return YES;
+    if (self.type == kExprRound)
+        return YES;
+    if (self.type == kExprCeil)
+        return YES;
+    if (self.type == kExprFloor)
+        return YES;
+    if (self.type == kExprMD5)
+        return YES;
+    if (self.type == kExprSHA1)
+        return YES;
+    if (self.type == kExprSHA224)
+        return YES;
+    if (self.type == kExprSHA256)
+        return YES;
+    if (self.type == kExprSHA384)
+        return YES;
+    if (self.type == kExprSHA512)
+        return YES;
+    if (self.type == kExprStrBefore)
+        return YES;
+    if (self.type == kExprStrAfter)
+        return YES;
+    if (self.type == kExprReplace)
+        return YES;
+    if (self.type == kExprUUID)
+        return YES;
+    if (self.type == kExprStrUUID)
+        return YES;
+    return NO;
 }
 
 - (NSString*) conciseDescription {
     NSMutableString* s = [NSMutableString string];
     GTWTree* node = self;
     if (node.leaf) {
-        [s appendFormat: @"%s(", gtw_tree_type_name(node.type)];
+        [s appendFormat: @"%@(", [node treeTypeName]];
         if (node.value) {
             [s appendFormat:@"%@", node.value];
         }
@@ -592,7 +802,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         }
         [s appendString:@")"];
     } else {
-        [s appendFormat: @"%s", gtw_tree_type_name(node.type)];
+        [s appendFormat: @"%@", [node treeTypeName]];
         if (node.value) {
             [s appendFormat:@"[%@]", node.value];
         }
@@ -619,7 +829,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
         }
         //        [s appendFormat: @"%@%s\n", indent, gtw_tree_type_name(node.type)];
         if (node.leaf) {
-            [s appendFormat: @"%@%s", indent, gtw_tree_type_name(node.type)];
+            [s appendFormat: @"%@%@", indent, [node treeTypeName]];
             if (node.value) {
                 [s appendFormat:@" %@", node.value];
             }
@@ -628,7 +838,7 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
             }
             [s appendFormat:@"\n"];
         } else {
-            [s appendFormat: @"%@%s", indent, gtw_tree_type_name(node.type)];
+            [s appendFormat: @"%@%@", indent, [node treeTypeName]];
             if (node.value) {
                 if ([node isKindOfClass:[GTWTree class]]) {
                     [s appendFormat:@" %@", [node.value conciseDescription]];

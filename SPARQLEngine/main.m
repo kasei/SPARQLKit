@@ -163,7 +163,7 @@ int run3(NSString* filename, NSString* base) {
 
 static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     GTWTreeType type    = plan.type;
-    if (type == PLAN_NLJOIN) {
+    if (type == kPlanNLjoin) {
         NSMutableArray* results = [NSMutableArray array];
         NSArray* lhs    = evaluateQueryPlan(plan.arguments[0], model);
         NSArray* rhs    = evaluateQueryPlan(plan.arguments[1], model);
@@ -176,7 +176,7 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             }
         }
         return results;
-    } else if (type == PLAN_DISTINCT) {
+    } else if (type == kPlanDistinct) {
         NSArray* results    = evaluateQueryPlan(plan.arguments[0], model);
         NSMutableArray* distinct    = [NSMutableArray array];
         NSMutableSet* seen  = [NSMutableSet set];
@@ -187,7 +187,7 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             }
         }
         return distinct;
-    } else if (type == PLAN_PROJECT) {
+    } else if (type == kPlanProject) {
         NSArray* results    = evaluateQueryPlan(plan.arguments[0], model);
         NSMutableArray* projected   = [NSMutableArray arrayWithCapacity:[results count]];
         GTWTree* listtree   = plan.value;
@@ -204,21 +204,21 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             [projected addObject:result];
         }
         return projected;
-    } else if (type == TREE_TRIPLE) {
+    } else if (type == kTreeTriple) {
         id<GTWTriple> t    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:t.subject predicate:t.predicate object:t.object graph:nil usingBlock:^(NSDictionary* r) {
             [results addObject:r];
         } error:nil];
         return results;
-    } else if (type == TREE_QUAD) {
+    } else if (type == kTreeQuad) {
         id<GTWQuad> q    = plan.value;
         NSMutableArray* results = [NSMutableArray array];
         [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
             [results addObject:r];
         } error:nil];
         return results;
-    } else if (type == PLAN_ORDER) {
+    } else if (type == kPlanOrder) {
         NSArray* results    = evaluateQueryPlan(plan.arguments[0], model);
         GTWTree* list       = plan.value;
         NSMutableArray* orderTerms  = [NSMutableArray array];
@@ -248,15 +248,15 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             return NSOrderedSame;
         }];
         return ordered;
-    } else if (type == PLAN_FILTER) {
+    } else if (type == kPlanFilter) {
         GTWTree* expr       = plan.value;
         GTWTree* subplan    = plan.arguments[0];
         NSArray* results    = evaluateQueryPlan(subplan, model);
         NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
         for (id result in results) {
-            GTWLiteral* f   = [GTWExpression evaluateExpression:expr WithResult:result];
+            id<GTWTerm> f   = [GTWExpression evaluateExpression:expr WithResult:result];
 //            NSLog(@"-> %@", f);
-            if ([f booleanValue]) {
+            if ([f respondsToSelector:@selector(booleanValue)] && [(id<GTWLiteral>)f booleanValue]) {
                 [filtered addObject:result];
             }
         }
