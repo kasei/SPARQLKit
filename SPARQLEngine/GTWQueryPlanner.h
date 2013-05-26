@@ -6,9 +6,11 @@
 
 @interface GTWQueryPlanner : NSObject<GTWQueryPlanner>
 
-- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra;
-- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset;
+@property id<GTWLogger> logger;
+
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra;
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset;
 //- (GTWTree*) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (GTWQueryDataset*) dataset optimize: (BOOL) opt;
-- (id<GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset optimize: (BOOL) opt;
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWQueryDataset>) dataset optimize: (BOOL) opt;
 
 @end
