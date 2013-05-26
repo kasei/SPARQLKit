@@ -655,3 +655,6 @@ static const char* gtw_tree_type_name ( GTWTreeType t ) {
 }
 
 @end
+
+@implementation GTWQueryPlan
+@end
