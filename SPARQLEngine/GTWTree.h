@@ -6,8 +6,6 @@ extern NSString * __strong const kProjectVariables;
 
 @interface GTWTree : NSObject<GTWTree>
 
-typedef NSString* GTWTreeType;
-
 // ---------------------------------------------------------
 
 // plan tree nodes:
@@ -171,10 +169,13 @@ extern GTWTreeType __strong const kTreeResult;
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args;
 //- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr arguments: (NSArray*) args;
 - (NSString*) treeTypeName;
-- (id) applyBlock: (GTWTreeAccessorBlock)block inOrder: (GTWTreeTraversalOrder) order;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
+- (void) computeProjectVariables;
+
+- (NSString*) conciseDescription;
+- (NSString*) longDescription;
 
 @end
 

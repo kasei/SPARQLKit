@@ -61,4 +61,8 @@
     }
 }
 
+- (NSString*) description {
+    return [self conciseDescription];
+}
+
 @end

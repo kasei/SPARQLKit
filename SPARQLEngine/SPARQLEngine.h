@@ -121,8 +121,9 @@ typedef NS_ENUM(NSInteger, GTWTermType) {
 
 #pragma mark -
 
-@protocol GTWTree
-typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, NSUInteger level, BOOL* stop);
+@protocol GTWTree<NSObject>
+typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL* stop);
+typedef NSString* GTWTreeType;
 
 typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
     GTWTreePrefixOrder  = -1,
@@ -130,11 +131,19 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
     GTWTreePostfixOrder = 1
 };
 
+@property BOOL leaf;
+@property GTWTreeType type;
+@property NSArray* arguments;
+@property id value;
+@property void* ptr;
+@property NSMutableDictionary* annotations;
+
 - (NSString*) treeTypeName;
-- (id) applyBlock: (GTWTreeAccessorBlock)block inOrder: (GTWTreeTraversalOrder) order;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
+- (NSString*) conciseDescription;
+- (NSString*) longDescription;
 @end
 
 #pragma mark -

@@ -2,7 +2,7 @@
 #import "GTWTree.h"
 #import "SPARQLEngine.h"
 
-@interface GTWExpression : NSObject
+@interface GTWExpression : GTWTree
 
 + (id<GTWTerm>) evaluateExpression: (GTWTree*) expr WithResult: (NSDictionary*) result;
 

@@ -280,12 +280,21 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
     
     id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
     GTWTree* algebra    = [parser parserSPARQL:query withBaseURI:base];
-    NSLog(@"query:\n%@", algebra);
+    if (NO) {
+        NSLog(@"query:\n%@", algebra);
+    }
+
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     GTWTree* plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
-    NSLog(@"plan:\n%@", plan);
-    
     if (YES) {
+        NSLog(@"plan:\n%@", plan);
+    }
+
+    if (YES) {
+        [plan computeProjectVariables];
+    }
+    
+    if (NO) {
         NSLog(@"executing query...");
         NSArray* results    = evaluateQueryPlan(plan, model);
         for (id r in results) {
@@ -293,12 +302,10 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
         }
     }
     
-    if (YES) {
+    if (NO) {
         NSSet* variables    = [plan annotationForKey:kUsedVariables];
         NSLog(@"plan variables: %@", variables);
     }
-    
-    
     
 //    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
 //    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
@@ -350,7 +357,7 @@ int main(int argc, const char * argv[]) {
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name }";
 //        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(ISIRI(?s)) } ORDER BY ASC(?s) DESC(?mbox)";
-        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?s ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . } ORDER BY ?mbox";
+        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> ?name ; foaf:mbox_sha1sum ?mbox . } ORDER BY ?mbox";
 //        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' . FILTER(ISURI(?s)) }";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> }";
         runQuery(query, filename, @"http://query-base.example.com/");

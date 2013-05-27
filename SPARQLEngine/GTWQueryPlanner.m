@@ -68,6 +68,13 @@
     } else {
         plan   = [self queryPlanForAlgebra:triples[0] usingDataset:dataset];
         for (i = 1; i < [triples count]; i++) {
+            id<GTWTree> triple  = triples[i];
+            NSSet* projvars     = [triple annotationForKey:kProjectVariables];
+            if (projvars) {
+                NSLog(@"********* %@ projected for (%@)", triple, projvars);
+            }
+            
+            
             id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:triples[i] usingDataset:dataset];
             plan    = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[plan, quad]];
         }

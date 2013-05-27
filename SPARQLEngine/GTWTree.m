@@ -546,32 +546,28 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
     return value;
 }
 
-- (id) _applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix level: (NSUInteger) level {
+- (id) _applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix withParent: (id<GTWTree>) parent level: (NSUInteger) level {
     BOOL stop   = NO;
     id value    = nil;
     if (prefix) {
-        value    = prefix(self, level, &stop);
+        value    = prefix(self, parent, level, &stop);
         if (stop)
             return value;
     }
     
     for (GTWTree* child in self.arguments) {
-        [child _applyPrefixBlock:prefix postfixBlock:postfix level:level+1];
+        [child _applyPrefixBlock:prefix postfixBlock:postfix withParent: self level:level+1];
     }
     
     if (postfix) {
-        value    = postfix(self, level, &stop);
+        value    = postfix(self, parent, level, &stop);
     }
     
     return value;
 }
 
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix {
-    return [self _applyPrefixBlock:prefix postfixBlock:postfix level:0];
-}
-
-- (id) applyBlock: (GTWTreeAccessorBlock)block inOrder: (GTWTreeTraversalOrder) order {
-    return [self _applyBlock:block inOrder:order level:0];
+    return [self _applyPrefixBlock:prefix postfixBlock:postfix withParent: nil level:0];
 }
 
 - (id) annotationForKey: (NSString*) key {
@@ -579,30 +575,51 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
 }
 
 - (void) computeScopeVariables {
-    [self applyPrefixBlock:nil postfixBlock:^id(GTWTree *node, NSUInteger level, BOOL *stop) {
-        if (node.type == kTreeNode) {
-            id<GTWTerm> term    = node.value;
-            // TODO: This should be using a protocol to check if the term is a variable
-            if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                NSSet* set          = [NSSet setWithObject:term];
-//                NSLog(@"variables: %@ for plan: %@", set, node);
-                [node.annotations setObject:set forKey:kUsedVariables];
-            }
-        } else if (node.type == kTreeQuad) {
-            id<GTWQuad> q  = node.value;
-            NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
-            NSMutableSet* set   = [NSMutableSet set];
-            for (id<GTWTerm> term in array) {
+    [self applyPrefixBlock:nil postfixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
+        if (node.leaf) {
+            if (node.type == kTreeNode) {
+                id<GTWTerm> term    = node.value;
+                // TODO: This should be using a protocol to check if the term is a variable
                 if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                    [set addObject:term];
+                    NSSet* set          = [NSSet setWithObject:term];
+                    //                NSLog(@"variables: %@ for plan: %@", set, node);
+                    [node.annotations setObject:set forKey:kUsedVariables];
                 }
-                [node.annotations setObject:set forKey:kUsedVariables];
+            } else if (node.type == kTreeQuad) {
+                id<GTWQuad> q  = node.value;
+                NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
+                NSMutableSet* set   = [NSMutableSet set];
+                for (id<GTWTerm> term in array) {
+                    if ([term conformsToProtocol:@protocol(GTWVariable)]) {
+                        [set addObject:term];
+                    }
+                    [node.annotations setObject:set forKey:kUsedVariables];
+                }
+            } else if (node.type == kTreeTriple) {
+                id<GTWTriple> q  = node.value;
+                NSArray* array  = @[q.subject, q.predicate, q.object];
+                NSMutableSet* set   = [NSMutableSet set];
+                for (id<GTWTerm> term in array) {
+                    if ([term conformsToProtocol:@protocol(GTWVariable)]) {
+                        [set addObject:term];
+                    }
+                    [node.annotations setObject:set forKey:kUsedVariables];
+                }
             }
         } else {
+            NSMutableSet* set   = [NSMutableSet set];
+            if (node.value && [node.value conformsToProtocol:@protocol(GTWTerm)]) {
+                id<GTWTerm> term    = node.value;
+                // TODO: This should be using a protocol to check if the term is a variable
+                if ([term conformsToProtocol:@protocol(GTWVariable)]) {
+                    [set unionSet: [NSSet setWithObject:term]];
+                }
+            }
+            
             NSUInteger count    = [node.arguments count];
             if (count) {
                 GTWTree* firstchild  = node.arguments[0];
-                NSMutableSet* set   = [NSMutableSet setWithSet:[firstchild.annotations objectForKey:kUsedVariables]];
+                [set unionSet:[firstchild.annotations objectForKey:kUsedVariables]];
                 NSUInteger i;
                 for (i = 1; i < count; i++) {
                     GTWTree* nextchild  = node.arguments[i];
@@ -620,173 +637,65 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                     }
                 }
                 
-                [node.annotations setObject:set forKey:kUsedVariables];
             }
+            [node.annotations setObject:set forKey:kUsedVariables];
         }
         return nil;
     }];
 }
 
-- (BOOL) isExpression {
-    if (self.type == kExprAnd)
-        return YES;
-    if (self.type == kExprOr)
-        return YES;
-    if (self.type == kExprEq)
-        return YES;
-    if (self.type == kExprNeq)
-        return YES;
-    if (self.type == kExprLt)
-        return YES;
-    if (self.type == kExprGt)
-        return YES;
-    if (self.type == kExprLe)
-        return YES;
-    if (self.type == kExprGe)
-        return YES;
-    if (self.type == kExprUMinus)
-        return YES;
-    if (self.type == kExprPlus)
-        return YES;
-    if (self.type == kExprMinus)
-        return YES;
-    if (self.type == kExprBang)
-        return YES;
-    if (self.type == kExprLiteral)
-        return YES;
-    if (self.type == kExprFunction)
-        return YES;
-    if (self.type == kExprBound)
-        return YES;
-    if (self.type == kExprStr)
-        return YES;
-    if (self.type == kExprLang)
-        return YES;
-    if (self.type == kExprDatatype)
-        return YES;
-    if (self.type == kExprIsURI)
-        return YES;
-    if (self.type == kExprIsBlank)
-        return YES;
-    if (self.type == kExprIsLiteral)
-        return YES;
-    if (self.type == kExprCast)
-        return YES;
-    if (self.type == kExprLangMatches)
-        return YES;
-    if (self.type == kExprRegex)
-        return YES;
-    if (self.type == kExprCount)
-        return YES;
-    if (self.type == kExprSameTerm)
-        return YES;
-    if (self.type == kExprSum)
-        return YES;
-    if (self.type == kExprAvg)
-        return YES;
-    if (self.type == kExprMin)
-        return YES;
-    if (self.type == kExprMax)
-        return YES;
-    if (self.type == kExprCoalesce)
-        return YES;
-    if (self.type == kExprIf)
-        return YES;
-    if (self.type == kExprURI)
-        return YES;
-    if (self.type == kExprIRI)
-        return YES;
-    if (self.type == kExprStrLang)
-        return YES;
-    if (self.type == kExprStrDT)
-        return YES;
-    if (self.type == kExprBNode)
-        return YES;
-    if (self.type == kExprGroupConcat)
-        return YES;
-    if (self.type == kExprSample)
-        return YES;
-    if (self.type == kExprIn)
-        return YES;
-    if (self.type == kExprNotIn)
-        return YES;
-    if (self.type == kExprIsNumeric)
-        return YES;
-    if (self.type == kExprYear)
-        return YES;
-    if (self.type == kExprMonth)
-        return YES;
-    if (self.type == kExprDay)
-        return YES;
-    if (self.type == kExprHours)
-        return YES;
-    if (self.type == kExprMinutes)
-        return YES;
-    if (self.type == kExprSeconds)
-        return YES;
-    if (self.type == kExprTimeZone)
-        return YES;
-    if (self.type == kExprCurrentDatetime)
-        return YES;
-    if (self.type == kExprNow)
-        return YES;
-    if (self.type == kExprFromUnixTime)
-        return YES;
-    if (self.type == kExprToUnixTime)
-        return YES;
-    if (self.type == kExprConcat)
-        return YES;
-    if (self.type == kExprStrLen)
-        return YES;
-    if (self.type == kExprSubStr)
-        return YES;
-    if (self.type == kExprUCase)
-        return YES;
-    if (self.type == kExprLCase)
-        return YES;
-    if (self.type == kExprStrStarts)
-        return YES;
-    if (self.type == kExprStrEnds)
-        return YES;
-    if (self.type == kExprContains)
-        return YES;
-    if (self.type == kExprEncodeForURI)
-        return YES;
-    if (self.type == kExprTZ)
-        return YES;
-    if (self.type == kExprRand)
-        return YES;
-    if (self.type == kExprAbs)
-        return YES;
-    if (self.type == kExprRound)
-        return YES;
-    if (self.type == kExprCeil)
-        return YES;
-    if (self.type == kExprFloor)
-        return YES;
-    if (self.type == kExprMD5)
-        return YES;
-    if (self.type == kExprSHA1)
-        return YES;
-    if (self.type == kExprSHA224)
-        return YES;
-    if (self.type == kExprSHA256)
-        return YES;
-    if (self.type == kExprSHA384)
-        return YES;
-    if (self.type == kExprSHA512)
-        return YES;
-    if (self.type == kExprStrBefore)
-        return YES;
-    if (self.type == kExprStrAfter)
-        return YES;
-    if (self.type == kExprReplace)
-        return YES;
-    if (self.type == kExprUUID)
-        return YES;
-    if (self.type == kExprStrUUID)
-        return YES;
-    return NO;
+- (void) computeProjectVariables {
+    [self computeScopeVariables];
+    [self applyPrefixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
+        if (node.type == kPlanProject) {
+            GTWTree* list   = node.value;
+            NSMutableArray* vars    = [NSMutableArray array];
+            for (id<GTWTree> v in list.arguments) {
+                if (v.type == kTreeNode && [v.value conformsToProtocol:@protocol(GTWVariable)]) {
+                    [vars addObject:v.value];
+                }
+            }
+            NSSet* set      = [NSMutableSet setWithArray:vars];
+            [node.annotations setObject:set forKey:kProjectVariables];
+        } else if (node.type == kPlanNLjoin) {
+            NSSet* lhs  = [node.arguments[0] annotationForKey:kUsedVariables];
+            NSMutableSet* joinVars   = [NSMutableSet setWithSet:[node.arguments[1] annotationForKey:kUsedVariables]];
+            [joinVars intersectSet:lhs];
+            NSMutableArray* vars    = [NSMutableArray array];
+            for (id<GTWVariable> v in joinVars) {
+                [vars addObject:v];
+            }
+            NSMutableSet* set   = [NSMutableSet setWithArray:vars];
+            [set unionSet:[parent annotationForKey:kProjectVariables]];
+            [node.annotations setObject:set forKey:kProjectVariables];
+            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
+        } else if (node.type == kPlanOrder) {
+            GTWTree* list   = node.value;
+            NSMutableArray* vars    = [NSMutableArray array];
+            for (id<GTWTree> v in list.arguments) {
+                if (v.type == kTreeNode && [v.value conformsToProtocol:@protocol(GTWVariable)]) {
+                    [vars addObject:v.value];
+                }
+            }
+            NSMutableSet* set   = [NSMutableSet setWithArray:vars];
+            [set unionSet:[parent annotationForKey:kProjectVariables]];
+            [node.annotations setObject:set forKey:kProjectVariables];
+        } else {
+            NSMutableSet* set  = [NSMutableSet setWithSet: [parent annotationForKey:kProjectVariables]];
+            if (!set) {
+                set     = [NSMutableSet setWithSet: [node annotationForKey:kUsedVariables]];
+            }
+            
+            NSSet* usedvars = [node annotationForKey:kUsedVariables];
+            [set intersectSet:usedvars];
+            [node.annotations setObject:set forKey:kProjectVariables];
+        }
+        
+        
+//        NSSet* set  = [node.annotations objectForKey:kProjectVariables];
+//        NSLog(@"pushing down project list: %@ on %@", set, [node conciseDescription]);
+        return nil;
+    } postfixBlock:nil];
 }
 
 - (NSString*) conciseDescription {
@@ -822,7 +731,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
 
 - (NSString*) longDescription {
     NSMutableString* s = [NSMutableString string];
-    [self applyPrefixBlock:^id(GTWTree *node, NSUInteger level, BOOL *stop) {
+    [self applyPrefixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
         NSMutableString* indent = [NSMutableString string];
         for (NSUInteger i = 0; i < level; i++) {
             [indent appendFormat:@"  "];
@@ -857,7 +766,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
 }
 
 - (NSString*) description {
-    if ([self isExpression]) {
+    if (self.type == kTreeNode || self.type == kTreeQuad || self.type == kTreeList) {
         return [self conciseDescription];
     } else {
         return [self longDescription];

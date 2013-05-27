@@ -6,6 +6,7 @@
 #import "GTWLiteral.h"
 #import "GTWTriple.h"
 #import "GTWVariable.h"
+#import "GTWExpression.h"
 
 static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutableArray* array, int* size ) {
     //	fprintf(stderr, "attempting fix on %s\n", gtw_tree_name(c));
@@ -45,10 +46,10 @@ static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutable
 //			}
 //			array[(*size)++]	= gtw_new_tree_va(type, NULL, 3, lhs, rhs, e);
             // TODO: this should include the filter expression
-            array[(*size)++]    = [[GTWTree alloc] initWithType:type arguments:@[lhs, rhs]];
+            array[(*size)++]    = [[[c class] alloc] initWithType:type arguments:@[lhs, rhs]];
             
 		} else {
-            array[(*size)++]    = [[GTWTree alloc] initWithType:type arguments:@[lhs, rhs]];
+            array[(*size)++]    = [[[c class] alloc] initWithType:type arguments:@[lhs, rhs]];
 //			array[(*size)++]	= gtw_new_tree_va(type, NULL, 2, lhs, rhs);
 		}
 		return 1;
@@ -283,7 +284,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_RAND:
         case RASQAL_EXPR_UUID:
         case RASQAL_EXPR_STRUUID:
-            return [[GTWTree alloc] initLeafWithType:ttype value:nil pointer:NULL];
+            return [[GTWExpression alloc] initLeafWithType:ttype value:nil pointer:NULL];
         // 1-ary
         case RASQAL_EXPR_UMINUS:
         case RASQAL_EXPR_BANG:
@@ -319,7 +320,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_SHA256:
         case RASQAL_EXPR_SHA384:
         case RASQAL_EXPR_SHA512:
-            return [[GTWTree alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1)]];
+            return [[GTWExpression alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1)]];
         // 2-ary
         case RASQAL_EXPR_EQ:
         case RASQAL_EXPR_NEQ:
@@ -340,11 +341,11 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_CONTAINS:
         case RASQAL_EXPR_STRBEFORE:
         case RASQAL_EXPR_STRAFTER:
-            return [[GTWTree alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1), rasqal_expression_to_tree(expr->arg2)]];
+            return [[GTWExpression alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1), rasqal_expression_to_tree(expr->arg2)]];
         // other
         case RASQAL_EXPR_LITERAL:
             term    = rasqal_literal_to_object(expr->literal);
-            return [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
+            return [[GTWExpression alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
         case RASQAL_EXPR_BNODE:
         case RASQAL_EXPR_REGEX:
         case RASQAL_EXPR_SUBSTR:
@@ -597,7 +598,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //		gtw_free_term(t);
         GTWTree* g  = [[GTWTree alloc] initLeafWithType:kTreeNode value: t pointer:NULL];
 //		gtw_tree_node* g	= gtw_new_tree_va(TREE_NODE, n, 0);
-        a   = [[GTWTree alloc] initWithType:kAlgebraGraph arguments:@[g, a]];
+        a   = [[GTWTree alloc] initWithType:kAlgebraGraph value: g arguments:@[a]];
 //		a	= gtw_new_tree_va(ALGEBRA_GRAPH, NULL, 2, g, a);
 	}
 	
