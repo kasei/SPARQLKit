@@ -1,5 +1,5 @@
 #import "NSObject+NSDictionary_QueryBindings.h"
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @implementation NSDictionary (NSDictionary_QueryBindings)
 

@@ -1,5 +1,5 @@
 #import "GTWTree.h"
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 #import "GTWVariable.h"
 
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";

@@ -37,7 +37,7 @@
 		37E198501741F49B00AB3D97 /* GTWRedlandParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */; };
 		37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
 		37E3D5EA172D647A00F54DC9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E3D5E9172D647A00F54DC9 /* main.m */; };
-		37E3D5EC172D647A00F54DC9 /* SPARQLEngine.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */; };
+		37E3D5EC172D647A00F54DC9 /* GTWSPARQLEngine.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 37E3D5EB172D647A00F54DC9 /* GTWSPARQLEngine.1 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -47,7 +47,7 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				37E3D5EC172D647A00F54DC9 /* SPARQLEngine.1 in CopyFiles */,
+				37E3D5EC172D647A00F54DC9 /* GTWSPARQLEngine.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -105,11 +105,11 @@
 		37E1984B1741EC2700AB3D97 /* libcommonCrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcommonCrypto.dylib; path = usr/lib/system/libcommonCrypto.dylib; sourceTree = SDKROOT; };
 		37E1984E1741F49B00AB3D97 /* GTWRedlandParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandParser.h; sourceTree = "<group>"; };
 		37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandParser.m; sourceTree = "<group>"; };
-		37E3D5E3172D647A00F54DC9 /* SPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
+		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = SPARQLEngine.1; sourceTree = "<group>"; };
-		37E3D5F3172D650900F54DC9 /* SPARQLEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPARQLEngine.h; sourceTree = "<group>"; };
+		37E3D5EB172D647A00F54DC9 /* GTWSPARQLEngine.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = GTWSPARQLEngine.1; sourceTree = "<group>"; };
+		37E3D5F3172D650900F54DC9 /* GTWSPARQLEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLEngine.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -269,7 +269,7 @@
 		37E3D5DA172D647A00F54DC9 = {
 			isa = PBXGroup;
 			children = (
-				37E3D5E8172D647A00F54DC9 /* SPARQLEngine */,
+				37E3D5E8172D647A00F54DC9 /* GTWSPARQLEngine */,
 				37E3D5E5172D647A00F54DC9 /* Frameworks */,
 				37E3D5E4172D647A00F54DC9 /* Products */,
 			);
@@ -278,7 +278,7 @@
 		37E3D5E4172D647A00F54DC9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				37E3D5E3172D647A00F54DC9 /* SPARQLEngine */,
+				37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -294,12 +294,12 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		37E3D5E8172D647A00F54DC9 /* SPARQLEngine */ = {
+		37E3D5E8172D647A00F54DC9 /* GTWSPARQLEngine */ = {
 			isa = PBXGroup;
 			children = (
 				37E3D5E9172D647A00F54DC9 /* main.m */,
-				37E3D5F3172D650900F54DC9 /* SPARQLEngine.h */,
-				37E3D5EB172D647A00F54DC9 /* SPARQLEngine.1 */,
+				37E3D5F3172D650900F54DC9 /* GTWSPARQLEngine.h */,
+				37E3D5EB172D647A00F54DC9 /* GTWSPARQLEngine.1 */,
 				37988878173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.h */,
 				37988879173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m */,
 				37186E19173BFFD90089CD3B /* Models */,
@@ -316,15 +316,15 @@
 				378A4079174FCBA200D4AC13 /* GTWBlockEnumerator.h */,
 				378A407A174FCBA200D4AC13 /* GTWBlockEnumerator.m */,
 			);
-			path = SPARQLEngine;
+			path = GTWSPARQLEngine;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		37E3D5E2172D647A00F54DC9 /* SPARQLEngine */ = {
+		37E3D5E2172D647A00F54DC9 /* GTWSPARQLEngine */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 37E3D5EF172D647A00F54DC9 /* Build configuration list for PBXNativeTarget "SPARQLEngine" */;
+			buildConfigurationList = 37E3D5EF172D647A00F54DC9 /* Build configuration list for PBXNativeTarget "GTWSPARQLEngine" */;
 			buildPhases = (
 				37E3D5DF172D647A00F54DC9 /* Sources */,
 				37E3D5E0172D647A00F54DC9 /* Frameworks */,
@@ -334,9 +334,9 @@
 			);
 			dependencies = (
 			);
-			name = SPARQLEngine;
+			name = GTWSPARQLEngine;
 			productName = SPARQLEngine;
-			productReference = 37E3D5E3172D647A00F54DC9 /* SPARQLEngine */;
+			productReference = 37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -348,7 +348,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Gregory Williams";
 			};
-			buildConfigurationList = 37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "SPARQLEngine" */;
+			buildConfigurationList = 37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "GTWSPARQLEngine" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -360,7 +360,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				37E3D5E2172D647A00F54DC9 /* SPARQLEngine */,
+				37E3D5E2172D647A00F54DC9 /* GTWSPARQLEngine */,
 			);
 		};
 /* End PBXProject section */
@@ -474,7 +474,7 @@
 					/usr/local/Cellar/rasqal/0.9.30/lib,
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = GTWSPARQLEngine;
 			};
 			name = Debug;
 		};
@@ -493,14 +493,14 @@
 					/usr/local/Cellar/rasqal/0.9.30/lib,
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = GTWSPARQLEngine;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "SPARQLEngine" */ = {
+		37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "GTWSPARQLEngine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				37E3D5ED172D647A00F54DC9 /* Debug */,
@@ -509,7 +509,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		37E3D5EF172D647A00F54DC9 /* Build configuration list for PBXNativeTarget "SPARQLEngine" */ = {
+		37E3D5EF172D647A00F54DC9 /* Build configuration list for PBXNativeTarget "GTWSPARQLEngine" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				37E3D5F0172D647A00F54DC9 /* Debug */,

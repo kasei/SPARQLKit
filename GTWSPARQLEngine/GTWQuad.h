@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 #import <Foundation/NSKeyValueCoding.h>
 
 @interface GTWQuad : NSObject<GTWQuad>

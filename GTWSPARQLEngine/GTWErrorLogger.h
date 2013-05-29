@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @interface GTWErrorLogger : NSObject<GTWLogger>
 

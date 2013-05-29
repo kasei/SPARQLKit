@@ -1,6 +1,6 @@
 #import "GTWQueryPlanner.h"
 #import "GTWQuad.h"
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @implementation GTWQueryPlanner
 

@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <AddressBook/AddressBook.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @interface GTWAddressBookTripleStore : NSObject<GTWTripleStore>
 

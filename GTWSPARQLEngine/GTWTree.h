@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 extern NSString * __strong const kUsedVariables;
 extern NSString * __strong const kProjectVariables;

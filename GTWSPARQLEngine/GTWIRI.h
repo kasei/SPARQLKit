@@ -1,4 +1,4 @@
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @interface GTWIRI : NSObject<GTWIRI>
 

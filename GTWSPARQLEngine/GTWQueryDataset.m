@@ -1,5 +1,5 @@
 #import "GTWQueryDataset.h"
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @implementation GTWQueryDataset
 

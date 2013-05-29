@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include <librdf.h>
 #include <CoreFoundation/CoreFoundation.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
 #import "GTWRedlandTripleStore.h"
 #import "GTWTurtleParser.h"

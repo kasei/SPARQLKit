@@ -2,7 +2,7 @@
 #import "GTWTree.h"
 #include <raptor2.h>
 #include <rasqal/rasqal.h>
-#import "SPARQLEngine.h"
+#import "GTWSPARQLEngine.h"
 
 @interface GTWRasqalSPARQLParser : NSObject<GTWSPARQLParser>
 
