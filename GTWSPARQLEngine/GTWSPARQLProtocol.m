@@ -47,13 +47,32 @@ static NSString* OSVersionNumber ( void ) {
     //	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
     //	NSLog(@"got response with %lu bytes", [data length]);
 	if (data) {
-        // TODO: parse the srx data
-        NSLog(@"*** should parse SRX data of length %lu here\n", [data length]);
-        return YES;
-	} else {
 		NSInteger code	= [resp statusCode];
-		NSLog(@"error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
-        NSLog(@"... %@", _error);
+        if (code >= 300) {
+//            NSLog(@"error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
+            NSDictionary* headers	= [resp allHeaderFields];
+            NSString* type		= [headers objectForKey:@"Content-Type"];
+            if (error) {
+                if ([type hasPrefix:@"text/"]) {
+                    *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.sparql.http" code:code userInfo:@{@"description": [NSHTTPURLResponse localizedStringForStatusCode:code], @"body": [NSString stringWithCString:[data bytes] encoding:NSUTF8StringEncoding]}];
+                } else {
+                    *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.sparql.http" code:code userInfo:@{@"description": [NSHTTPURLResponse localizedStringForStatusCode:code], @"data": data}];
+                }
+            }
+            return NO;
+        } else {
+            // TODO: parse the srx data
+            NSLog(@"*** should parse SRX data of length %lu here\n", [data length]);
+            return YES;
+        }
+	} else {
+//		NSInteger code	= [resp statusCode];
+//		NSLog(@"error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
+//        NSLog(@"... %@", _error);
+        if (error) {
+            NSLog(@"SPARQL Protocol HTTP error: %@", _error);
+            *error  = _error;
+        }
         return NO;
 	}
 }

@@ -24,6 +24,13 @@ static id<GTWTerm> raptorTermToObject (raptor_term* term) {
     }
 }
 
+void message_handler(void *user_data, raptor_log_message* message) {
+    if (user_data) {
+        void(^block)(raptor_log_message*)        = (__bridge void(^)(raptor_log_message*)) user_data;
+        block(message);
+    }
+}
+
 static void statement_handler(void* user_data, raptor_statement* statement) {
     id<GTWTerm> s   = raptorTermToObject(statement->subject);
     id<GTWTerm> p   = raptorTermToObject(statement->predicate);
@@ -53,21 +60,48 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
 }
 
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
-    void* user_data         = (__bridge void*) block;;
+    void* user_data         = (__bridge void*) block;
     raptor_parser_set_statement_handler(self.parser, user_data, statement_handler);
-    
-    raptor_uri* base_uri    = raptor_new_uri(self.raptor_world_ptr, (const unsigned char*) [self.baseURI UTF8String]);
-//    const unsigned char *buffer;
-//    size_t buffer_len;
-    
-    raptor_parser_parse_start(self.parser, base_uri);
-    
-    if (self.data) {
-        raptor_parser_parse_chunk(self.parser, [self.data bytes], [self.data length], 0);
+    __block NSError* _error = nil;
+    @synchronized([self class]) {
+        void(^errorHandler)(raptor_log_message*)   = ^(raptor_log_message* message){
+            NSMutableString* desc   = [NSMutableString stringWithFormat:@"%s", message->text];
+            if (message->locator) {
+                [desc appendFormat:@" at "];
+                if (message->locator->file) {
+                    [desc appendFormat:@"%s ", message->locator->file];
+//                } else if (message->locator->uri) {
+//                    [desc appendFormat:@"%s ", raptor_uri_as_string(message->locator->uri)];
+                } else {
+//                    [desc appendFormat:@" "];
+                }
+                [desc appendFormat:@"(line %d, column %d)", message->locator->line, message->locator->column];
+            }
+            _error  = [NSError errorWithDomain:@"us.kasei.sparql.parser.redland" code:message->code userInfo:@{@"description": desc}];
+        };
+        raptor_world_set_log_handler(self.raptor_world_ptr, (__bridge void*) errorHandler, message_handler);
+        raptor_uri* base_uri    = raptor_new_uri(self.raptor_world_ptr, (const unsigned char*) [self.baseURI UTF8String]);
+    //    const unsigned char *buffer;
+    //    size_t buffer_len;
+        
+        raptor_parser_parse_start(self.parser, base_uri);
+        
+        if (self.data) {
+            raptor_parser_parse_chunk(self.parser, [self.data bytes], [self.data length], 0);
+        }
+        
+        raptor_parser_parse_chunk(self.parser, NULL, 0, 1); /* no data and is_end = 1 */
     }
+    raptor_world_set_log_handler(self.raptor_world_ptr, nil, message_handler);
     
-    raptor_parser_parse_chunk(self.parser, NULL, 0, 1); /* no data and is_end = 1 */
-    return YES;
+    if (_error) {
+        if (error) {
+            *error  = _error;
+        }
+        return NO;
+    } else {
+        return YES;
+    }
 }
 
 @end

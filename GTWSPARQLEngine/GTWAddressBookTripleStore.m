@@ -5,21 +5,6 @@
 #import "GTWTriple.h"
 #import "GTWBlockEnumerator.h"
 
-//static id<GTWTerm> emitProperty (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, void (^block)(id<GTWTriple> t)) {
-//    id<GTWTriple> t    = [[GTWTriple alloc] init];
-//    t.subject       = subject;
-//    t.predicate     = predicate;
-//    
-//    id value        = [person valueForProperty:property];
-//    if (value) {
-//        t.object        = [[class alloc] initWithString:value];
-//        block(t);
-//        return t.object;
-//    } else {
-//        return nil;
-//    }
-//}
-
 static id<GTWTriple> propertyTriple (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, id<GTWTerm>* object) {
     id<GTWTriple> t    = [[GTWTriple alloc] init];
     t.subject       = subject;
@@ -85,6 +70,8 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
 - (GTWAddressBookTripleStore*) init {
     if (self = [super init]) {
         self.ab = [ABAddressBook sharedAddressBook];
+        if (!self.ab)
+            return nil;
     }
     return self;
 }
@@ -98,7 +85,14 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
 }
 
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error: (NSError**) error {
-    NSEnumerator* e    = [self tripleEnumeratorMatchingSubject:nil predicate:nil object:nil error:error];
+    NSError* _error = nil;
+    NSEnumerator* e    = [self tripleEnumeratorMatchingSubject:nil predicate:nil object:nil error:&_error];
+    if (_error) {
+        if (error) {
+            *error  = _error;
+        }
+        return NO;
+    }
     for (id r in e) {
         block(r);
     }
@@ -121,7 +115,6 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
         }
         //        NSLog(@"enumerating matching quad: %@", q);
         block(t);
-        
     } error: error];
 }
 
@@ -151,8 +144,6 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
                                                  };
     
     
-    
-    
     NSArray* people = [self.ab people];
     GTWIRI* foafPerson  = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/Person"];
     GTWIRI* foafname  = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/name"];
@@ -164,7 +155,6 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
     
     NSMutableArray* buffer  = [NSMutableArray array];
     NSEnumerator* peopleenum    = [people objectEnumerator];
-    
     
     GTWProducer prod    = ^id(void){
         while (YES) {
@@ -229,42 +219,6 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
         return nil;
     };
     return [[GTWBlockEnumerator alloc] initWithBlock:prod];
-//    for (ABPerson* p in people) {
-//        NSString* uid   = [p uniqueId];
-//        NSString* uri   = [NSString stringWithFormat:@"tag:kasei.us,2013-05-12:%@", uid];
-//        GTWIRI* person  = [[GTWIRI alloc] initWithIRI:uri];
-//        
-//        int showAsFlags = [[p valueForProperty:kABPersonFlags] intValue] & kABShowAsMask;
-//        //        NSLog(@"person as company: %d", showAsFlags);
-//        if (!(showAsFlags & kABShowAsCompany)) {
-//            block([[GTWTriple alloc] initWithSubject:person predicate:rdftype object:foafPerson]);
-//            id<GTWTerm> fname   = emitProperty(p, person, kABFirstNameProperty, foaffname, [GTWLiteral class], block);
-//            id<GTWTerm> lname   = emitProperty(p, person, kABLastNameProperty, foaflname, [GTWLiteral class], block);
-//            
-//            for (NSString* property in propertyPredicates) {
-//                NSDictionary* data  = propertyPredicates[property];
-//                NSString* url   = data[@"url"];
-//                Class class     = data[@"type"];
-//                emitProperty(p, person, property, [[GTWIRI alloc] initWithIRI:url], class, block);
-//            }
-//            for (NSString* property in multiPropertyPredicates) {
-//                NSDictionary* data  = multiPropertyPredicates[property];
-//                NSString* url   = data[@"url"];
-//                Class class     = data[@"type"];
-//                emitProperties(p, person, property, [[GTWIRI alloc] initWithIRI:url], class, block, data[@"convert"]);
-//            }
-//            
-//            if (fname && lname) {
-//                block([[GTWTriple alloc] initWithSubject:person predicate:foafname object:[[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%@ %@", fname.value, lname.value]]]);
-//            }
-//            
-//            //            if (!(fname || lname)) {
-//            //                NSLog(@"person without name or nick: %@", p);
-//            //            }
-//        }
-//    }
-//    return YES;
-
 }
 
 @end

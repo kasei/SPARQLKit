@@ -19,20 +19,26 @@
     if (g) {
         id<GTWTripleStore> store   = [self.graphs objectForKey:g.value];
         if (store) {
-            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+            BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
                 id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:g];
                 block(q);
             } error:error];
+            if (!ok) {
+                return NO;
+            }
         }
         return YES;
     } else {
         for (NSString* graphName in [self.graphs allKeys]) {
             GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
             id<GTWTripleStore> store    = [self.graphs objectForKey:graphName];
-            [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+            BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
                 id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
                 block(q);
             } error:error];
+            if (!ok) {
+                return NO;
+            }
         }
         return YES;
     }

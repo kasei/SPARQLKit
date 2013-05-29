@@ -151,10 +151,14 @@ int run3(NSString* filename, NSString* base) {
     id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" WithRaptorWorld:raptor_world_ptr];
     {
         __block NSUInteger count    = 0;
+        NSError* error  = nil;
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
             count++;
             NSLog(@"-> %@\n", t);
-        } error:nil];
+        } error:&error];
+        if (error) {
+            NSLog(@"parser error: %@", error);
+        }
         NSLog(@"%lu total quads\n", count);
     }
     
@@ -351,16 +355,20 @@ int main(int argc, const char * argv[]) {
         run(filename, base);
     } else if (NO) {
         run2(filename, base);
-    } else if (NO) {
+    } else if (YES) {
         run3(filename, base);
     } else if (NO) {
         GTWSPARQLProtocolStore* store   = [[GTWSPARQLProtocolStore alloc] initWithEndpoint:@"http://myrdf.us/sparql11"];
-        GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
+        GTWVariable* s  = nil; // [[GTWVariable alloc] initWithName:@"s"];
         GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
         GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        NSError* error  = nil;
         [store enumerateTriplesMatchingSubject:s predicate:rdftype object:o usingBlock:^(id<GTWTriple> t) {
             ;
-        } error:nil];
+        } error:&error];
+        if (error) {
+            NSLog(@"error: %@", error);
+        }
     } else {
     //    NSString* query = @"SELECT DISTINCT ?s ?p WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; ?p ?o } ORDER BY ?p DESC(?s)";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";

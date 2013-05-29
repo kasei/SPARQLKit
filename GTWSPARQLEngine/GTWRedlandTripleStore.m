@@ -35,7 +35,7 @@
     [self enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple>t){
         [array addObject:t];
     } error:error];
-    return nil;
+    return array;
 }
 
 - (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
@@ -60,12 +60,28 @@
     
     [queryString appendFormat:@" }"];
 	librdf_query* query	= librdf_new_query(self.librdf_world_ptr, "sparql", NULL, (unsigned const char*) [queryString UTF8String], NULL);
+    if (!query) {
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:1 userInfo:@{@"description": @"Failed to construct redland query object"}];
+        }
+        return NO;
+    }
+    
 	librdf_query_results* results	= librdf_model_query_execute(self.model, query);
+    if (!results) {
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:2 userInfo:@{@"description": @"Failed to execute redland query against model"}];
+        }
+        return NO;
+    }
+    
     while (!librdf_query_results_finished(results)) {
         const char **names=NULL;
         librdf_node* values[10];
         if (librdf_query_results_get_bindings(results, &names, values)) {
-            NSLog(@"librdf get_bindings failed");
+            if (error) {
+                *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:3 userInfo:@{@"description": @"Failed to get variable bindings from redland query result"}];
+            }
             return NO;
         }
         
@@ -109,13 +125,22 @@
                             term    = [[GTWBlank alloc] initWithID:[NSString stringWithCString:(const char*) librdf_node_get_blank_identifier(values[i]) encoding:NSUTF8StringEncoding]];
                             break;
                         default:
+                            if (error) {
+                                *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:4 userInfo:@{@"description": [NSString stringWithFormat: @"Unknown redland node type (%d) found in query result", type], @"node-type": @(type)}];
+                            }
+                            return NO;
                             break;
                     }
                     
-                    if (term != NULL) {
+                    if (term) {
                         [(NSObject<GTWTerm>*)t setValue:term forKey:[NSString stringWithCString:name encoding:NSUTF8StringEncoding]];
 //                        int var	= gtw_execution_context_variable_number(t->ctx, name);
 //                        gtw_solution_set_mapping(r, var, n);
+                    } else {
+                        if (error) {
+                            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:5 userInfo:@{@"description": @"Failed to construct term from redland node"}];
+                        }
+                        return NO;
                     }
                     //					librdf_node_print(values[i], stdout);
                     librdf_free_node(values[i]);
@@ -128,7 +153,8 @@
             block(t);
         }
         
-        librdf_query_results_next(results);
+        if (librdf_query_results_next(results))
+            break;
     }
     
     return YES;
@@ -143,7 +169,12 @@
     librdf_node *s  = [self objectToRaptorTerm:t.subject];
     librdf_node *p  = [self objectToRaptorTerm:t.predicate];
     librdf_node *o  = [self objectToRaptorTerm:t.object];
-    librdf_model_add(self.model, s, p, o);
+    if (librdf_model_add(self.model, s, p, o)) {
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:6 userInfo:@{@"description": @"Failed to add triple to redland model", @"triple": t}];
+        }
+        return NO;
+    }
     return YES;
 }
 
@@ -152,7 +183,12 @@
     librdf_node *p  = [self objectToRaptorTerm:t.predicate];
     librdf_node *o  = [self objectToRaptorTerm:t.object];
     librdf_statement* st    = librdf_new_statement_from_nodes(self.librdf_world_ptr, s, p, o);
-    librdf_model_remove_statement(self.model, st);
+    if (librdf_model_remove_statement(self.model, st)) {
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.redland" code:7 userInfo:@{@"description": @"Failed to remove triple to redland model", @"triple": t}];
+        }
+        return NO;
+    }
     return YES;
 }
 

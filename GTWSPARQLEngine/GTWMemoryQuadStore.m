@@ -58,18 +58,21 @@
     if ([type isEqualToString:@"term"]) {
         for (NSString* p in positions) {
             if (!([p isEqualToString:@"subject"] || [p isEqualToString:@"predicate"] || [p isEqualToString:@"object"] || [p isEqualToString:@"graph"])) {
-                NSLog(@"Cannot add index for unknown term position '%@'", p);
-                // TODO: set error
-                [self.logger logData:@"" forKey:@""];
+                NSString* desc  = [NSString stringWithFormat:@"Cannot add index for unknown term position '%@'", p];
+//                NSLog(@"%@", desc);
+                if (error) {
+                    *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
+                }
+//                [self.logger logData:@"" forKey:@""];
                 return NO;
             }
         }
         NSString* name  = [positions componentsJoinedByString:@", "];
-        NSLog(@"Adding index on term positions: <%@>\n", name);
-        
+//        NSLog(@"Adding index on term positions: <%@>\n", name);
         
         __block BOOL ok = YES;
         __block NSMutableDictionary* idx;
+        __block NSError* _error;
         dispatch_barrier_sync(self.queue, ^{
     //        NSLog(@"async dispatch setting up index");
             // add index to store
@@ -79,7 +82,9 @@
                 [self.indexKeys setObject:positions forKey:name];
                 [self.indexes setObject:idx forKey:name];
             } else {
-                NSLog(@"Index on terms <%@> already exists", name);
+                NSString* desc  = [NSString stringWithFormat:@"Index on terms <%@> already exists", name];
+                _error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
+//                NSLog(@"%@", desc);
                 ok  = NO;
                 return;
             }
@@ -97,6 +102,9 @@
             }
         });
         if (!ok) {
+            if (error) {
+                *error  = _error;
+            }
             return NO;
         }
         
@@ -108,7 +116,10 @@
             }
         }
     } else {
-        // TODO: set error
+        NSString* desc  = [NSString stringWithFormat:@"Attempt to add unknown index type %@", type];
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
+        }
         return NO;
     }
     return YES;
