@@ -666,9 +666,12 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                 [vars addObject:v];
             }
             NSMutableSet* set   = [NSMutableSet setWithArray:vars];
-            [set unionSet:[parent annotationForKey:kProjectVariables]];
+            NSSet* parentVars   = [parent annotationForKey:kProjectVariables];
+            if (parentVars) {
+                [set unionSet:parentVars];
+            }
             [node.annotations setObject:set forKey:kProjectVariables];
-            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
+//            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
         } else if (node.type == kPlanOrder) {
             GTWTree* list   = node.value;
             NSMutableArray* vars    = [NSMutableArray array];
@@ -678,7 +681,10 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                 }
             }
             NSMutableSet* set   = [NSMutableSet setWithArray:vars];
-            [set unionSet:[parent annotationForKey:kProjectVariables]];
+            NSSet* parentVars   = [parent annotationForKey:kProjectVariables];
+            if (parentVars) {
+                [set unionSet:parentVars];
+            }
             [node.annotations setObject:set forKey:kProjectVariables];
         } else {
             NSMutableSet* set  = [NSMutableSet setWithSet: [parent annotationForKey:kProjectVariables]];
