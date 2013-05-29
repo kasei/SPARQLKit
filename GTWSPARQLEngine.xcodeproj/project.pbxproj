@@ -28,6 +28,8 @@
 		37988881173F44390094B897 /* GTWAddressBookTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37988880173F44390094B897 /* GTWAddressBookTripleStore.m */; };
 		37988883173F45860094B897 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37988882173F45860094B897 /* AddressBook.framework */; };
 		37988886173FDC670094B897 /* GTWQueryDataset.m in Sources */ = {isa = PBXBuildFile; fileRef = 37988885173FDC660094B897 /* GTWQueryDataset.m */; };
+		37A2E1CA175694F60086CBE7 /* GTWSPARQLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A2E1C9175694F60086CBE7 /* GTWSPARQLProtocol.m */; };
+		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		37C37A491737FFA70078C98F /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A481737FFA70078C98F /* librdf.0.dylib */; };
 		37C37A4C1737FFE00078C98F /* GTWRedlandTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A4B1737FFE00078C98F /* GTWRedlandTripleStore.m */; };
 		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
@@ -93,6 +95,9 @@
 		37988882173F45860094B897 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
 		37988884173FDC660094B897 /* GTWQueryDataset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQueryDataset.h; sourceTree = "<group>"; };
 		37988885173FDC660094B897 /* GTWQueryDataset.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWQueryDataset.m; sourceTree = "<group>"; };
+		37A2E1C8175694F60086CBE7 /* GTWSPARQLProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLProtocol.h; sourceTree = "<group>"; };
+		37A2E1C9175694F60086CBE7 /* GTWSPARQLProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLProtocol.m; sourceTree = "<group>"; };
+		37A2E1CB1756963C0086CBE7 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		37C37A481737FFA70078C98F /* librdf.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librdf.0.dylib; path = /usr/local/Cellar/redland/1.0.16/lib/librdf.0.dylib; sourceTree = "<absolute>"; };
 		37C37A4A1737FFE00078C98F /* GTWRedlandTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandTripleStore.h; sourceTree = "<group>"; };
 		37C37A4B1737FFE00078C98F /* GTWRedlandTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandTripleStore.m; sourceTree = "<group>"; };
@@ -117,6 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */,
 				37E1984C1741EC2700AB3D97 /* libcommonCrypto.dylib in Frameworks */,
 				37988883173F45860094B897 /* AddressBook.framework in Frameworks */,
 				37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */,
@@ -174,6 +180,7 @@
 				3758D780175250BC00FF58D4 /* In-Memory */,
 				3758D781175250C600FF58D4 /* Redland */,
 				3758D782175250F600FF58D4 /* AddressBook */,
+				37A2E1C7175694E70086CBE7 /* SPARQL */,
 			);
 			name = "Data Sources";
 			sourceTree = "<group>";
@@ -256,6 +263,15 @@
 			name = "Query Planner";
 			sourceTree = "<group>";
 		};
+		37A2E1C7175694E70086CBE7 /* SPARQL */ = {
+			isa = PBXGroup;
+			children = (
+				37A2E1C8175694F60086CBE7 /* GTWSPARQLProtocol.h */,
+				37A2E1C9175694F60086CBE7 /* GTWSPARQLProtocol.m */,
+			);
+			name = SPARQL;
+			sourceTree = "<group>";
+		};
 		37E1984D1741F48800AB3D97 /* RDF Parsers */ = {
 			isa = PBXGroup;
 			children = (
@@ -269,6 +285,7 @@
 		37E3D5DA172D647A00F54DC9 = {
 			isa = PBXGroup;
 			children = (
+				37A2E1CB1756963C0086CBE7 /* libxml2.dylib */,
 				37E3D5E8172D647A00F54DC9 /* GTWSPARQLEngine */,
 				37E3D5E5172D647A00F54DC9 /* Frameworks */,
 				37E3D5E4172D647A00F54DC9 /* Products */,
@@ -394,6 +411,7 @@
 				37E198501741F49B00AB3D97 /* GTWRedlandParser.m in Sources */,
 				378A4078174F60FD00D4AC13 /* GTWExpression.m in Sources */,
 				378A407B174FCBA300D4AC13 /* GTWBlockEnumerator.m in Sources */,
+				37A2E1CA175694F60086CBE7 /* GTWSPARQLProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,6 +484,7 @@
 					/usr/local/include,
 					/usr/local/include/raptor2,
 					/usr/local/include/rasqal,
+					/usr/include/libxml2,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -485,6 +504,7 @@
 					/usr/local/include,
 					/usr/local/include/raptor2,
 					/usr/local/include/rasqal,
+					/usr/include/libxml2,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

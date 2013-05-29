@@ -15,6 +15,7 @@
 #import "GTWQueryDataset.h"
 #import "GTWRedlandParser.h"
 #import "GTWExpression.h"
+#import "GTWSPARQLProtocol.h"
 #import "NSObject+NSDictionary_QueryBindings.h"
 
 rasqal_world* rasqal_world_ptr;
@@ -352,6 +353,14 @@ int main(int argc, const char * argv[]) {
         run2(filename, base);
     } else if (NO) {
         run3(filename, base);
+    } else if (NO) {
+        GTWSPARQLProtocolStore* store   = [[GTWSPARQLProtocolStore alloc] initWithEndpoint:@"http://myrdf.us/sparql11"];
+        GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
+        GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
+        GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        [store enumerateTriplesMatchingSubject:s predicate:rdftype object:o usingBlock:^(id<GTWTriple> t) {
+            ;
+        } error:nil];
     } else {
     //    NSString* query = @"SELECT DISTINCT ?s ?p WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; ?p ?o } ORDER BY ?p DESC(?s)";
     //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
