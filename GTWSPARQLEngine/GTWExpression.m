@@ -55,6 +55,9 @@
         } else {
             return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
         }
+    } else if (expr.type == kExprRand) {
+        GTWLiteral* l   = [GTWLiteral doubleLiteralWithValue:((double)rand() / RAND_MAX)];
+        return l;
     } else {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;

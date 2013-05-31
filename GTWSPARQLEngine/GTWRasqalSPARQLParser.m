@@ -411,10 +411,22 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 	/* look for LET variable and value */
 	var = rasqal_graph_pattern_get_variable(gp);
 	if(var) {
-		fprintf(stderr, "bind\n");
-		fprintf(fh, "%s := ", var->name);
-		fprintf(stderr, "(expression : %p)\n", (void*) var->expression);
-		rasqal_expression_print(var->expression, fh);
+        GTWVariable* v    = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", var->name]];
+//		fprintf(stderr, "bind\n");
+//		fprintf(fh, "%s := ", var->name);
+        rasqal_expression* expr = rasqal_graph_pattern_get_filter_expression(gp);
+        if (expr) {
+//            rasqal_expression_print(expr, fh);
+            GTWTree* expression = rasqal_expression_to_tree(expr);
+            NSLog(@"BIND expression: %@", expression);
+            GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
+                               [[GTWTree alloc] initLeafWithType:kTreeNode value:v pointer:NULL],
+                               expression
+                               ]];
+            return [[GTWTree alloc] initLeafWithType:kAlgebraExtend value:list pointer:NULL];
+        } else {
+            fprintf(fh, "unknown BIND value\n");
+        }
 	}
 	
 	/* look for SERVICE literal */
@@ -517,6 +529,21 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
                 GTWTree* c  = children[i];
 //				gtw_tree_node* c	= children[i];
 				if (_fix_leftjoin(rasqal_world_ptr, c, children2, &size2)) {
+				} else if (c.type == kAlgebraExtend && [c.arguments count] == 0) {
+					GTWTree* pat;
+					if (size2 == 0) {
+                        pat = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:@[]];
+					} else {
+						size2--;
+						pat	= children2[size2];
+                        [children2 removeObject:pat];
+					}
+                    id extend = c.value;
+                    NSLog(@"extend values: %@", extend);
+                    NSLog(@"extend tree: %@", pat);
+                    GTWTree* e  = [[GTWTree alloc] initWithType:kAlgebraExtend value: extend arguments:@[pat]];
+                    children2[size2++]  = e;
+                    NSLog(@"extend: %@", e);
 				} else if (c.type == kAlgebraFilter && [c.arguments count] == 0) {
 					GTWTree* pat;
 					if (size2 == 0) {

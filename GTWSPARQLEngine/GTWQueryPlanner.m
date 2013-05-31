@@ -1,3 +1,4 @@
+
 #import "GTWQueryPlanner.h"
 #import "GTWQuad.h"
 #import "GTWSPARQLEngine.h"
@@ -19,6 +20,8 @@
     NSArray* list;
     if (algebra.type == kAlgebraDistinct) {
         return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+    } else if (algebra.type == kAlgebraUnion) {
+        return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraProject) {
         return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraJoin) {
@@ -27,6 +30,8 @@
         return [self planBGP: algebra.arguments usingDataset: dataset];
     } else if (algebra.type == kAlgebraFilter) {
         return [[GTWQueryPlan alloc] initWithType:kPlanFilter value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+    } else if (algebra.type == kAlgebraExtend) {
+        return [[GTWQueryPlan alloc] initWithType:kPlanExtend value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraOrderBy) {
         list    = algebra.value;
         return [[GTWQueryPlan alloc] initWithType:kPlanOrder value: list arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
