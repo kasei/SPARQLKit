@@ -755,7 +755,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
         } else {
             [s appendFormat: @"%@%@", indent, [node treeTypeName]];
             if (node.value) {
-                if ([node isKindOfClass:[GTWTree class]]) {
+                if ([node.value isKindOfClass:[GTWTree class]]) {
                     [s appendFormat:@" %@", [node.value conciseDescription]];
                 } else {
                     [s appendFormat:@" %@", node.value];
