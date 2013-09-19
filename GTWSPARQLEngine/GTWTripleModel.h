@@ -1,8 +1,9 @@
 #import <Foundation/Foundation.h>
 #import "GTWSPARQLEngine.h"
-#import "GTWIRI.h"
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWModelBase.h>
 
-@interface GTWTripleModel : NSObject<GTWModel>
+@interface GTWTripleModel : GTWModelBase<GTWModel>
 
 @property NSMutableDictionary* graphs;
 //@property GTWIRI* graph;

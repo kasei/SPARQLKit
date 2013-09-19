@@ -1,8 +1,8 @@
 #include <CommonCrypto/CommonDigest.h>
 #import "GTWAddressBookTripleStore.h"
-#import "GTWIRI.h"
-#import "GTWLiteral.h"
-#import "GTWTriple.h"
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWLiteral.h>
+#import <GTWSWBase/GTWTriple.h>
 #import "GTWBlockEnumerator.h"
 
 static id<GTWTriple> propertyTriple (ABPerson* person, GTWIRI* subject, NSString* property, GTWIRI* predicate, Class class, id<GTWTerm>* object) {
@@ -66,6 +66,10 @@ static NSUInteger emitProperties (ABPerson* person, GTWIRI* subject, NSString* p
 
 
 @implementation GTWAddressBookTripleStore
+
+- (unsigned)interfaceVersion {
+    return 0;
+}
 
 - (GTWAddressBookTripleStore*) init {
     if (self = [super init]) {

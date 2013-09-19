@@ -153,13 +153,13 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
         if ([t.args count] > 1) {
             NSString* ns    = t.args[0];
             NSString* local = t.args[1];
-            NSString* base  = [self.namespaces objectForKey:ns];
+            NSString* base  = (self.namespaces)[ns];
 //            NSLog(@"constructing IRI from prefixname <%@> <%@> with base: %@", base, local, self.base);
             NSString* iri   = [NSString stringWithFormat:@"%@%@", base, local];
             return [[GTWIRI alloc] initWithIRI:iri base:self.base];
         } else {
             NSString* ns    = t.args[0];
-            NSString* base  = [self.namespaces objectForKey:ns];
+            NSString* base  = (self.namespaces)[ns];
             return [[GTWIRI alloc] initWithIRI:base base:self.base];
         }
     } else if (t.type == BNODE) {

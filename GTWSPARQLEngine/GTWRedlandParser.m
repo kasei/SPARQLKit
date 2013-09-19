@@ -1,8 +1,8 @@
 #import "GTWRedlandParser.h"
-#import "GTWTriple.h"
-#import "GTWIRI.h"
-#import "GTWLiteral.h"
-#import "GTWBlank.h"
+#import <GTWSWBase/GTWTriple.h>
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWLiteral.h>
+#import <GTWSWBase/GTWBlank.h>
 
 static id<GTWTerm> raptorTermToObject (raptor_term* term) {
     raptor_term_type type   = term->type;

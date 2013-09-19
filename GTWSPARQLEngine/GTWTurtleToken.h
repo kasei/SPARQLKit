@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import "GTWIRI.h"
-#import "GTWBlank.h"
-#import "GTWLiteral.h"
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWBlank.h>
+#import <GTWSWBase/GTWLiteral.h>
 
 typedef NS_ENUM(NSInteger, GTWTurtleTokenType) {
 	WS,

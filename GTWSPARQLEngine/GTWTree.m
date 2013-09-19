@@ -1,6 +1,6 @@
 #import "GTWTree.h"
 #import "GTWSPARQLEngine.h"
-#import "GTWVariable.h"
+#import <GTWSWBase/GTWVariable.h>
 
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
@@ -18,6 +18,7 @@ GTWTreeType __strong const kPlanExtend					= @"PlanExtend";
 GTWTreeType __strong const kPlanMinus					= @"PlanMinus";
 GTWTreeType __strong const kPlanOrder					= @"PlanOrder";
 GTWTreeType __strong const kPlanDistinct				= @"PlanDistinct";
+GTWTreeType __strong const kPlanGraph                   = @"PlanGraph";
 GTWTreeType __strong const kPlanSlice					= @"PlanSlice";
 GTWTreeType __strong const kPlanResultSet				= @"PlanResultSet";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
@@ -424,6 +425,9 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
         self.type   = type;
         self.ptr	= ptr;
         self.value  = value;
+        if (!type) {
+            NSLog(@"no type specified for GTWTree leaf");
+        }
     }
     return self;
 }
@@ -456,7 +460,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
         }
         
         for (i = 0; i < size; i++) {
-            GTWTree* n  = [args objectAtIndex:i];
+            GTWTree* n  = args[i];
             if (n == nil) {
                 NSLog(@"NULL node argument passed to gtw_new_tree");
                 return nil;
@@ -499,7 +503,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
         // 		}
         // 	}
         if (type == kPlanHashJoin && size >= 3) {
-            GTWTree* n	= [args objectAtIndex:2];
+            GTWTree* n	= args[2];
             NSUInteger count	= [n.arguments count];
             if (count == 0) {
                 NSLog(@"hashjoin without join variables\n");
@@ -571,7 +575,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
 }
 
 - (id) annotationForKey: (NSString*) key {
-    return [self.annotations objectForKey:key];
+    return (self.annotations)[key];
 }
 
 - (void) computeScopeVariables {
@@ -583,7 +587,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                 if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                     NSSet* set          = [NSSet setWithObject:term];
                     //                NSLog(@"variables: %@ for plan: %@", set, node);
-                    [node.annotations setObject:set forKey:kUsedVariables];
+                    (node.annotations)[kUsedVariables] = set;
                 }
             } else if (node.type == kTreeQuad) {
                 id<GTWQuad> q  = node.value;
@@ -593,7 +597,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                     if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                         [set addObject:term];
                     }
-                    [node.annotations setObject:set forKey:kUsedVariables];
+                    (node.annotations)[kUsedVariables] = set;
                 }
             } else if (node.type == kTreeTriple) {
                 id<GTWTriple> q  = node.value;
@@ -603,7 +607,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                     if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                         [set addObject:term];
                     }
-                    [node.annotations setObject:set forKey:kUsedVariables];
+                    (node.annotations)[kUsedVariables] = set;
                 }
             }
         } else {
@@ -619,11 +623,11 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
             NSUInteger count    = [node.arguments count];
             if (count) {
                 GTWTree* firstchild  = node.arguments[0];
-                [set unionSet:[firstchild.annotations objectForKey:kUsedVariables]];
+                [set unionSet:(firstchild.annotations)[kUsedVariables]];
                 NSUInteger i;
                 for (i = 1; i < count; i++) {
                     GTWTree* nextchild  = node.arguments[i];
-                    NSSet* newset  = [nextchild.annotations objectForKey:kUsedVariables];
+                    NSSet* newset  = (nextchild.annotations)[kUsedVariables];
                     if (newset) {
                         [set unionSet:newset];
                     }
@@ -631,14 +635,14 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                 if (node.value && [node.value isKindOfClass:[GTWTree class]]) {
                     GTWTree* tree   = node.value;
                     [tree computeScopeVariables];
-                    NSSet* newset  = [tree.annotations objectForKey:kUsedVariables];
+                    NSSet* newset  = (tree.annotations)[kUsedVariables];
                     if (newset) {
                         [set unionSet:newset];
                     }
                 }
                 
             }
-            [node.annotations setObject:set forKey:kUsedVariables];
+            (node.annotations)[kUsedVariables] = set;
         }
         return nil;
     }];
@@ -656,7 +660,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
                 }
             }
             NSSet* set      = [NSMutableSet setWithArray:vars];
-            [node.annotations setObject:set forKey:kProjectVariables];
+            (node.annotations)[kProjectVariables] = set;
         } else if (node.type == kPlanNLjoin) {
             NSSet* lhs  = [node.arguments[0] annotationForKey:kUsedVariables];
             NSMutableSet* joinVars   = [NSMutableSet setWithSet:[node.arguments[1] annotationForKey:kUsedVariables]];
@@ -670,7 +674,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
             if (parentVars) {
                 [set unionSet:parentVars];
             }
-            [node.annotations setObject:set forKey:kProjectVariables];
+            (node.annotations)[kProjectVariables] = set;
 //            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
         } else if (node.type == kPlanOrder) {
             GTWTree* list   = node.value;
@@ -685,7 +689,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
             if (parentVars) {
                 [set unionSet:parentVars];
             }
-            [node.annotations setObject:set forKey:kProjectVariables];
+            (node.annotations)[kProjectVariables] = set;
         } else {
             NSMutableSet* set  = [NSMutableSet setWithSet: [parent annotationForKey:kProjectVariables]];
             if (!set) {
@@ -694,7 +698,7 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
             
             NSSet* usedvars = [node annotationForKey:kUsedVariables];
             [set intersectSet:usedvars];
-            [node.annotations setObject:set forKey:kProjectVariables];
+            (node.annotations)[kProjectVariables] = set;
         }
         
         

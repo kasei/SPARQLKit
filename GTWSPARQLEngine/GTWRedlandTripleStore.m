@@ -1,9 +1,13 @@
 #import "GTWRedlandTripleStore.h"
-#import "GTWIRI.h"
-#import "GTWBlank.h"
-#import "GTWLiteral.h"
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWBlank.h>
+#import <GTWSWBase/GTWLiteral.h>
 
 @implementation GTWRedlandTripleStore
+
+- (unsigned)interfaceVersion {
+    return 0;
+}
 
 - (GTWRedlandTripleStore*) initWithName: (NSString*) name redlandPtr: (librdf_world*) librdf_world_ptr {
     if (self = [self init]) {
@@ -109,20 +113,20 @@
                     switch (type) {
                         case LIBRDF_NODE_TYPE_RESOURCE:
                             uri		= librdf_node_get_uri(values[i]);
-                            term    = [[GTWIRI alloc] initWithIRI:[NSString stringWithCString:(const char*) librdf_uri_as_string(uri) encoding:NSUTF8StringEncoding]];
+                            term    = [[GTWIRI alloc] initWithIRI:@((const char*) librdf_uri_as_string(uri))];
                             break;
                         case LIBRDF_NODE_TYPE_LITERAL:
                             value	= librdf_node_get_literal_value(values[i]);
                             if ((lang = librdf_node_get_literal_value_language(values[i]))) {
-                                term    = [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding] language:[NSString stringWithCString:lang encoding:NSUTF8StringEncoding]];
+                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value) language:@(lang)];
                             } else if ((uri = librdf_node_get_literal_value_datatype_uri(values[i]))) {
-                                term    = [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding] datatype:[NSString stringWithCString:(const char*) raptor_uri_as_string(uri) encoding:NSUTF8StringEncoding]];
+                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
                             } else {
-                                term    = [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding]];
+                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value)];
                             }
                             break;
                         case LIBRDF_NODE_TYPE_BLANK:
-                            term    = [[GTWBlank alloc] initWithID:[NSString stringWithCString:(const char*) librdf_node_get_blank_identifier(values[i]) encoding:NSUTF8StringEncoding]];
+                            term    = [[GTWBlank alloc] initWithID:@((const char*) librdf_node_get_blank_identifier(values[i]))];
                             break;
                         default:
                             if (error) {
@@ -133,7 +137,7 @@
                     }
                     
                     if (term) {
-                        [(NSObject<GTWTerm>*)t setValue:term forKey:[NSString stringWithCString:name encoding:NSUTF8StringEncoding]];
+                        [(NSObject<GTWTerm>*)t setValue:term forKey:@(name)];
 //                        int var	= gtw_execution_context_variable_number(t->ctx, name);
 //                        gtw_solution_set_mapping(r, var, n);
                     } else {
@@ -200,19 +204,19 @@
     switch (type) {
         case LIBRDF_NODE_TYPE_RESOURCE:
             uri		= librdf_node_get_uri(term);
-            return [[GTWIRI alloc] initWithIRI:[NSString stringWithCString:(const char*) librdf_uri_as_string(uri) encoding:NSUTF8StringEncoding]];
+            return [[GTWIRI alloc] initWithIRI:@((const char*) librdf_uri_as_string(uri))];
         case LIBRDF_NODE_TYPE_LITERAL:
             value	= librdf_node_get_literal_value(term);
             if ((lang = librdf_node_get_literal_value_language(term))) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding] language:[NSString stringWithCString:lang encoding:NSUTF8StringEncoding]];
+                return [[GTWLiteral alloc] initWithString:@((const char*) value) language:@(lang)];
             } else if ((uri = librdf_node_get_literal_value_datatype_uri(term))) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding] datatype:[NSString stringWithCString:(const char*) raptor_uri_as_string(uri) encoding:NSUTF8StringEncoding]];
+                return [[GTWLiteral alloc] initWithString:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
             } else {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*) value encoding:NSUTF8StringEncoding]];
+                return [[GTWLiteral alloc] initWithString:@((const char*) value)];
             }
             break;
         case LIBRDF_NODE_TYPE_BLANK:
-            return [[GTWBlank alloc] initWithID:[NSString stringWithCString:(const char*) librdf_node_get_blank_identifier(term) encoding:NSUTF8StringEncoding]];
+            return [[GTWBlank alloc] initWithID:@((const char*) librdf_node_get_blank_identifier(term))];
             break;
         default:
             break;
@@ -244,7 +248,7 @@
     NSLog(@"librdf serializer: %p\n", s);
     librdf_uri* base        = librdf_new_uri(self.librdf_world_ptr, (const unsigned char*) "http://base/");
     unsigned char* ttl      = librdf_serializer_serialize_model_to_string(s, base, self.model);
-    NSString* string        = [NSString stringWithCString:(const char*) ttl encoding:NSUTF8StringEncoding];
+    NSString* string        = @((const char*) ttl);
     librdf_free_uri(base);
     librdf_free_serializer(s);
     return string;

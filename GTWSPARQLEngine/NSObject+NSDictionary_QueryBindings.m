@@ -8,8 +8,8 @@
     NSSet* keys             = [NSSet setWithArray:[result allKeys]];
     [mykeys intersectSet:keys];
     for (NSString* key in mykeys) {
-        id<GTWTerm> myterm  = [self objectForKey:key];
-        id<GTWTerm> term    = [result objectForKey:key];
+        id<GTWTerm> myterm  = self[key];
+        id<GTWTerm> term    = result[key];
         if (![myterm isEqual:term]) {
             return nil;
         }

@@ -16,20 +16,20 @@ static NSDictionary* SPARQLCharTokens() {
 	static dispatch_once_t charOnceToken;
 	dispatch_once(&charOnceToken, ^{
 		_SPARQLCharTokens = @{
-		@",": [NSNumber numberWithInt:COMMA],
-		@".": [NSNumber numberWithInt:DOT],
-		@"=": [NSNumber numberWithInt:EQUALS],
-		@"{": [NSNumber numberWithInt:LBRACE],
-		@"[": [NSNumber numberWithInt:LBRACKET],
-		@"(": [NSNumber numberWithInt:LPAREN],
-//		@"-": [NSNumber numberWithInt:MINUS],
-//		@"+": [NSNumber numberWithInt:PLUS],
-		@"}": [NSNumber numberWithInt:RBRACE],
-		@"]": [NSNumber numberWithInt:RBRACKET],
-		@")": [NSNumber numberWithInt:RPAREN],
-		@";": [NSNumber numberWithInt:SEMICOLON],
-		@"/": [NSNumber numberWithInt:SLASH],
-		@"*": [NSNumber numberWithInt:STAR]
+		@",": @(COMMA),
+		@".": @(DOT),
+		@"=": @(EQUALS),
+		@"{": @(LBRACE),
+		@"[": @(LBRACKET),
+		@"(": @(LPAREN),
+//		@"-": [NSNumber numberWithLong:MINUS],
+//		@"+": [NSNumber numberWithLong:PLUS],
+		@"}": @(RBRACE),
+		@"]": @(RBRACKET),
+		@")": @(RPAREN),
+		@";": @(SEMICOLON),
+		@"/": @(SLASH),
+		@"*": @(STAR)
 		};
 	});
 	
@@ -280,7 +280,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	
 	if ([self.buffer length] < length) {
 		NSUInteger remaining	= [self.buffer length];
-		[self throwError:[NSString stringWithFormat:@"Expecting %lu bytes but only %lu remaining", length, remaining]];
+		[self throwError:[NSString stringWithFormat:@"Expecting %lu bytes but only %lu remaining", (unsigned long)length, (unsigned long)remaining]];
 		return nil;
 	}
 	
@@ -362,7 +362,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		[self _getChar];
 	}
 	
-	return [self newTokenOfType:COMMENT withArgs:[NSArray arrayWithObject: comment]];
+	return [self newTokenOfType:COMMENT withArgs:@[comment]];
 }
 
 - (GTWTurtleToken*) _getNumber {
@@ -1062,7 +1062,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	   // - STAR
 		
 		NSNumber* number;
-		if ((number = [charTokens objectForKey:c])) {
+		if ((number = charTokens[c])) {
 			[self _getChar];
 			return [self newTokenOfType:(GTWTurtleTokenType)[number integerValue] withArgs:@[c]];
 		}
@@ -1089,7 +1089,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (void)throwError: (NSString*) error {
-	NSLog(@"%lu:%lu: %@\n", self.line, self.column, error);
+	NSLog(@"%lu:%lu: %@\n", self.line, (unsigned long)self.column, error);
 	NSLog(@"buffer: '%@'", self.buffer);
 	;
 }

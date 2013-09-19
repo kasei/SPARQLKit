@@ -1,7 +1,7 @@
 #import "GTWTripleModel.h"
-#import "GTWTriple.h"
-#import "GTWQuad.h"
-#import "GTWVariable.h"
+#import <GTWSWBase/GTWTriple.h>
+#import <GTWSWBase/GTWQuad.h>
+#import <GTWSWBase/GTWVariable.h>
 
 @implementation GTWTripleModel
 
@@ -10,14 +10,14 @@
 //        self.store  = store;
 //        self.graph  = graph;
         self.graphs = [NSMutableDictionary dictionary];
-        [self.graphs setObject:store forKey:graph.value];
+        (self.graphs)[graph.value] = store;
     }
     return self;
 }
 
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
     if (g) {
-        id<GTWTripleStore> store   = [self.graphs objectForKey:g.value];
+        id<GTWTripleStore> store   = (self.graphs)[g.value];
         if (store) {
             BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
                 id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:g];
@@ -31,7 +31,7 @@
     } else {
         for (NSString* graphName in [self.graphs allKeys]) {
             GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
-            id<GTWTripleStore> store    = [self.graphs objectForKey:graphName];
+            id<GTWTripleStore> store    = (self.graphs)[graphName];
             BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
                 id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
                 block(q);
@@ -48,19 +48,19 @@
     //    NSLog(@"%@ %@ %@ %@", s, p, o, g);
     NSMutableDictionary* vars  = [NSMutableDictionary dictionary];
     if ([s conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:s.value forKey:@"subject"];
+        vars[@"subject"] = s.value;
         s   = nil;
     }
     if ([p conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:p.value forKey:@"predicate"];
+        vars[@"predicate"] = p.value;
         p   = nil;
     }
     if ([o conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:o.value forKey:@"object"];
+        vars[@"object"] = o.value;
         o   = nil;
     }
     if ([g conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:g.value forKey:@"graph"];
+        vars[@"graph"] = g.value;
         g   = nil;
     }
     
@@ -69,14 +69,14 @@
         NSMutableDictionary* r = [NSMutableDictionary dictionary];
         BOOL ok = YES;
         for (NSString* pos in vars) {
-            NSString* name   = [vars objectForKey:pos];
+            NSString* name   = vars[pos];
             //            NSLog(@"mapping variable %@", name);
             id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
-            if ([r objectForKey:name]) {
+            if (r[name]) {
                 ok  = NO;
                 break;
             } else {
-                [r setObject:value forKey:name];
+                r[name] = value;
             }
         }
         if (ok)

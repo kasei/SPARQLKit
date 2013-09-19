@@ -1,11 +1,11 @@
 // TODO: TREE_NODE should keep id<GTWTerm> objects in the arguments array and not the void* ptr field.
 
 #import "GTWRasqalSPARQLParser.h"
-#import "GTWBlank.h"
-#import "GTWIRI.h"
-#import "GTWLiteral.h"
-#import "GTWTriple.h"
-#import "GTWVariable.h"
+#import <GTWSWBase/GTWBlank.h>
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWLiteral.h>
+#import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWTriple.h>
 #import "GTWExpression.h"
 
 static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutableArray* array, int* size ) {
@@ -26,8 +26,8 @@ static int _fix_leftjoin ( rasqal_world* rasqal_world_ptr, GTWTree* c, NSMutable
 //			lhs	= gtw_new_tree(ALGEBRA_BGP, NULL, 0, NULL);
 		} else {
 			(*size)--;
-			lhs	= array[*size];
-			array[*size]	= NULL;
+            lhs = [array lastObject];
+            [array removeObject:lhs];
 		}
 		
 		if (type == kAlgebraLeftJoin) {
@@ -62,7 +62,13 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 	rasqal_variable* v;
 	raptor_uri* dt;
 	//	rasqal_literal_print(l, fh);
-	switch (l->type) {
+    if (l->type == RASQAL_LITERAL_VARIABLE) {
+        v	= rasqal_literal_as_variable(l);
+        return [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
+    }
+    
+    rasqal_literal_type type    = rasqal_literal_get_rdf_term_type(l);
+	switch (type) {
 		case RASQAL_LITERAL_BLANK:
             //			fprintf(fh, "%s\n", rasqal_literal_as_string(l));
             return [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
@@ -102,6 +108,7 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 //			return gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL);
 			break;
 		default:
+            NSLog(@"unknown rasqal type %s (cf. %s)", rasqal_literal_type_label(type), rasqal_literal_type_label(l->type));
             //			fprintf(fh, "(unknown type %d)\n", rasqal_literal_get_rdf_term_type(l));
 			return NULL;
 			break;
@@ -277,6 +284,8 @@ static GTWTreeType rasqal_op_type_to_tree_type ( rasqal_op type ) {
 static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
 //    fprintf( stderr, "expression op: %s\n", rasqal_expression_op_label(expr->op) );
     id<GTWTerm> term;
+    id<GTWTree> lhs, rhs, arg3;
+    NSMutableArray* array;
     GTWTreeType ttype   = rasqal_op_type_to_tree_type(expr->op);
     switch (expr->op) {
         // 0-ary
@@ -341,13 +350,25 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_CONTAINS:
         case RASQAL_EXPR_STRBEFORE:
         case RASQAL_EXPR_STRAFTER:
-            return [[GTWExpression alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1), rasqal_expression_to_tree(expr->arg2)]];
+            lhs = rasqal_expression_to_tree(expr->arg1);
+            rhs = rasqal_expression_to_tree(expr->arg2);
+            return [[GTWExpression alloc] initWithType:ttype arguments:@[lhs, rhs]];
         // other
         case RASQAL_EXPR_LITERAL:
             term    = rasqal_literal_to_object(expr->literal);
             return [[GTWExpression alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
-        case RASQAL_EXPR_BNODE:
         case RASQAL_EXPR_REGEX:
+            array   = [NSMutableArray arrayWithCapacity:3];
+            lhs = rasqal_expression_to_tree(expr->arg1);
+            rhs = rasqal_expression_to_tree(expr->arg2);
+            [array addObject:lhs];
+            [array addObject:rhs];
+            if (expr->arg3) {
+                arg3    = rasqal_expression_to_tree(expr->arg3);
+                [array addObject:arg3];
+            }
+            return [[GTWExpression alloc] initWithType:ttype arguments:array];
+        case RASQAL_EXPR_BNODE:
         case RASQAL_EXPR_SUBSTR:
         case RASQAL_EXPR_FUNCTION:
         case RASQAL_EXPR_REPLACE:
@@ -369,7 +390,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_TO_UNIXTIME:
         default:
             // TODO
-            fprintf(stderr, "*** don't know how to convert this op: %s\n", rasqal_expression_op_label(expr->op));
+            NSLog(@"*** don't know how to convert this op: %s\n", rasqal_expression_op_label(expr->op));
             break;
     }
     return nil;
@@ -418,7 +439,10 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
         if (expr) {
 //            rasqal_expression_print(expr, fh);
             GTWTree* expression = rasqal_expression_to_tree(expr);
-            NSLog(@"BIND expression: %@", expression);
+            if (!expression) {
+                return nil;
+            }
+//            NSLog(@"BIND expression: %@", expression);
             GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
                                [[GTWTree alloc] initLeafWithType:kTreeNode value:v pointer:NULL],
                                expression
@@ -492,15 +516,18 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 				break;
 			}
 			
-            [children addObject:roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh)];
+            GTWTree* child  = roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh);
+            if (!child)
+                return nil;
+            [children addObject:child];
 //			children[gp_index]	= roqet_graph_pattern_walk(rasqal_world_ptr, sgp, gp_index, fh);
 			
             //			fprintf(stderr, "Pattern child #%d:\n", gp_index);
             //			gtw_tree_print(children[gp_index], stderr);
 			
-			if (!children[gp_index]) {
-				return NULL;
-			}
+//			if (!children[gp_index]) {
+//				return NULL;
+//			}
 			gp_index++;
 		}
 		
@@ -528,8 +555,10 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 			for (i = 0; i < size; i++) {
                 GTWTree* c  = children[i];
 //				gtw_tree_node* c	= children[i];
+//                NSLog(@"=======> looking for extend: %@", [c conciseDescription]);
 				if (_fix_leftjoin(rasqal_world_ptr, c, children2, &size2)) {
 				} else if (c.type == kAlgebraExtend && [c.arguments count] == 0) {
+//                    NSLog(@"     GOT IT\n");
 					GTWTree* pat;
 					if (size2 == 0) {
                         pat = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:@[]];
@@ -539,11 +568,12 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
                         [children2 removeObject:pat];
 					}
                     id extend = c.value;
-                    NSLog(@"extend values: %@", extend);
-                    NSLog(@"extend tree: %@", pat);
+//                    NSLog(@"extend values: %@", extend);
+//                    NSLog(@"extend tree: %@", pat);
                     GTWTree* e  = [[GTWTree alloc] initWithType:kAlgebraExtend value: extend arguments:@[pat]];
+//                    NSLog(@"        ->>> %@", e);
                     children2[size2++]  = e;
-                    NSLog(@"extend: %@", e);
+//                    NSLog(@"extend: %@", e);
 				} else if (c.type == kAlgebraFilter && [c.arguments count] == 0) {
 					GTWTree* pat;
 					if (size2 == 0) {
@@ -845,6 +875,14 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 	return a;
 }
 
+void rasqal_message_handler(void *user_data, raptor_log_message* message) {
+    if (user_data) {
+        void(^block)(raptor_log_message*)        = (__bridge void(^)(raptor_log_message*)) user_data;
+        block(message);
+    }
+}
+
+
 @implementation GTWRasqalSPARQLParser
 
 - (GTWRasqalSPARQLParser*) initWithRasqalWorld: (rasqal_world*) rasqal_world_ptr {
@@ -866,8 +904,26 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 		return NULL;
 	}
 	
+    __block NSError* _error = nil;
+    void(^errorHandler)(raptor_log_message*)   = ^(raptor_log_message* message){
+        NSMutableString* desc   = [NSMutableString stringWithFormat:@"%s", message->text];
+        if (message->locator) {
+            [desc appendFormat:@" at "];
+            if (message->locator->file) {
+                [desc appendFormat:@"%s ", message->locator->file];
+                //                } else if (message->locator->uri) {
+                //                    [desc appendFormat:@"%s ", raptor_uri_as_string(message->locator->uri)];
+            } else {
+                //                    [desc appendFormat:@" "];
+            }
+            [desc appendFormat:@"(line %d, column %d)", message->locator->line, message->locator->column];
+        }
+        _error  = [NSError errorWithDomain:@"us.kasei.sparql.queryparser.redland" code:message->code userInfo:@{@"description": desc}];
+    };
+    rasqal_world_set_log_handler(self.rasqal_world_ptr, (__bridge void*) errorHandler, rasqal_message_handler);
+    
 	if(rasqal_query_prepare(rq, (const unsigned char*) [queryString UTF8String], base_uri)) {
-        NSLog(@"Parsing query '%@' failed\n", queryString);
+//        NSLog(@"Parsing query '%@' failed\n", queryString);
 		rasqal_free_query(rq);
 		rq = NULL;
 	}

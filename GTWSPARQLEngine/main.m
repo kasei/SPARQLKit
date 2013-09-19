@@ -1,28 +1,37 @@
 #include <pthread.h>
 #include <librdf.h>
 #include <CoreFoundation/CoreFoundation.h>
+#import <GTWSWBase/GTWQuad.h>
+#import <GTWSWBase/GTWTriple.h>
+#import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWDataset.h>
 #import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
 #import "GTWRedlandTripleStore.h"
 #import "GTWTurtleParser.h"
-#import "GTWQuad.h"
 #import "GTWRasqalSPARQLParser.h"
 #import "GTWQuadModel.h"
 #import "GTWTripleModel.h"
-#import "GTWVariable.h"
 #import "GTWQueryPlanner.h"
-#import "GTWAddressBookTripleStore.h"
-#import "GTWQueryDataset.h"
 #import "GTWRedlandParser.h"
 #import "GTWExpression.h"
-#import "GTWSPARQLProtocol.h"
 #import "NSObject+NSDictionary_QueryBindings.h"
+#import "GTWSPARQLTestHarness.h"
+#import "GTWSPARQLDataSourcePlugin.h"
+#import "GTWSPARQLDataSourcePlugin.h"
 
 rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
 raptor_world* raptor_world_ptr;
 
-int loadFile (id<GTWMutableQuadStore> store, NSString* filename, NSString* base) {
+NSString* fileContents (NSString* filename) {
+    NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
+    NSData* data        = [fh readDataToEndOfFile];
+    NSString* string    = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    return string;
+}
+
+int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
     
@@ -38,13 +47,14 @@ int loadFile (id<GTWMutableQuadStore> store, NSString* filename, NSString* base)
     
     
     
-    GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:@"http://graph.kasei.us/"];
+    GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:base];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     if (p) {
         //    NSLog(@"parser: %p\n", p);
         [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+            NSLog(@"%@", q);
             [store addQuad:q error:nil];
         } error:nil];
     } else {
@@ -54,9 +64,9 @@ int loadFile (id<GTWMutableQuadStore> store, NSString* filename, NSString* base)
     return 0;
 }
 
-int run(NSString* filename, NSString* base) {
+int run_memory_quad_store_example(NSString* filename, NSString* base) {
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-    loadFile(store, filename, base);
+    loadRDFFromFileIntoStore(store, filename, base);
     
     GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
@@ -106,7 +116,7 @@ int run(NSString* filename, NSString* base) {
     return 0;
 }
 
-int run2(NSString* filename, NSString* base) {
+int run_redland_triple_store_example (NSString* filename, NSString* base) {
 	librdf_world* librdf_world_ptr	= librdf_new_world();
     GTWRedlandTripleStore* store    = [[GTWRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
@@ -145,7 +155,7 @@ int run2(NSString* filename, NSString* base) {
     return 0;
 }
 
-int run3(NSString* filename, NSString* base) {
+int run_redland_parser_example (NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data            = [fh readDataToEndOfFile];
     id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" WithRaptorWorld:raptor_world_ptr];
@@ -169,6 +179,8 @@ int run3(NSString* filename, NSString* base) {
 static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     GTWTreeType type    = plan.type;
     if (type == kPlanNLjoin) {
+        NSLog(@"****************** join value: %@", plan.value);
+        BOOL leftJoin   = (plan.value && [plan.value isEqualToString:@"left"]);
         NSMutableArray* results = [NSMutableArray array];
         NSArray* lhs    = evaluateQueryPlan(plan.arguments[0], model);
         NSArray* rhs    = evaluateQueryPlan(plan.arguments[1], model);
@@ -177,6 +189,8 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
                 NSDictionary* j = [l join: r];
                 if (j) {
                     [results addObject:j];
+                } else if (leftJoin) {
+                    [results addObject:l];
                 }
             }
         }
@@ -234,7 +248,7 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
             id<GTWTerm> dirterm     = dtree.value;
             id<GTWTerm> variable    = vtree.value;
             NSInteger direction     = [[dirterm value] integerValue];
-            [orderTerms addObject:@{ @"variable": variable, @"direction": [NSNumber numberWithInteger:direction] }];
+            [orderTerms addObject:@{ @"variable": variable, @"direction": @(direction) }];
         }
         
         NSArray* ordered    = [results sortedArrayUsingComparator:^NSComparisonResult(id a, id b){
@@ -293,66 +307,125 @@ static NSArray* evaluateQueryPlan ( GTWTree* plan, id<GTWModel> model ) {
     return nil;
 }
 
-int runQuery(NSString* query, NSString* filename, NSString* base) {
-//    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-//    loadFile(store, filename, base);
-//    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+int printResultsTable ( FILE* f, NSArray* results, NSSet* variables ) {
+    NSArray* vars       = [[variables objectEnumerator] allObjects];
+    int i;
+    unsigned long* col_widths = alloca(sizeof(unsigned long) * [variables count]);
+    NSUInteger count    = [vars count];
+    for (i = 0; i < count; i++) {
+        NSString* vname = [vars[i] value];
+        col_widths[i]   = [vname length];
+    }
+    for (NSDictionary* r in results) {
+        for (i = 0; i < count; i++) {
+            NSString* vname = [vars[i] value];
+            id<GTWTerm> t   = r[vname];
+            if (t) {
+                NSString* value = [t description];
+                col_widths[i]   = MAX(col_widths[i], [value length]);
+            }
+        }
+    }
     
-    GTWIRI* abGraph = [[GTWIRI alloc] initWithIRI: @"http://example.org/"];
-    GTWAddressBookTripleStore* store    = [[GTWAddressBookTripleStore alloc] init];
-    GTWTripleModel* model   = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName: abGraph];
+    NSUInteger total    = 2;
+    for (i = 0; i < count; i++) {
+        NSLog(@"column %d width: %lu\n", i, col_widths[i]);
+        total   += col_widths[i] + 3;
+    }
+    NSLog(@"total width: %lu\n", total);
     
-    GTWQueryDataset* dataset    = [[GTWQueryDataset alloc] initDatasetWithDefaultGraphs:@[abGraph]];
+    for (i = 1; i < total; i++) fwrite("-", 1, 1, stdout); fprintf(stdout, "\n");
+    fprintf(stdout, "| ");
+    for (i = 0; i < count; i++) {
+        NSString* vname = [vars[i] value];
+        fprintf(stdout, "%-*s | ", (int) col_widths[i], [vname UTF8String]);
+    }
+    fprintf(stdout, "\n");
+    for (i = 1; i < total; i++) fwrite("-", 1, 1, stdout); fprintf(stdout, "\n");
+    for (NSDictionary* r in results) {
+        fprintf(stdout, "| ");
+        for (i = 0; i < count; i++) {
+            NSString* vname = [vars[i] value];
+            id<GTWTerm> t   = r[vname];
+            NSString* value = t ? [t description] : @"";
+            fprintf(stdout, "%-*s | ", (int) col_widths[i], [value UTF8String]);
+        }
+        fprintf(stdout, "\n");
+    }
+    for (i = 1; i < total; i++) fwrite("-", 1, 1, stdout); fprintf(stdout, "\n");
+    return 0;
+}
+
+int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset) {
     
     id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
     GTWTree* algebra    = [parser parserSPARQL:query withBaseURI:base];
     if (YES) {
         NSLog(@"query:\n%@", algebra);
     }
-
+    
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     GTWTree* plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
     if (YES) {
         NSLog(@"plan:\n%@", plan);
     }
-
+    
     if (YES) {
         [plan computeProjectVariables];
     }
     
-    if (YES) {
-        NSLog(@"executing query...");
-        NSArray* results    = evaluateQueryPlan(plan, model);
-        for (id r in results) {
-            NSLog(@"result: %@\n", r);
-        }
-    }
+    NSLog(@"executing query...");
+    NSArray* results    = evaluateQueryPlan(plan, model);
+    NSSet* variables    = [plan annotationForKey:kUsedVariables];
+    printResultsTable(stdout, results, variables);
     
     if (NO) {
         NSSet* variables    = [plan annotationForKey:kUsedVariables];
         NSLog(@"plan variables: %@", variables);
     }
     
-//    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
-//    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-//    GTWIRI* person  = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/Person"];
-//    GTWIRI* p       = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/name"];
-
+    //    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
+    //    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+    //    GTWIRI* person  = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/Person"];
+    //    GTWIRI* p       = [[GTWIRI alloc] initWithIRI:@"http://xmlns.com/foaf/0.1/name"];
     
-//    __block NSUInteger count    = 0;
-//    NSLog(@"enumerating quads...");
-//    [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
-//        NSLog(@"%3ld -> %@", ++count, q);
-//    } error:nil];
-
     
-//
-//    GTWVariable* name   = [[GTWVariable alloc] initWithName:@"name"];
-//    [model enumerateBindingsMatchingSubject:nil predicate:p object:name graph:nil usingBlock:^(NSDictionary* d){
-//        NSLog(@"result %3ld: %@\n", ++count, d);
-//    } error:nil];
+    //    __block NSUInteger count    = 0;
+    //    NSLog(@"enumerating quads...");
+    //    [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
+    //        NSLog(@"%3ld -> %@", ++count, q);
+    //    } error:nil];
+    
+    
+    //
+    //    GTWVariable* name   = [[GTWVariable alloc] initWithName:@"name"];
+    //    [model enumerateBindingsMatchingSubject:nil predicate:p object:name graph:nil usingBlock:^(NSDictionary* d){
+    //        NSLog(@"result %3ld: %@\n", ++count, d);
+    //    } error:nil];
     
     return 0;
+}
+
+int runQuery(NSString* query, NSString* filename, NSString* base) {
+    GTWIRI* graph = [[GTWIRI alloc] initWithIRI: base];
+    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+
+    {
+        NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
+        NSData* data            = [fh readDataToEndOfFile];
+        id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+            [store addQuad:q error:nil];
+        } error:nil];
+    }
+    
+//    loadFile(store, filename, base, @"rdfxml");
+    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+//    GTWAddressBookTripleStore* store    = [[GTWAddressBookTripleStore alloc] init];
+//    GTWTripleModel* model   = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName: graph];
+    GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+    return runQueryWithModelAndDataset(query, base, model, dataset);
 }
 
 int main(int argc, const char * argv[]) {
@@ -366,47 +439,71 @@ int main(int argc, const char * argv[]) {
     //	librdf_world_set_error(librdf_world_ptr, NULL, _librdf_error_cb);
 	raptor_world_ptr = rasqal_world_get_raptor(rasqal_world_ptr);
     
-    NSString* filename  = [NSString stringWithFormat:@"%s", argv[1]];
-    NSString* base      = [NSString stringWithFormat:@"%s", argv[2]];
-    if (!(filename && base)) {
-        NSLog(@"no filename and base URI specified");
-        return 1;
+    // ------------------------------------------------------------------------------------------------------------------------
+    NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
+    NSArray* datasourcelist = [GTWSPARQLDataSourcePlugin loadAllPlugins];
+    for (Class d in datasourcelist) {
+        [datasources setObject:d forKey:[d description]];
+//        NSDictionary* dict = [NSDictionary dictionary];
+//        NSLog(@"%@", [[d alloc] initWithDictionary:dict]);
+    }
+    // ------------------------------------------------------------------------------------------------------------------------
+    
+    
+    if (argc == 1) {
+        fprintf(stderr, "Usage:\n");
+        fprintf(stderr, "    %s query QUERY-STRING data.rdf\n", argv[0]);
+        fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
+        fprintf(stderr, "    %s test triple\n", argv[0]);
+        fprintf(stderr, "    %s test quad\n", argv[0]);
+        fprintf(stderr, "    %s test endpoint\n", argv[0]);
+        fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
+        fprintf(stderr, "    %s testsuite\n", argv[0]);
+        fprintf(stderr, "    %s sources\n", argv[0]);
+        fprintf(stderr, "\n");
+        exit(1);
     }
     
-    if (NO) {
-        run(filename, base);
-    } else if (NO) {
-        run2(filename, base);
-    } else if (NO) {
-        run3(filename, base);
-    } else if (NO) {
-        GTWSPARQLProtocolStore* store   = [[GTWSPARQLProtocolStore alloc] initWithEndpoint:@"http://myrdf.us/sparql11"];
-        GTWVariable* s  = nil; // [[GTWVariable alloc] initWithName:@"s"];
-        GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
-        GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-        NSError* error  = nil;
-        [store enumerateTriplesMatchingSubject:s predicate:rdftype object:o usingBlock:^(id<GTWTriple> t) {
-            ;
-        } error:&error];
-        if (error) {
-            NSLog(@"error: %@", error);
-        }
-    } else {
-    //    NSString* query = @"SELECT DISTINCT ?s ?p WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; ?p ?o } ORDER BY ?p DESC(?s)";
-    //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name ; ?p ?o }";
-    //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> ; <http://xmlns.com/foaf/0.1/name> ?name }";
-//        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' ; foaf:mbox_sha1sum ?mbox . FILTER(ISIRI(?s)) } ORDER BY ASC(?s) DESC(?mbox)";
-        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?name ?r WHERE { { ?s foaf:name ?name ; foaf:mbox_sha1sum ?mbox . BIND(RAND() AS ?r) } } ORDER BY ?r";
-//        NSString* query = @"PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?mbox WHERE { ?s <http://xmlns.com/foaf/0.1/name> 'Gregory Williams' . FILTER(ISURI(?s)) }";
-    //    NSString* query = @"SELECT * WHERE { ?s a <http://xmlns.com/foaf/0.1/Person> }";
+    if (!strcmp(argv[1], "query")) {
+        NSString* query     = [NSString stringWithFormat:@"%s", argv[2]];
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
         runQuery(query, filename, @"http://query-base.example.com/");
+    } else if (!strcmp(argv[1], "queryfile")) {
+        NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[2]]);
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
+        runQuery(query, filename, @"http://query-base.example.com/");
+    } else if (!strcmp(argv[1], "sources")) {
+        fprintf(stdout, "Available data sources:\n");
+        for (id s in datasources) {
+            fprintf(stdout, "- %s\n", [[datasources[s] description] UTF8String]);
+        }
+    } else if (!strcmp(argv[1], "test")) {
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
+        NSString* base      = [NSString stringWithFormat:@"%s", argv[3]];
+        if (!strcmp(argv[2], "parser")) {
+            run_redland_parser_example(filename, base);
+        } else if (!strcmp(argv[2], "endpoint")) {
+            NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
+            id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
+            GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
+            GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
+            GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+            NSError* error  = nil;
+            [store enumerateTriplesMatchingSubject:s predicate:rdftype object:o usingBlock:^(id<GTWTriple> t) {
+                ;
+            } error:&error];
+            if (error) {
+                NSLog(@"error: %@", error);
+            }
+        } else if (!strcmp(argv[2], "triple")) {
+            run_redland_triple_store_example(filename, base);
+        } else {
+            run_memory_quad_store_example(filename, base);
+        }
+    } else if (!strcmp(argv[1], "testsuite")) {
+        GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
+        harness.runEvalTests    = NO;
+        [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
     }
-    
-    NSLog(@"entering runloop...\n");
-    int i;
-    for (i = 0; i < 1; i++) {
-        sleep(1);
-    }
-    NSLog(@"done\n");
 }
 

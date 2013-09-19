@@ -2,6 +2,10 @@
 
 @implementation GTWMemoryQuadStore
 
+- (unsigned)interfaceVersion {
+    return 0;
+}
+
 - (void) _addQuad: (id<GTWQuad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
     // caller is responsible for using @synchronized(idx)
     NSObject<GTWQuad>* qq  = (NSObject<GTWQuad>*) q;
@@ -16,10 +20,10 @@
     //        NSLog(@"indexing quad: %@ => %@\n", indexKey, q);
     
     NSMutableSet* set;
-    set = [idx objectForKey:indexKey];
+    set = idx[indexKey];
     if (!set) {
         set = [NSMutableSet set];
-        [idx setObject:set forKey:indexKey];
+        idx[indexKey] = set;
     }
     [set addObject:q];
 }
@@ -38,7 +42,7 @@
     //        NSLog(@"indexing quad: %@ => %@\n", indexKey, q);
     
     NSMutableSet* set;
-    set = [idx objectForKey:indexKey];
+    set = idx[indexKey];
     if (set) {
         [set removeObject:q];
     }
@@ -76,11 +80,11 @@
         dispatch_barrier_sync(self.queue, ^{
     //        NSLog(@"async dispatch setting up index");
             // add index to store
-            idx    = [self.indexes objectForKey:name];
+            idx    = (self.indexes)[name];
             if (!idx) {
                 idx    = [NSMutableDictionary dictionary];
-                [self.indexKeys setObject:positions forKey:name];
-                [self.indexes setObject:idx forKey:name];
+                (self.indexKeys)[name] = positions;
+                (self.indexes)[name] = idx;
             } else {
                 NSString* desc  = [NSString stringWithFormat:@"Index on terms <%@> already exists", name];
                 _error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
@@ -190,9 +194,9 @@
     [self.quads addObject:q];
     dispatch_barrier_async(self.queue, ^{
         for (NSString* name in self.indexes) {
-            NSMutableDictionary* idx    = [self.indexes objectForKey:name];
+            NSMutableDictionary* idx    = (self.indexes)[name];
             dispatch_async(self.queue, ^{
-                NSArray* positions  = [self.indexKeys objectForKey:name];
+                NSArray* positions  = (self.indexKeys)[name];
                 @synchronized(idx) {
                     [self _addQuad:q toIndex:idx withPositions:positions];
                 }
@@ -207,9 +211,9 @@
     [self.quads removeObject:q];
     dispatch_barrier_async(self.queue, ^{
         for (NSString* name in self.indexes) {
-            NSMutableDictionary* idx    = [self.indexes objectForKey:name];
+            NSMutableDictionary* idx    = (self.indexes)[name];
             dispatch_async(self.queue, ^{
-                NSArray* positions  = [self.indexKeys objectForKey:name];
+                NSArray* positions  = (self.indexKeys)[name];
                 @synchronized(idx) {
                     [self _removeQuad:q fromIndex:idx withPositions:positions];
                 }
@@ -229,7 +233,7 @@
     [d appendFormat:@"Quadstore with %lu statements\n", [self.quads count]];
     [d appendFormat:@"%lu Indexes:\n", [self.indexes count]];
     for (id i in self.indexes) {
-        NSSet* set  = [self.indexes objectForKey:i];
+        NSSet* set  = (self.indexes)[i];
         [d appendFormat:@"    - %@ (%lu items)\n", i, [set count]];
     }
     return d;
@@ -242,18 +246,18 @@
     NSString* bestName      = nil;
     
     for (id name in self.indexes) {
-        NSArray* keys           = [self.indexKeys objectForKey:name];
+        NSArray* keys           = (self.indexKeys)[name];
         NSUInteger keyCount     = [keys count];
         NSUInteger matching     = 0;
-        NSUInteger histSize     = [[self.indexes objectForKey:name] count];
+        NSUInteger histSize     = [(self.indexes)[name] count];
         NSMutableDictionary* dict   = [NSMutableDictionary dictionary];
         
-        if (s) [dict setObject:s forKey:@"subject"];
-        if (p) [dict setObject:p forKey:@"predicate"];
-        if (o) [dict setObject:o forKey:@"object"];
-        if (g) [dict setObject:g forKey:@"graph"];
+        if (s) dict[@"subject"] = s;
+        if (p) dict[@"predicate"] = p;
+        if (o) dict[@"object"] = o;
+        if (g) dict[@"graph"] = g;
         for (id k in keys) {
-            id<GTWTerm> term    = [dict objectForKey:k];
+            id<GTWTerm> term    = dict[k];
             if (term) {
                 matching++;
             } else {

@@ -1,5 +1,5 @@
 #import "GTWQuadModel.h"
-#import "GTWVariable.h"
+#import <GTWSWBase/GTWVariable.h>
 
 @implementation GTWQuadModel
 
@@ -19,19 +19,19 @@
 //    NSLog(@"%@ %@ %@ %@", s, p, o, g);
     NSMutableDictionary* vars  = [NSMutableDictionary dictionary];
     if ([s conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:s.value forKey:@"subject"];
+        vars[@"subject"] = s.value;
         s   = nil;
     }
     if ([p conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:p.value forKey:@"predicate"];
+        vars[@"predicate"] = p.value;
         p   = nil;
     }
     if ([o conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:o.value forKey:@"object"];
+        vars[@"object"] = o.value;
         o   = nil;
     }
     if ([g conformsToProtocol:@protocol(GTWVariable)]) {
-        [vars setObject:g.value forKey:@"graph"];
+        vars[@"graph"] = g.value;
         g   = nil;
     }
     
@@ -40,14 +40,14 @@
         NSMutableDictionary* r = [NSMutableDictionary dictionary];
         BOOL ok = YES;
         for (NSString* pos in vars) {
-            NSString* name   = [vars objectForKey:pos];
+            NSString* name   = vars[pos];
 //            NSLog(@"mapping variable %@", name);
             id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
-            if ([r objectForKey:name]) {
+            if (r[name]) {
                 ok  = NO;
                 break;
             } else {
-                [r setObject:value forKey:name];
+                r[name] = value;
             }
         }
         if (ok)

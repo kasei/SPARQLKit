@@ -110,7 +110,7 @@ static const char* sparql_token_type_name( GTWTurtleTokenType t ) {
 }
 
 - (id) value {
-	return [self.args objectAtIndex:0];
+	return (self.args)[0];
 }
 
 - (BOOL) isTerm {

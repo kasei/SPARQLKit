@@ -7,9 +7,9 @@
 //
 
 #import "GTWExpression.h"
-#import "GTWVariable.h"
-#import "GTWLiteral.h"
-#import "GTWIRI.h"
+#import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWLiteral.h>
+#import <GTWSWBase/GTWIRI.h>
 
 @implementation GTWExpression
 
@@ -18,7 +18,7 @@
     id<GTWTerm> value;
     if (expr.type == kTreeNode) {
         if ([expr.value conformsToProtocol:@protocol(GTWVariable)]) {
-            value   = [result objectForKey:[expr.value value]];
+            value   = result[[expr.value value]];
         } else {
             value   = expr.value;
         }

@@ -1,8 +1,9 @@
 #import <Foundation/Foundation.h>
+#import "GTWSPARQLEngine.h"
 #import "GTWTurtleLexer.h"
-#import "GTWTriple.h"
-#import "GTWBlank.h"
-#import "GTWIRI.h"
+#import <GTWSWBase/GTWTriple.h>
+#import <GTWSWBase/GTWBlank.h>
+#import <GTWSWBase/GTWIRI.h>
 
 typedef GTWBlank*(^IDGenerator)(NSString* name);
 
