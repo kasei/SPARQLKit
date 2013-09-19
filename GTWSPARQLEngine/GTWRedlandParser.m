@@ -11,11 +11,11 @@ static id<GTWTerm> raptorTermToObject (raptor_term* term) {
             return [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"%s", term->value.blank.string]];
         case RAPTOR_TERM_TYPE_LITERAL:
             if (term->value.literal.datatype) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%s", term->value.literal.string] datatype:[NSString stringWithFormat:@"%s", raptor_uri_as_string(term->value.literal.datatype)]];
+                return [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*)term->value.literal.string encoding:NSUTF8StringEncoding] datatype:[NSString stringWithFormat:@"%s", raptor_uri_as_string(term->value.literal.datatype)]];
             } else if (term->value.literal.language) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%s", term->value.literal.string] language:[NSString stringWithFormat:@"%s", term->value.literal.language]];
+                return [[GTWLiteral alloc] initWithString:[NSString stringWithCString:(const char*)term->value.literal.string encoding:NSUTF8StringEncoding] language:[NSString stringWithFormat:@"%s", term->value.literal.language]];
             } else {
-                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%s", term->value.literal.string]];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithCString:(const char*)term->value.literal.string encoding:NSUTF8StringEncoding]];
             }
         case RAPTOR_TERM_TYPE_URI:
             return [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"%s", raptor_uri_as_string(term->value.uri)]];

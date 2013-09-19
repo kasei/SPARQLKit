@@ -705,7 +705,14 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
 //        NSSet* set  = [node.annotations objectForKey:kProjectVariables];
 //        NSLog(@"pushing down project list: %@ on %@", set, [node conciseDescription]);
         return nil;
-    } postfixBlock:nil];
+    } postfixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
+        if (node.type == kPlanSlice) {
+            id<GTWTree> child   = node.arguments[0];
+            id proj             = child.annotations[kProjectVariables];
+            (node.annotations)[kProjectVariables]   = proj;
+        }
+        return nil;
+    }];
 }
 
 - (NSString*) conciseDescription {

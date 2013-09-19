@@ -15,6 +15,7 @@
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWDataset>) dataset {
     if (algebra == nil) {
         NSLog(@"trying to plan nil algebra");
+        return nil;
     }
     id<GTWTriple> t;
     NSInteger count;
@@ -84,6 +85,11 @@
             id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanEmpty value:nil pointer:NULL];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend value: algebra.value arguments:@[empty]];
         }
+    } else if (algebra.type == kAlgebraSlice) {
+        id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
+        id<GTWTree> offset      = algebra.arguments[1];
+        id<GTWTree> limit       = algebra.arguments[2];
+        return [[GTWQueryPlan alloc] initWithType:kPlanSlice arguments:@[plan, offset, limit]];
     } else if (algebra.type == kAlgebraOrderBy) {
         if ([algebra.arguments count] != 1)
             return nil;

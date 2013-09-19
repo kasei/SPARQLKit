@@ -102,3 +102,16 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 @end
 
+
+#pragma mark -
+
+@protocol GTWQueryEngine
+- (NSEnumerator*) evaluateQueryPlan: (id<GTWQueryPlan>) plan withModel: (id<GTWModel>) model;
+@end
+
+#pragma mark -
+
+@protocol GTWSPARQLResultsSerializer
+- (NSData*) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables;
+@end
+
