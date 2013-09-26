@@ -30,7 +30,12 @@
     }
 }
 
-- (NSData*) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables {
+- (void) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables toHandle: (NSFileHandle*) handle {
+    NSData* data    = [self dataFromResults:results withVariables:variables];
+    [handle writeData:data];
+}
+
+- (NSData*) dataFromResults: (NSEnumerator*) results withVariables: (NSSet*) variables {
     NSMutableData* data = [NSMutableData data];
     [data appendData:[@"<?xml version=\"1.0\"?><sparql xmlns=\"http://www.w3.org/2005/sparql-results#\">\n<head>\n" dataUsingEncoding:NSUTF8StringEncoding]];
     NSArray* vars       = [[variables objectEnumerator] allObjects];

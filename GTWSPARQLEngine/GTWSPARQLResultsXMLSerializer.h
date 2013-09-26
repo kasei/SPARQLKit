@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import "GTWSPARQLEngine.h"
+#import <GTWSWBase/GTWSWBase.h>
 
-@interface GTWSPARQLResultsXMLSerializer : NSObject<GTWSPARQLResultsSerializer>
-
+@interface GTWSPARQLResultsXMLSerializer : NSObject<GTWSerializer, GTWSPARQLResultsSerializer>
 
 @end

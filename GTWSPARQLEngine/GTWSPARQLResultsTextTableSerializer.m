@@ -10,7 +10,12 @@
 
 @implementation GTWSPARQLResultsTextTableSerializer
 
-- (NSData*) serializeResults: (NSEnumerator*) r withVariables: (NSSet*) variables {
+- (void) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables toHandle: (NSFileHandle*) handle {
+    NSData* data    = [self dataFromResults:results withVariables:variables];
+    [handle writeData:data];
+}
+
+- (NSData*) dataFromResults: r withVariables: (NSSet*) variables {
     NSArray* results    = [r allObjects];
     NSMutableData* data = [NSMutableData data];
     
