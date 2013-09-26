@@ -80,6 +80,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
             }
         }
+        return nil;
     } else if (expr.type == kExprLe) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
         id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
@@ -92,6 +93,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
             }
         }
+        return nil;
     } else if (expr.type == kExprLt) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
         id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
@@ -104,6 +106,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
             }
         }
+        return nil;
     } else if (expr.type == kExprGt) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
         id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
@@ -116,6 +119,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
             }
         }
+        return nil;
     } else if (expr.type == kExprRand) {
         GTWLiteral* l   = [GTWLiteral doubleLiteralWithValue:((double)rand() / RAND_MAX)];
         return l;
@@ -211,6 +215,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;
     }
+    return nil;
 }
 
 - (NSString*) description {
