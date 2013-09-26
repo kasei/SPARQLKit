@@ -187,10 +187,6 @@
     }
 }
 
-- (NSEnumerator*) evaluateExpr:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    
-}
-
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
     GTWTreeType type    = plan.type;
 //    switch (type) {
@@ -227,8 +223,6 @@
         return [self evaluateSlice:plan withModel:model];
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
-    } else if (type == kExprPlus) {
-        return [self evaluateExpr:plan withModel:model];
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);
     }
