@@ -24,57 +24,79 @@
     
     // TODO: if any of these recursive calls fails and returns nil, we need to propogate that nil up the stack instead of having it crash when an array atempts to add the nil value
     if (algebra.type == kAlgebraDistinct) {
-        if ([algebra.arguments count] != 1)
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"DISTINCT must be 1-ary");
             return nil;
+        }
         return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraGraph) {
-        if ([algebra.arguments count] != 1)
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"GRAPH must be 1-ary");
             return nil;
+        }
         return [[GTWQueryPlan alloc] initWithType:kPlanGraph value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraUnion) {
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
+        if (!(lhs && rhs)) {
+            NSLog(@"Failed to plan both sides of UNION");
+            return nil;
+        }
         return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
     } else if (algebra.type == kAlgebraProject) {
-        if ([algebra.arguments count] != 1)
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"PROJECT must be 1-ary");
             return nil;
+        }
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
         if (!lhs) {
+            NSLog(@"Failed to plan PROJECT sub-plan");
             return nil;
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.value arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin) {
-        if ([algebra.arguments count] != 2)
+        if ([algebra.arguments count] != 2) {
+            NSLog(@"JOIN must be 2-ary");
             return nil;
+        }
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
         if (!lhs || !rhs) {
+            NSLog(@"Failed to plan both sides of JOIN");
             return nil;
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
     } else if (algebra.type == kAlgebraMinus) {
+        NSLog(@"MINUS must be 2-ary");
         if ([algebra.arguments count] != 2)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraLeftJoin) {
         if ([algebra.arguments count] != 2) {
+            NSLog(@"LEFT JOIN must be 2-ary");
             return nil;
         }
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
         if (!lhs || !rhs) {
+            NSLog(@"Failed to plan both sides of LEFT JOIN");
             return nil;
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin value: @"left" arguments:@[lhs, rhs]];
     } else if (algebra.type == kAlgebraBGP) {
         return [self planBGP: algebra.arguments usingDataset: dataset];
     } else if (algebra.type == kAlgebraFilter) {
-        if ([algebra.arguments count] != 1)
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"FILTER must be 1-ary");
             return nil;
+        }
         return [[GTWQueryPlan alloc] initWithType:kPlanFilter value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraExtend) {
-        if ([algebra.arguments count] != 1)
+        if ([algebra.arguments count] > 1) {
+            NSLog(@"EXTEND must be 0- or 1-ary");
+            NSLog(@"Extend: %@", algebra);
             return nil;
+        }
         id<GTWTree> pat = algebra.arguments[0];
         if (pat) {
             id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
