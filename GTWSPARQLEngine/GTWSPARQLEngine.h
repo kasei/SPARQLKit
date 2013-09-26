@@ -109,9 +109,3 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWQueryPlan>) plan withModel: (id<GTWModel>) model;
 @end
 
-#pragma mark -
-
-@protocol GTWSPARQLResultsSerializer
-- (NSData*) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables;
-@end
-
