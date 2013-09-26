@@ -57,9 +57,10 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
         //    NSLog(@"parser: %p\n", p);
         [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
-            NSLog(@"%@", q);
+//            NSLog(@"parsed quad: %@", q);
             [store addQuad:q error:nil];
         } error:nil];
+//        NSLog(@"-- ");
     } else {
         NSLog(@"Could not construct parser");
     }
@@ -201,7 +202,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
 //    id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
     NSSet* variables    = [plan annotationForKey:kProjectVariables];
     
-    NSData* data        = [s serializeResults:e withVariables:variables];
+    NSData* data        = [s dataFromResults:e withVariables:variables];
     fwrite([data bytes], [data length], 1, stdout);
 //    NSArray* results    = [e allObjects];
 //    printResultsTable(stdout, results, variables);
@@ -304,8 +305,25 @@ int main(int argc, const char * argv[]) {
         }
     } else if (!strcmp(argv[1], "testsuite")) {
         GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
-        harness.runEvalTests    = NO;
-        [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+        NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[2]] : nil;
+        harness.runEvalTests    = YES;
+        harness.runSyntaxTests  = NO;
+        if (pattern) {
+            [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];
+        } else {
+            [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+        }
+    } else if (!strcmp(argv[1], "-")) {
+        NSString* filenamea  = [NSString stringWithFormat:@"%s", argv[2]];
+        NSString* filenameb  = [NSString stringWithFormat:@"%s", argv[3]];
+        NSString* base      = [NSString stringWithFormat:@"%s", argv[4]];
+        GTWMemoryQuadStore* storea   = [[GTWMemoryQuadStore alloc] init];
+        GTWMemoryQuadStore* storeb   = [[GTWMemoryQuadStore alloc] init];
+        loadRDFFromFileIntoStore(storea, filenamea, base);
+        loadRDFFromFileIntoStore(storeb, filenameb, base);
+        GTWQuadModel* modela         = [[GTWQuadModel alloc] initWithQuadStore:storea];
+        GTWQuadModel* modelb         = [[GTWQuadModel alloc] initWithQuadStore:storeb];
+        [modela isEqual:modelb];
     }
 }
 

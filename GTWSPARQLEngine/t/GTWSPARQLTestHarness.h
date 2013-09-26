@@ -14,7 +14,9 @@
 @property NSMutableDictionary* testData;
 @property BOOL runEvalTests;
 @property BOOL runSyntaxTests;
+@property NSMutableArray* failingTests;
 
+- (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifest: (NSString*) manifest;
 - (BOOL) runTestsFromManifest: (NSString*) manifest;
 
 @end
