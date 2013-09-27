@@ -376,6 +376,9 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	if (integer_range.location == 0) {
 		NSString* integer	= [self _readLength:integer_range.length];
 		return [self newTokenOfType:INTEGER withArgs:@[integer]];
+    } else if (double_range.location == 0) {
+		NSString* value	= [self _readLength:integer_range.length];
+		return [self newTokenOfType:DOUBLE withArgs:@[value]];
 	} else {
 		NSString* c	= [self _peekChar];
 		if ([c isEqualToString:@"-"]) {
@@ -931,7 +934,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSRange double_range	= [self.buffer rangeOfString:@"[-+]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
         NSRange decimal_range   = [self.buffer rangeOfString:@"[-+]?[0-9]*[.][0-9]+" options:NSRegularExpressionSearch];
 		NSRange integer_range	= [self.buffer rangeOfString:@"[-+]?[0-9]+" options:NSRegularExpressionSearch];
-		NSRange anon_range		= [self.buffer rangeOfString:@"\\[\\]" options:NSRegularExpressionSearch];
+//		NSRange anon_range		= [self.buffer rangeOfString:@"\\[\\]" options:NSRegularExpressionSearch];
 		
 		// WS
 		if ([c isEqualToString:@" "] || [c isEqualToString:@"\r"] || [c isEqualToString:@"\n"] || [c isEqualToString:@"\t"]) {
