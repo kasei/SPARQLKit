@@ -60,7 +60,7 @@
             return nil;
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.value arguments:@[lhs]];
-    } else if (algebra.type == kAlgebraJoin) {
+    } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
         if ([algebra.arguments count] == 0) {
             return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
         } else if ([algebra.arguments count] == 1) {
