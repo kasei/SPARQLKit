@@ -22,6 +22,7 @@
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
+#import "GTWSPARQLParser.h"
 
 rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
@@ -209,6 +210,25 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     return 0;
 }
 
+int parseQuery(NSString* query, NSString* base) {
+    NSLog(@"Query string:\n%@\n\n", query);
+    
+    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
+//    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+//    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+    id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+    GTWTree* algebra            = [parser parseSPARQL:query withBaseURI:base];
+    NSLog(@"Query algebra:\n%@\n\n", algebra);
+    
+    GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
+    NSLog(@"Query plan:\n%@\n\n", plan);
+    
+    [plan computeProjectVariables];
+    return 0;
+}
+
 int runQuery(NSString* query, NSString* filename, NSString* base) {
     GTWIRI* graph = [[GTWIRI alloc] initWithIRI: base];
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
@@ -255,6 +275,7 @@ int main(int argc, const char * argv[]) {
     
     if (argc == 1) {
         fprintf(stderr, "Usage:\n");
+        fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
         fprintf(stderr, "    %s query QUERY-STRING data.rdf\n", argv[0]);
         fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
         fprintf(stderr, "    %s test triple\n", argv[0]);
@@ -271,6 +292,11 @@ int main(int argc, const char * argv[]) {
         NSString* query     = [NSString stringWithFormat:@"%s", argv[2]];
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
         runQuery(query, filename, @"http://query-base.example.com/");
+    } else if (!strcmp(argv[1], "qparse")) {
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
+        NSString* query     = fileContents(filename);
+        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : @"http://query-base.example.com/";
+        parseQuery(query, base);
     } else if (!strcmp(argv[1], "queryfile")) {
         NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[2]]);
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
