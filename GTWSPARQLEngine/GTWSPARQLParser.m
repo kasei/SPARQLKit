@@ -94,93 +94,6 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
         return nil;
     }
     return algebra;
-    
-//    while (YES) {
-//        t   = [self nextNonCommentToken];
-//        if (t == nil) {
-//            //            NSLog(@"no remaining tokens. finished.");
-//            break;
-//        }
-//
-//        
-//        NSLog(@"lexer token: %@", t);
-//        
-//        if (t.type == LBRACKET) {
-//            GTWBlank* subj  = self.bnodeIDGenerator(nil);
-//            //            NSUInteger ident    = ++self.bnodeID;
-//            //            GTWBlank* subj  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"b%lu", ident]];
-//            [self pushNewSubject:subj];
-//        } else if (t.type == RBRACKET) {
-//            // TODO: need to test for balanced brackets
-//            id<GTWTerm> b    = [self currentSubject];
-//            [self popSubject];
-//            if ([self haveSubjectPredicatePair]) {
-//                id<GTWTerm> subj    = self.currentSubject;
-//                id<GTWTerm> pred    = self.currentPredicate;
-//                if (subj && pred && b) {
-//                    id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:subj predicate:pred object:b];
-//                    return st;
-//                }
-//            }
-//        } else if (t.type == COMMA) {
-//            // no-op
-//        } else if (t.type == SEMICOLON) {
-//            [self popPredicate];
-//        } else if (t.type == DOT) {
-//            [self popSubject];
-//        } else if ([t isTerm]) {
-//            id<GTWTerm> term   = [self tokenAsTerm:t];
-//            //            NSLog(@"got term: %@", term);
-//            if ([self haveSubjectPredicatePair]) {
-//                //                NSLog(@"--> got object");
-//                
-//                
-//                if ([term isMemberOfClass:[GTWLiteral class]]) {
-//                    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-//                    //                    NSLog(@"check for LANG or DT: %@", t);
-//                    if (t.type == LANG) {
-//                        [self nextNonCommentToken];
-//                        //                        NSLog(@"got language: %@", t.value);
-//                        GTWLiteral* l   = [[GTWLiteral alloc] initWithString:[term value] language:t.value];
-//                        term            = l;
-//                    } else if (t.type == HATHAT) {
-//                        [self nextNonCommentToken];
-//                        GTWSPARQLToken* t   = [self nextNonCommentToken];
-//                        id<GTWTerm> dt   = [self tokenAsTerm:t];
-//                        GTWLiteral* l   = [[GTWLiteral alloc] initWithString:[term value] datatype:dt.value];
-//                        term            = l;
-//                    }
-//                }
-//                
-//                
-//                id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:[self currentSubject] predicate:[self currentPredicate] object:term];
-//                return st;
-//            } else if ([self haveSubject]) {
-//                //                NSLog(@"--> got predicate");
-//                [self pushNewPredicate:term];
-//            } else {
-//                //                NSLog(@"--> got subject");
-//                [self pushNewSubject:term];
-//            }
-//        } else if (t.type == KEYWORD) {
-//            NSLog(@"keyword: %@", t.value);
-//            if ([t.value isEqualToString:@"PREFIX"]) {
-//                GTWSPARQLToken* name    = [self nextNonCommentToken];
-//                GTWSPARQLToken* iri     = [self nextNonCommentToken];
-//                [self.namespaces setValue:iri.value forKey:name.value];
-//                //                NSLog(@"PREFIX %@: %@\n", name.value, iri.value);
-//            } else if ([t.value isEqualToString:@"BASE"]) {
-//                GTWSPARQLToken* iri     = [self nextNonCommentToken];
-//                self.baseIRI   = (id<GTWIRI>) [self tokenAsTerm:iri];
-//                //                NSLog(@"BASE %@\n", iri.value);
-//            } else {
-//                NSLog(@"unexpected keyword: %@", t);
-//            }
-//        } else {
-//            NSLog(@"unexpected token: %@", t);
-//            NSLog(@"... with stack: %@", self.stack);
-//        }
-//    }
 }
 
 #pragma mark -
@@ -217,112 +130,156 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
 
 - (id<GTWTree>) parseSelectQueryWithError: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:KEYWORD withValue:@"SELECT"];
-    // (DISTINCT | REDUCED)
-    // ( Var | ( '(' Expression 'AS' Var ')' ) )+ | '*'
-    // DatasetClause*
-    [self parseOptionalTokenOfType:KEYWORD withValue:@"WHERE"];
-    id<GTWTree> ggp     = [self parseGroupGraphPatternWithError:errors];
-    // SolutionModifier
-    return ggp;
-}
-
-- (id<GTWTree>) parseAskQueryWithError: (NSMutableArray*) errors {
-    [self parseExpectedTokenOfType:KEYWORD withValue:@"ASK"];
-    // DatasetClause*
+    //@@ (DISTINCT | REDUCED)
+    
+    //@@ ( Var | ( '(' Expression 'AS' Var ')' ) )+ | '*'
+    [self parseExpectedTokenOfType:STAR];   //@@
+    
+    //@@ DatasetClause*
     [self parseOptionalTokenOfType:KEYWORD withValue:@"WHERE"];
     id<GTWTree> ggp     = [self parseGroupGraphPatternWithError:errors];
     if (!ggp) {
         return nil;
     }
     // SolutionModifier
+    return ggp;
+}
+
+- (id<GTWTree>) parseAskQueryWithError: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:KEYWORD withValue:@"ASK"];
+    //@@ DatasetClause*
+    [self parseOptionalTokenOfType:KEYWORD withValue:@"WHERE"];
+    id<GTWTree> ggp     = [self parseGroupGraphPatternWithError:errors];
+    if (!ggp) {
+        return nil;
+    }
+    //@@ SolutionModifier
     return [[GTWTree alloc] initWithType:kAlgebraAsk arguments:@[ggp]];
 }
 
 - (id<GTWTree>) parseGroupGraphPatternWithError: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LBRACE];
-    // SubSelect | GroupGraphPatternSub
+    //@@ SubSelect | GroupGraphPatternSub
     
     id<GTWTree> algebra = [self parseGroupGraphPatternSubWithError:errors];
+    if (!algebra)
+        return nil;
     
     [self parseExpectedTokenOfType:RBRACE];
     return algebra;
 }
 
 - (id<GTWTree>) parseGroupGraphPatternSubWithError: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    GTWSPARQLTokenType type = t.type;
-    switch (type) {
-        case VAR:
-        case IRI:
-        case ANON:
-        case PREFIXNAME:
-        case BNODE:
-        case STRING1D:
-        case STRING3D:
-        case BOOLEAN:
-        case DECIMAL:
-        case DOUBLE:
-        case INTEGER:
-            return [self parseTriplesBlockWithError:errors];
-        case LBRACE:
-            return [self parseGraphPatternNotTriplesWithError:errors];
-        case KEYWORD:
-            if ([t.value isEqual:@"A"]) {
-                return [self parseTriplesBlockWithError:errors];
-            } else {
-                return [self parseGraphPatternNotTriplesWithError:errors];
-            }
-        default:
-            NSLog(@"Expected triples or GraphPatternNotTriples, but got %@", t);
-            return nil;
-    }
-    
-    
     // TriplesBlock? ( GraphPatternNotTriples '.'? TriplesBlock? )*
     // VarOrTerm        |
     //                  '> GroupOrUnionGraphPattern | OptionalGraphPattern | MinusGraphPattern | GraphGraphPattern | ServiceGraphPattern | Filter | Bind | InlineData
     //                     '{'                        'OPTIONAL'             'MINUS'             'GRAPH'             'SERVICE'             'FILTER' 'BIND' 'VALUES'
-
-
+    NSMutableArray* args    = [NSMutableArray array];
+    BOOL ok = YES;
+    while (ok) {
+        GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+        if (!t) {
+            // TODO: set error
+            NSLog(@"unexpected EOF");
+            return nil;
+        }
+        id<GTWTree> algebra;
+        GTWSPARQLTokenType type = t.type;
+        
+//        NSLog(@"--> GGP sub pattern token: %@", t);
+        
+        switch (type) {
+            case LBRACKET:
+            case VAR:
+            case IRI:
+            case ANON:
+            case PREFIXNAME:
+            case BNODE:
+            case STRING1D:
+            case STRING3D:
+            case BOOLEAN:
+            case DECIMAL:
+            case DOUBLE:
+            case INTEGER:
+                algebra = [self parseTriplesBlockWithError:errors];
+                if (algebra) {
+                    [args addObject:algebra];
+                }
+                break;
+            case LBRACE:
+                algebra = [self parseGraphPatternNotTriplesWithError:errors];
+                if (!algebra)
+                    return nil;
+                [args addObject:algebra];
+                [self parseOptionalTokenOfType:DOT];
+                break;
+            case KEYWORD:
+                if ([t.value isEqual:@"A"]) {
+                    algebra = [self parseTriplesBlockWithError:errors];
+                    if (!algebra)
+                        return nil;
+                    [args addObject:algebra];
+                } else {
+                    algebra = [self parseGraphPatternNotTriplesWithError:errors];
+                    if (!algebra)
+                        return nil;
+                    [args addObject:algebra];
+                }
+                break;
+            default:
+                ok  = NO;
+        }
+    }
+    return [[GTWTree alloc] initWithType:kTreeList arguments:args];
 }
 
 - (id<GTWTree>) parseTriplesBlockWithError: (NSMutableArray*) errors {
     NSMutableArray* triples = [NSMutableArray array];
     while (YES) {
-        GTWSPARQLToken* t   = [self nextNonCommentToken];
+        GTWSPARQLToken* t   = [self peekNextNonCommentToken];
         if (t == nil) {
             // error
             NSLog(@"*** Unexpected EOF");
             return nil;
         }
-        //        NSLog(@"lexer token: %@", t);
         
+//        NSLog(@"SPARQL parser lexer token: %@", t);
         if (t.type == LBRACKET) {
+            [self nextNonCommentToken];
             GTWBlank* subj  = self.bnodeIDGenerator(nil);
             //            NSUInteger ident    = ++self.bnodeID;
             //            GTWBlank* subj  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"b%lu", ident]];
             [self pushNewSubject:subj];
         } else if (t.type == RBRACKET) {
+            [self nextNonCommentToken];
             // TODO: need to test for balanced brackets
             id<GTWTerm> b    = [self currentSubject];
             [self popSubject];
+
             if ([self haveSubjectPredicatePair]) {
                 id<GTWTerm> subj    = self.currentSubject;
                 id<GTWTerm> pred    = self.currentPredicate;
                 if (subj && pred && b) {
+                    // this BNODE is being used as the object in a triple
                     id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:subj predicate:pred object:b];
-                    [triples addObject:st];
+                    [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:st arguments:nil]];
                 }
+            } else {
+                [self pushNewSubject:b];
             }
         } else if (t.type == COMMA) {
+            [self nextNonCommentToken];
             // no-op
         } else if (t.type == SEMICOLON) {
+            [self nextNonCommentToken];
             [self popPredicate];
         } else if (t.type == DOT) {
+            [self nextNonCommentToken];
             [self popSubject];
         } else if ([t isTermOrVar]) {
+            [self nextNonCommentToken];
             id<GTWTerm> term   = [self tokenAsTerm:t];
-            //            NSLog(@"got term: %@", term);
+//            NSLog(@"got term: %@", term);
             if ([self haveSubjectPredicatePair]) {
                 //                NSLog(@"--> got object");
                 
@@ -346,26 +303,78 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
                 
                 
                 id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:[self currentSubject] predicate:[self currentPredicate] object:term];
-                [triples addObject:st];
+                [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:st arguments:nil]];
             } else if ([self haveSubject]) {
-                //                NSLog(@"--> got predicate");
+//                NSLog(@"--> got predicate");
                 [self pushNewPredicate:term];
             } else {
-                //                NSLog(@"--> got subject");
+//                NSLog(@"--> got subject");
                 [self pushNewSubject:term];
             }
-        } else if (t.type == KEYWORD) {
-            NSLog(@"unexpected keyword: %@", t);
+//        } else if (t.type == KEYWORD) {
+//            [self nextNonCommentToken];
+//            NSLog(@"unexpected keyword: %@", t);
         } else {
-            NSLog(@"unexpected token: %@", t);
-            NSLog(@"... with stack: %@", self.stack);
+//            NSLog(@"unexpected token: %@", t);
+//            NSLog(@"... with stack: %@", self.stack);
+            break;
         }
     }
-    return nil;
+    return [[GTWTree alloc] initWithType:kAlgebraBGP arguments:triples];
+}
+
+- (id<GTWTerm>) parseVarOrIRIWithErrors: (NSMutableArray*) errors {
+    GTWSPARQLToken* token     = [self nextNonCommentToken];
+    id<GTWTerm> t   = [self tokenAsTerm:token];
+    return t;
 }
 
 - (id<GTWTree>) parseGraphPatternNotTriplesWithError: (NSMutableArray*) errors {
-    // TODO
+    GTWSPARQLToken* t   = [self nextNonCommentToken];
+    if (t.type == KEYWORD) {
+        NSString* kw    = t.value;
+        if ([kw isEqual:@"OPTIONAL"]) {
+            // 'OPTIONAL' GroupGraphPattern
+            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            if (!ggp)
+                return nil;
+            return [[GTWTree alloc] initWithType:kAlgebraLeftJoin arguments:@[ggp]];
+        } else if ([kw isEqual:@"MINUS"]) {
+            // 'MINUS' GroupGraphPattern
+            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            if (!ggp)
+                return nil;
+            return [[GTWTree alloc] initWithType:kAlgebraMinus arguments:@[ggp]];
+        } else if ([kw isEqual:@"GRAPH"]) {
+            // 'GRAPH' VarOrIri GroupGraphPattern
+            id<GTWTerm> g   = [self parseVarOrIRIWithErrors: errors];
+            if (!g)
+                return nil;
+            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            if (!ggp)
+                return nil;
+            return [[GTWTree alloc] initWithType:kAlgebraGraph value: g arguments:@[ggp]];
+//        } else if ([kw isEqual:@"SERVICE"]) {
+//        } else if ([kw isEqual:@"FILTER"]) {
+//        } else if ([kw isEqual:@"BIND"]) {
+//        } else if ([kw isEqual:@"VALUES"]) {
+        } else {
+            NSLog(@"Unexpected KEYWORD %@ while expecting GraphPatternNotTriples", t.value);
+            return nil;
+        }
+    } else if (t.type == LBRACE) {
+        id<GTWTree> ggp = [self parseGroupGraphPatternWithError:errors];
+        if (!ggp) {
+            return nil;
+        }
+        //@@ GroupGraphPattern ( 'UNION' GroupGraphPattern )*
+        return ggp;
+    } else {
+        NSLog(@"Expecting KEYWORD but got %@", t);
+        return nil;
+    }
+    //@@ GroupOrUnionGraphPattern | OptionalGraphPattern | MinusGraphPattern | GraphGraphPattern | ServiceGraphPattern | Filter | Bind | InlineData
+    NSLog(@"parseGraphPatternNotTriplesWithError: not implemented yet");
     return nil;
 }
 
@@ -375,19 +384,6 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
 
 #pragma mark -
 
-
-- (GTWSPARQLToken*) parseOptionalTokenOfType: (GTWSPARQLTokenType) type withValue: (NSString*) string {
-    GTWSPARQLToken* t   = [self nextNonCommentToken];
-    if (t.type != type) {
-        return nil;
-    } else {
-        if ([t.value isEqual: string]) {
-            return t;
-        } else {
-            return nil;
-        }
-    }
-}
 
 - (GTWSPARQLToken*) parseExpectedTokenOfType: (GTWSPARQLTokenType) type {
     GTWSPARQLToken* t   = [self nextNonCommentToken];
@@ -401,18 +397,42 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     }
 }
 
+- (GTWSPARQLToken*) parseOptionalTokenOfType: (GTWSPARQLTokenType) type {
+    GTWSPARQLToken* t   = [self nextNonCommentToken];
+    if (!t)
+        return nil;
+    if (t.type != type) {
+        return nil;
+    } else {
+        return t;
+    }
+}
+
 - (GTWSPARQLToken*) parseExpectedTokenOfType: (GTWSPARQLTokenType) type withValue: (NSString*) string {
     GTWSPARQLToken* t   = [self nextNonCommentToken];
     if (!t)
         return nil;
     if (t.type != type) {
-        NSLog(@"Expecting %@ but found %@", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], t);
+        NSLog(@"Expecting %@['%@'] but found %@", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], string, t);
         return nil;
     } else {
         if ([t.value isEqual: string]) {
             return t;
         } else {
             NSLog(@"Expecting %@ value '%@' but found '%@'", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], string, t.value);
+            return nil;
+        }
+    }
+}
+
+- (GTWSPARQLToken*) parseOptionalTokenOfType: (GTWSPARQLTokenType) type withValue: (NSString*) string {
+    GTWSPARQLToken* t   = [self nextNonCommentToken];
+    if (t.type != type) {
+        return nil;
+    } else {
+        if ([t.value isEqual: string]) {
+            return t;
+        } else {
             return nil;
         }
     }
