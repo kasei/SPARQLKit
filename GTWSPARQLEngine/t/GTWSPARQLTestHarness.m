@@ -6,22 +6,23 @@
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
+#import <GTWSWBase/GTWQuad.h>
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWDataset.h>
+#import <GTWSWBase/GTWGraphIsomorphism.h>
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
 #import "GTWQuadModel.h"
 #import "GTWRedlandParser.h"
-#import <GTWSWBase/GTWQuad.h>
-#import <GTWSWBase/GTWIRI.h>
-#import <GTWSWBase/GTWVariable.h>
-#import <GTWSWBase/GTWDataset.h>
 #import "GTWRasqalSPARQLParser.h"
 #import "GTWQueryPlanner.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "GTWTurtleParser.h"
 #import "GTWSPARQLResultsXMLParser.h"
-#import <GTWSWBase/GTWGraphIsomorphism.h>
+#import "GTWSPARQLParser.h"
 
 extern raptor_world* raptor_world_ptr;
 extern rasqal_world* rasqal_world_ptr;
@@ -70,7 +71,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
     NSData* data                = [fh readDataToEndOfFile];
     id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
-    parser.baseURI              = base.value;
+    parser.baseURI              = base;
     [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
         [store addQuad:q error:&error];
@@ -84,11 +85,11 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         [manifests addObjectsFromArray:[self arrayFromModel: model withList: list]];
     } error:nil];
     
-    for (id<GTWTerm> file in manifests) {
+    for (id<GTWIRI> file in manifests) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
         NSData* data                = [fh readDataToEndOfFile];
         id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
-        parser.baseURI              = file.value;
+        parser.baseURI              = file;
         __block NSUInteger count    = 0;
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
@@ -239,8 +240,12 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
 //        NSLog(@"query file: %@", query.value);
+
+        
+        
         id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
-        GTWTree* algebra            = [parser parserSPARQL:sparql withBaseURI:query.value];
+        
+        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:query.value];
         if (!algebra) {
             NSLog(@"failed to parse query: %@", query.value);
             return nil;
@@ -273,8 +278,16 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
 //        NSLog(@"query file: %@", action.value);
-        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
-        GTWTree* algebra            = [parser parserSPARQL:sparql withBaseURI:action.value];
+
+        
+        
+//        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
+        id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+        
+        
+        
+        
+        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value];
         if (!algebra) {
 //            NSLog(@"failed to parse query: %@", action.value);
             return nil;
@@ -290,6 +303,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             return nil;
         }
         
+        NSLog(@"%@", sparql);
+        NSLog(@"%@", plan);
         return plan;
     } else {
         NSLog(@"No action for test %@", test);

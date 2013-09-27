@@ -1,5 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <GTWSWBase/GTWSWBase.h>
+#import <GTWSWBase/GTWIRI.h>
+#import <GTWSWBase/GTWBlank.h>
 
 @protocol GTWLogger
 - (void) logData: (id) data forKey: (NSString*) key;
@@ -92,13 +94,13 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 #pragma mark -
 
 @protocol GTWSPARQLParser
-- (id<GTWTree>) parserSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
+- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
 @end
 
 #pragma mark -
 
 @protocol GTWRDFParser
-@property (readwrite) NSString* baseURI;
+@property (readwrite) id<GTWIRI> baseURI;
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 @end
 
@@ -108,4 +110,8 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 @protocol GTWQueryEngine
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWQueryPlan>) plan withModel: (id<GTWModel>) model;
 @end
+
+
+
+typedef GTWBlank*(^IDGenerator)(NSString* name);
 

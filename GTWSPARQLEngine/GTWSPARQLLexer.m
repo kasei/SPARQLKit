@@ -1,4 +1,4 @@
-#import "GTWTurtleLexer.h"
+#import "GTWSPARQLLexer.h"
 
 
 static NSSet* SPARQLKeywords() {
@@ -16,21 +16,21 @@ static NSDictionary* SPARQLCharTokens() {
 	static dispatch_once_t charOnceToken;
 	dispatch_once(&charOnceToken, ^{
 		_SPARQLCharTokens = @{
-		@",": @(COMMA),
-		@".": @(DOT),
-		@"=": @(EQUALS),
-		@"{": @(LBRACE),
-		@"[": @(LBRACKET),
-		@"(": @(LPAREN),
-//		@"-": [NSNumber numberWithLong:MINUS],
-//		@"+": [NSNumber numberWithLong:PLUS],
-		@"}": @(RBRACE),
-		@"]": @(RBRACKET),
-		@")": @(RPAREN),
-		@";": @(SEMICOLON),
-		@"/": @(SLASH),
-		@"*": @(STAR)
-		};
+                              @",": @(COMMA),
+                              @".": @(DOT),
+                              @"=": @(EQUALS),
+                              @"{": @(LBRACE),
+                              @"[": @(LBRACKET),
+                              @"(": @(LPAREN),
+                              //		@"-": [NSNumber numberWithLong:MINUS],
+                              //		@"+": [NSNumber numberWithLong:PLUS],
+                              @"}": @(RBRACE),
+                              @"]": @(RBRACKET),
+                              @")": @(RPAREN),
+                              @";": @(SEMICOLON),
+                              @"/": @(SLASH),
+                              @"*": @(STAR)
+                              };
 	});
 	
     return _SPARQLCharTokens;
@@ -41,18 +41,18 @@ static NSDictionary* SPARQLMethodTokens() {
 	static dispatch_once_t methodOnceToken;
 	dispatch_once(&methodOnceToken, ^{
 		_SPARQLMethodTokens = @{
-		@"@": [NSValue valueWithPointer:@selector(getLanguage)],
-		@"<": [NSValue valueWithPointer:@selector(getIRIRefOrRelational)],
-		@"?": [NSValue valueWithPointer:@selector(getVariable)],
-		@"$": [NSValue valueWithPointer:@selector(getVariable)],
-		@"!": [NSValue valueWithPointer:@selector(getBang)],
-		@">": [NSValue valueWithPointer:@selector(getRelational)],
-		@"|": [NSValue valueWithPointer:@selector(getOr)],
-		@"'": [NSValue valueWithPointer:@selector(getSingleLiteral)],
-		@"\"": [NSValue valueWithPointer:@selector(getDoubleLiteral)],
-		@"_": [NSValue valueWithPointer:@selector(getBnode)],
-		@":": [NSValue valueWithPointer:@selector(getPName)]
-		};
+                                @"@": [NSValue valueWithPointer:@selector(getLanguage)],
+                                @"<": [NSValue valueWithPointer:@selector(getIRIRefOrRelational)],
+                                @"?": [NSValue valueWithPointer:@selector(getVariable)],
+                                @"$": [NSValue valueWithPointer:@selector(getVariable)],
+                                @"!": [NSValue valueWithPointer:@selector(getBang)],
+                                @">": [NSValue valueWithPointer:@selector(getRelational)],
+                                @"|": [NSValue valueWithPointer:@selector(getOr)],
+                                @"'": [NSValue valueWithPointer:@selector(getSingleLiteral)],
+                                @"\"": [NSValue valueWithPointer:@selector(getDoubleLiteral)],
+                                @"_": [NSValue valueWithPointer:@selector(getBnode)],
+                                @":": [NSValue valueWithPointer:@selector(getPName)]
+                                };
 	});
 	
     return _SPARQLMethodTokens;
@@ -97,9 +97,9 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 
-@implementation GTWTurtleLexer
+@implementation GTWSPARQLLexer
 
-- (GTWTurtleLexer*) init {
+- (GTWSPARQLLexer*) init {
 	if (self = [super init]) {
 		self.file			= nil;
 		self.string			= nil;
@@ -116,7 +116,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return self;
 }
 
-- (GTWTurtleLexer*) initWithString: (NSString*) string {
+- (GTWSPARQLLexer*) initWithString: (NSString*) string {
 	if (self = [self init]) {
 		self.file			= nil;
 		self.string			= string;
@@ -134,7 +134,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return self;
 }
 
-- (GTWTurtleLexer*) initWithFileHandle: (NSFileHandle*) handle {
+- (GTWSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle {
 	if (self = [self init]) {
 		self.file			= handle;
 	}
@@ -150,7 +150,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (void) _fillBuffer {
 	NSMutableData* linebuffer	= [[NSMutableData alloc] init];
-//	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
+    //	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
 	if ([self.buffer length] == 0) {
 		while (1) {
 			if (self.file) {
@@ -176,11 +176,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 		}
 		NSString* line	= [[NSString alloc] initWithData:linebuffer encoding:NSUTF8StringEncoding];
-//			$line		=~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/ge;	 // TODO
-//			$line		=~ s/\\U([0-9A-Fa-f]{8})/chr(hex($1))/ge;	 // TODO
+        //			$line		=~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/ge;	 // TODO
+        //			$line		=~ s/\\U([0-9A-Fa-f]{8})/chr(hex($1))/ge;	 // TODO
 		[self.buffer appendString:line];
 	}
-//	NSLog(@"- '%@' (%lu)", self.buffer, [self.buffer length]);
+    //	NSLog(@"- '%@' (%lu)", self.buffer, [self.buffer length]);
 }
 
 - (NSString*) _peekChar {
@@ -257,14 +257,14 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSUInteger lines	= [mword replaceOccurrencesOfString:@"\n" withString:@"\n" options:NSLiteralSearch range:range];
 	
 	// TODO
-//	my $lastnl	= rindex($word, "\n");	// TODO
-//	my $cols	= length($word) - $lastnl - 1;
+    //	my $lastnl	= rindex($word, "\n");	// TODO
+    //	my $cols	= length($word) - $lastnl - 1;
 	self.line	+= lines;
-//	if (lines) {
-//		self.column	= $cols;
-//	} else {
-//		self.column	+= $cols;
-//	}
+    //	if (lines) {
+    //		self.column	= $cols;
+    //	} else {
+    //		self.column	+= $cols;
+    //	}
 	
 	self.character	+= [word length];
 	range.location	= 0;
@@ -289,7 +289,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	range.location	= 0;
 	range.length	= [word length];
 	[self.buffer deleteCharactersInRange:range];
-
+    
 	NSMutableString* mword	= [NSMutableString stringWithString: word];
 	range.location	= 0;
 	range.length	= [mword length];
@@ -302,7 +302,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	//	} else {
 	//		self.column	+= $cols;
 	//	}
-
+    
 	self.character	+= [word length];
 	return word;
 }
@@ -335,13 +335,13 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) getBnode {
 	[self _getCharSafe:@"_"];
 	[self _getCharSafe:@":"];
-//	NSString* r_NAME_START_CHAR	= @"[A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}]";
-//	NSString* r_NAMECHAR_EXTRA	= @"[-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]";
+    //	NSString* r_NAME_START_CHAR	= @"[A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}]";
+    //	NSString* r_NAMECHAR_EXTRA	= @"[-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]";
     NSString* r_bnode   = @"^([A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])(([A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])|([-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]))*";
 	NSRange range	= [self.buffer rangeOfString:r_bnode options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		NSString* name	= [self _readLength:range.length];
-//        NSLog(@"got bnode name ===> %@", name);
+        //        NSLog(@"got bnode name ===> %@", name);
         return [self newTokenOfType:BNODE withArgs:@[name]];
 	} else {
         //		NSLog(@"returning nil pname");
@@ -368,11 +368,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) _getNumber {
 	NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
     NSRange double_range	= [self.buffer rangeOfString:@"[+-]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
-//	if ($self->{buffer} =~ /^${r_double}\b/) {
-//		return $self->new_token(DOUBLE, $self->_read_length($+[0]));
-//	} else if ($self->{buffer} =~ /^${r_decimal}\b/) {
-//		return $self->new_token(DECIMAL, $self->_read_length($+[0]));
-//	} else if ($self->{buffer} =~ /^${r_integer}\b/) {
+    //	if ($self->{buffer} =~ /^${r_double}\b/) {
+    //		return $self->new_token(DOUBLE, $self->_read_length($+[0]));
+    //	} else if ($self->{buffer} =~ /^${r_decimal}\b/) {
+    //		return $self->new_token(DECIMAL, $self->_read_length($+[0]));
+    //	} else if ($self->{buffer} =~ /^${r_integer}\b/) {
 	if (integer_range.location == 0) {
 		NSString* integer	= [self _readLength:integer_range.length];
 		return [self newTokenOfType:INTEGER withArgs:@[integer]];
@@ -394,7 +394,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) getVariable {
 	NSString* c	= [self _getChar];
 	NSRange range	= [self.buffer rangeOfString:@"((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9])(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])*)" options:NSRegularExpressionSearch];
-
+    
 	if (range.location != 0) {
 		if ([c isEqualToString:@"?"]) {
 			return [self newTokenOfType:QUESTION withArgs:@[]];
@@ -417,7 +417,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			return [self newTokenOfType:KEYWORD withArgs:@[[kw uppercaseString]]];
 		}
 	}
-
+    
 	NSRange range	= [self.buffer rangeOfString:@"a\\b" options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		[self _readLength:1];
@@ -433,7 +433,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 	
 	[self throwError:@"Expected keyword"];
-//	NSLog(@"returning nil keyword");
+    //	NSLog(@"returning nil keyword");
 	return nil;
 }
 
@@ -563,7 +563,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					}
 				} else {
 					NSRange range	= [self.buffer rangeOfString:@"[^\"\\\\]+" options:NSRegularExpressionSearch];
-//                    NSLog(@"reading length %lu with buffer: >>>%@", range.length, self.buffer);
+                    //                    NSLog(@"reading length %lu with buffer: >>>%@", range.length, self.buffer);
 					[string appendString: [self _readLength: range.length]];
 				}
 			}
@@ -574,10 +574,10 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
 			NSString* pat		= @"[^\"\\\\]+";
-//			NSLog(@"pattern: '%@'", pat);
+            //			NSLog(@"pattern: '%@'", pat);
 			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
-//			NSLog(@"double quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
+            //			NSLog(@"double quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
 			if ([[self.buffer substringToIndex:1] isEqualToString:@"\\"]) {
 				[self _getCharSafe:@"\\"];
 				NSString* esc	= [self _getChar];
@@ -734,10 +734,10 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
 			NSString* pat		= @"[^'\\\\]+";
-//			NSLog(@"pattern: '%@'", pat);
+            //			NSLog(@"pattern: '%@'", pat);
 			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
-//			NSLog(@"single quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
+            //			NSLog(@"single quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
 			if ([[self.buffer substringToIndex:1] isEqualToString:@"\\"]) {
 				[self _getCharSafe:@"\\"];
 				NSString* esc	= [self _getChar];
@@ -906,7 +906,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (GTWSPARQLToken*) _getToken {
 	NSDictionary* charTokens	= SPARQLCharTokens();
-//	NSDictionary* methodTokens	= SPARQLMethodTokens();
+    //	NSDictionary* methodTokens	= SPARQLMethodTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
 	while (1) {
 	NEXT:		;
@@ -917,7 +917,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			return nil;
 		}
 		
-//		NSLog(@"- getToken called with buffer '%@'\n", self.buffer);
+        //		NSLog(@"- getToken called with buffer '%@'\n", self.buffer);
 		NSString* c;
 		unichar cc;
 		// 		warn "getting token with buffer: " . Dumper($self->{buffer});
@@ -941,14 +941,14 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 				c	= [self _peekChar];
 			}
 			
-// we're ignoring whitespace tokens, but we could return them here instead of falling through to the 'next':
+            // we're ignoring whitespace tokens, but we could return them here instead of falling through to the 'next':
 			// 			return $self->new_token(WS);
 			goto NEXT;
 		}
 		
 		// COMMENT
 		if ([c isEqualToString:@"#"]) {
-// we're ignoring comment tokens, but we could return them here instead of falling through to the 'next':
+            // we're ignoring comment tokens, but we could return them here instead of falling through to the 'next':
 			GTWSPARQLToken* t	= [self _getComment];
 			if (self.comments) {
 				return t;
@@ -963,30 +963,30 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			return [self newTokenOfType:NIL withArgs:@[]];
 		}
 		
-	   // ANON
+        // ANON
         if ([self.buffer hasPrefix:@"[]"]) {
 			[self _readLength:2];
 			return [self newTokenOfType:ANON withArgs:@[]];
         }
-	   // DOUBLE
-	   if (double_range.location == 0) {
-           NSString* value  = [self _readLength:double_range.length];
-           return [self newTokenOfType:DOUBLE withArgs:@[value]];
-	   }
-	   
-	   // DECIMAL
+        // DOUBLE
+        if (double_range.location == 0) {
+            NSString* value  = [self _readLength:double_range.length];
+            return [self newTokenOfType:DOUBLE withArgs:@[value]];
+        }
+        
+        // DECIMAL
         if (decimal_range.location == 0) {
             NSString* value  = [self _readLength:decimal_range.length];
             return [self newTokenOfType:DECIMAL withArgs:@[value]];
         }
-	   
-	   // INTEGER
+        
+        // INTEGER
 		if (integer_range.location == 0) {
             NSString* value  = [self _readLength:integer_range.length];
             return [self newTokenOfType:INTEGER withArgs:@[value]];
 		}
-	   
-	   // HAT / HATHAT
+        
+        // HAT / HATHAT
 		if ([c isEqualToString:@"^"]) {
 			if ([self.buffer hasPrefix:@"^^"]) {
 				if ([self _readWord: @"^^"]) {
@@ -1001,91 +1001,91 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					return nil;
 				}
 			}
-	   }
-	   // Single char dispatch:
-	   // - LANG
-	   // - IRIREF
-	   // - VAR / QUESTION
-	   // - NOTEQUALS / BANG
-	   // - LE / LT
-	   // - GE / GT
-	   // - OROR / OR
-	   // - STRING3D / STRING1D
-	   // - STRING3S / STRING1S
-	   // - BNODE
-	   if ([c isEqualToString: @"@"]) {
+        }
+        // Single char dispatch:
+        // - LANG
+        // - IRIREF
+        // - VAR / QUESTION
+        // - NOTEQUALS / BANG
+        // - LE / LT
+        // - GE / GT
+        // - OROR / OR
+        // - STRING3D / STRING1D
+        // - STRING3S / STRING1S
+        // - BNODE
+        if ([c isEqualToString: @"@"]) {
 			return [self getLanguage];
-	   } else if ([c isEqualToString: @"<"]) {
-//           NSLog(@"saw '<'; IRIRef or Relational expression.");
+        } else if ([c isEqualToString: @"<"]) {
+            //           NSLog(@"saw '<'; IRIRef or Relational expression.");
 			return [self getIRIRefOrRelational];
-	   } else if ([c isEqualToString: @"?"]) {
+        } else if ([c isEqualToString: @"?"]) {
 			return [self getVariable];
-	   } else if ([c isEqualToString: @"$"]) {
+        } else if ([c isEqualToString: @"$"]) {
 			return [self getVariable];
-	   } else if ([c isEqualToString: @"!"]) {
+        } else if ([c isEqualToString: @"!"]) {
 			return [self getBang];
-	   } else if ([c isEqualToString: @">"]) {
+        } else if ([c isEqualToString: @">"]) {
 			return [self getIRIRefOrRelational];
-	   } else if ([c isEqualToString: @"|"]) {
+        } else if ([c isEqualToString: @"|"]) {
 			return [self getOr];
-	   } else if ([c isEqualToString: @"'"]) {
+        } else if ([c isEqualToString: @"'"]) {
 			return [self getSingleLiteral];
-	   } else if ([c isEqualToString: @"\""]) {
+        } else if ([c isEqualToString: @"\""]) {
 			return [self getDoubleLiteral];
-	   } else if ([c isEqualToString: @"_"]) {
+        } else if ([c isEqualToString: @"_"]) {
 			return [self getBnode];
-	   } else if ([c isEqualToString: @":"]) {
+        } else if ([c isEqualToString: @":"]) {
 			return [self getPName];
-	   }
-// 		NSValue* value	= [methodTokens objectForKey:c];
-// 		if (value != nil) {
-// 			SEL selector	= [value pointerValue];
-// 			return [self performSelector:selector];
-// 		}
-//	   else if (defined(my $method = $METHOD_TOKEN{$c})) { return $self->$method() }
-	   
-
-	   // Direct mapping:
-	   // - COMMA
-	   // - DOT
-	   // - EQUALS
-	   // - LBRACE
-	   // - LBRACKET
-	   // - LPAREN
-	   // - MINUS
-	   // - PLUS
-	   // - RBRACE
-	   // - RBRACKET
-	   // - RPAREN
-	   // - SEMICOLON
-	   // - SLASH
-	   // - STAR
+        }
+        // 		NSValue* value	= [methodTokens objectForKey:c];
+        // 		if (value != nil) {
+        // 			SEL selector	= [value pointerValue];
+        // 			return [self performSelector:selector];
+        // 		}
+        //	   else if (defined(my $method = $METHOD_TOKEN{$c})) { return $self->$method() }
+        
+        
+        // Direct mapping:
+        // - COMMA
+        // - DOT
+        // - EQUALS
+        // - LBRACE
+        // - LBRACKET
+        // - LPAREN
+        // - MINUS
+        // - PLUS
+        // - RBRACE
+        // - RBRACKET
+        // - RPAREN
+        // - SEMICOLON
+        // - SLASH
+        // - STAR
 		
 		NSNumber* number;
 		if ((number = charTokens[c])) {
 			[self _getChar];
 			return [self newTokenOfType:(GTWSPARQLTokenType)[number integerValue] withArgs:@[c]];
 		}
-	   // - ANDAND
+        // - ANDAND
 		else if ([c isEqualToString:@"&"]) {
 			if ([self _readWord: @"&&"]) {
 				return [self newTokenOfType:ANDAND withArgs:@[]];
 			} else {
 				return nil;
 			}
-	   }
-	   // PREFIXNAME
+        }
+        // PREFIXNAME
 		else if ([pnCharSet characterIsMember:cc]) {
-//			NSLog(@"getting pname");
+            //			NSLog(@"getting pname");
 			GTWSPARQLToken* t	= [self getPName];
 			if (t) {
 				return t;
 			}
 		}
-	   
-   // KEYWORD / BOOLEAN
+        
+        // KEYWORD / BOOLEAN
 		return [self _getKeyword];
-   }
+    }
 }
 
 - (void)throwError: (NSString*) error {
@@ -1097,7 +1097,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 @end
 
 /**
-
+ 
  sub check_for_bom {
  my $self	= shift;
  my $c	= $self->_peek_char();
@@ -1472,4 +1472,4 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
  );
  }
  
-**/
+ **/

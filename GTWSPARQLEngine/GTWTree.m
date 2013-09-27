@@ -5,6 +5,7 @@
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
 
+GTWTreeType __strong const kPlanAsk                     = @"PlanAsk";
 GTWTreeType __strong const kPlanEmpty					= @"PlanEmpty";
 GTWTreeType __strong const kPlanScan					= @"PlanScan";
 GTWTreeType __strong const kPlanBKAjoin					= @"PlanBKAjoin";
@@ -24,6 +25,7 @@ GTWTreeType __strong const kPlanResultSet				= @"PlanResultSet";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
 GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
 GTWTreeType __strong const kPlanDescribe				= @"PlanDescribe";
+GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";
 GTWTreeType __strong const kAlgebraBGP					= @"AlgebraBGP";
 GTWTreeType __strong const kAlgebraJoin					= @"AlgebraJoin";
 GTWTreeType __strong const kAlgebraLeftJoin				= @"AlgebraLeftJoin";

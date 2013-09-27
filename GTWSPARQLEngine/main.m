@@ -39,7 +39,7 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
     
     if (NO) {
-        GTWTurtleToken* t;
+        GTWSPARQLToken* t;
         while ((t = [l getToken])) {
             NSLog(@"token: %@\n", t);
         }
@@ -182,7 +182,7 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
 
 int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset) {
     id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
-    GTWTree* algebra    = [parser parserSPARQL:query withBaseURI:base];
+    GTWTree* algebra    = [parser parseSPARQL:query withBaseURI:base];
     if (YES) {
         NSLog(@"query:\n%@", algebra);
     }
@@ -306,8 +306,8 @@ int main(int argc, const char * argv[]) {
     } else if (!strcmp(argv[1], "testsuite")) {
         GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
         NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[2]] : nil;
-        harness.runEvalTests    = YES;
-        harness.runSyntaxTests  = NO;
+        harness.runEvalTests    = NO;
+        harness.runSyntaxTests  = YES;
         if (pattern) {
             [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];
         } else {

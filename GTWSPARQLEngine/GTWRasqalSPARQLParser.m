@@ -892,7 +892,7 @@ void rasqal_message_handler(void *user_data, raptor_log_message* message) {
     return self;
 }
 
-- (GTWTree*) parserSPARQL: (NSString*) queryString withBaseURI: (NSString*) base {
+- (GTWTree*) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base {
 	raptor_world* raptor_world_ptr = rasqal_world_get_raptor(self.rasqal_world_ptr);
 	//	fprintf(stderr, "Running query '%s'\n", query_string);
 	raptor_uri *base_uri	= raptor_new_uri(raptor_world_ptr, (const unsigned char*) [base UTF8String]);

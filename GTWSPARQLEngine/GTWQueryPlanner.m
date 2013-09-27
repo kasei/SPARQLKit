@@ -29,6 +29,12 @@
             return nil;
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+    } else if (algebra.type == kAlgebraAsk) {
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"ASK must be 1-ary");
+            return nil;
+        }
+        return [[GTWQueryPlan alloc] initWithType:kPlanAsk value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
     } else if (algebra.type == kAlgebraGraph) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");
@@ -55,17 +61,22 @@
         }
         return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.value arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin) {
-        if ([algebra.arguments count] != 2) {
+        if ([algebra.arguments count] == 0) {
+            return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+        } else if ([algebra.arguments count] == 1) {
+            return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
+        } else if ([algebra.arguments count] == 2) {
+            id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
+            id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
+            if (!lhs || !rhs) {
+                NSLog(@"Failed to plan both sides of JOIN");
+                return nil;
+            }
+            return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+        } else {
             NSLog(@"JOIN must be 2-ary");
             return nil;
         }
-        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
-        id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
-        if (!lhs || !rhs) {
-            NSLog(@"Failed to plan both sides of JOIN");
-            return nil;
-        }
-        return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
     } else if (algebra.type == kAlgebraMinus) {
         NSLog(@"MINUS must be 2-ary");
         if ([algebra.arguments count] != 2)

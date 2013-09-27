@@ -1,6 +1,6 @@
-#import "GTWTurtleToken.h"
+#import "GTWSPARQLToken.h"
 
-static const char* sparql_token_type_name( GTWTurtleTokenType t ) {
+static const char* sparql_token_type_name( GTWSPARQLTokenType t ) {
 	switch (t) {
 		case WS:
 			return "WS";
@@ -97,10 +97,13 @@ static const char* sparql_token_type_name( GTWTurtleTokenType t ) {
 	}
 }
 
-@implementation GTWTurtleToken
+@implementation GTWSPARQLToken
 
++ (NSString*) nameOfSPARQLTokenOfType: (GTWSPARQLTokenType) type {
+    return [NSString stringWithFormat:@"%s", sparql_token_type_name(type)];
+}
 
-- (GTWTurtleToken*) initTokenOfType: (GTWTurtleTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range {
+- (GTWSPARQLToken*) initTokenOfType: (GTWSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range {
 	if (self = [super init]) {
 		self.type	= type;
 		self.range	= range;
@@ -115,6 +118,10 @@ static const char* sparql_token_type_name( GTWTurtleTokenType t ) {
 
 - (BOOL) isTerm {
 	return (self.type == INTEGER || self.type == DECIMAL || self.type == DOUBLE || self.type == ANON || self.type == BOOLEAN || self.type == BNODE || self.type == IRI || self.type == PREFIXNAME || self.type == STRING1D || self.type == STRING3D || (self.type == KEYWORD && [self.value isEqualToString:@"A"]));
+}
+
+- (BOOL) isTermOrVar {
+	return (self.type == VAR || [self isTerm]);
 }
 
 - (BOOL) isNumber {
@@ -140,14 +147,14 @@ static const char* sparql_token_type_name( GTWTurtleTokenType t ) {
 
 
 /**
-
+ 
  sub is_relop {
  my $self	= shift;
  my $type	= $self->type;
  return ($type == LT or $type == LE or $type == GT or $type == GE or $type == EQUALS or $type == NOTEQUALS or $type == ANDAND or $type == OROR);
  }
  
-**/
+ **/
 
 
 @end

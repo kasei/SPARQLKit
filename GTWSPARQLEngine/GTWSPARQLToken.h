@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWLiteral.h>
 
-typedef NS_ENUM(NSInteger, GTWTurtleTokenType) {
+typedef NS_ENUM(NSInteger, GTWSPARQLTokenType) {
 	WS,
 	COMMENT,
 	NIL,
@@ -52,19 +52,21 @@ typedef NS_ENUM(NSInteger, GTWTurtleTokenType) {
 	IRI,
 };
 
-@interface GTWTurtleToken : NSObject {
-	GTWTurtleTokenType _type;
+@interface GTWSPARQLToken : NSObject {
+	GTWSPARQLTokenType _type;
 	NSRange _range;
 	NSArray* _args;
 }
 
-@property GTWTurtleTokenType type;
+@property GTWSPARQLTokenType type;
 @property NSRange range;
 @property (strong) NSArray* args;
 
-- (GTWTurtleToken*) initTokenOfType: (GTWTurtleTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range;
++ (NSString*) nameOfSPARQLTokenOfType: (GTWSPARQLTokenType) type;
+- (GTWSPARQLToken*) initTokenOfType: (GTWSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range;
 - (id) value;
 - (BOOL) isTerm;
+- (BOOL) isTermOrVar;
 - (BOOL) isNumber;
 - (BOOL) isString;
 - (BOOL) isRelationalOperator;

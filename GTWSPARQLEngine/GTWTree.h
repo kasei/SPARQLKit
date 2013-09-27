@@ -9,6 +9,8 @@ extern NSString * __strong const kProjectVariables;
 // ---------------------------------------------------------
 
 // plan tree nodes:
+
+extern GTWTreeType __strong const kPlanAsk;                 // Ask()
 extern GTWTreeType __strong const kPlanEmpty;                 // Empty()
 extern GTWTreeType __strong const kPlanScan;					// Scan( index, quad, restrictions )
 extern GTWTreeType __strong const kPlanBKAjoin;				// BKAJoin( P, Q )
@@ -29,6 +31,7 @@ extern GTWTreeType __strong const kPlanJoinIdentity;			// JoinIdentity()
 extern GTWTreeType __strong const kPlanFedStub;				// FedStub( P )
 extern GTWTreeType __strong const kPlanDescribe;
 // algebra tree nodes:
+extern GTWTreeType __strong const kAlgebraAsk;
 extern GTWTreeType __strong const kAlgebraBGP;				// BGP(t1, t2, ...)
 extern GTWTreeType __strong const kAlgebraJoin;				// Join( P, Q )
 extern GTWTreeType __strong const kAlgebraLeftJoin;			// LeftJoin( P, Q, expr )

@@ -1,6 +1,6 @@
 #import "GTWSPARQLToken.h"
 
-@interface GTWTurtleLexer : NSObject {
+@interface GTWSPARQLLexer : NSObject {
 	NSFileHandle* _file;
 	NSString* _string;
 	NSUInteger _stringPos;
@@ -29,8 +29,8 @@
 @property BOOL comments;
 @property (strong) GTWSPARQLToken* lookahead;
 
-- (GTWTurtleLexer*) initWithFileHandle: (NSFileHandle*) handle;
-- (GTWTurtleLexer*) initWithString: (NSString*) string;
+- (GTWSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
+- (GTWSPARQLLexer*) initWithString: (NSString*) string;
 - (GTWSPARQLToken*) getToken;
 - (GTWSPARQLToken*) peekToken;
 

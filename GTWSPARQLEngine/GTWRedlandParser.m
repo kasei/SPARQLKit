@@ -47,7 +47,7 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
 
 - (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format WithRaptorWorld: (raptor_world*) raptor_world_ptr {
     if (self = [super init]) {
-        self.baseURI            = @"http://base.example.com/";
+        self.baseURI            = [[GTWIRI alloc] initWithValue:@"http://base.example.com/"];
         self.data               = data;
         self.raptor_world_ptr   = raptor_world_ptr;
         self.parser             = raptor_new_parser(raptor_world_ptr, [format UTF8String]);
@@ -80,7 +80,7 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
             _error  = [NSError errorWithDomain:@"us.kasei.sparql.parser.redland" code:message->code userInfo:@{@"description": desc}];
         };
         raptor_world_set_log_handler(self.raptor_world_ptr, (__bridge void*) errorHandler, message_handler);
-        raptor_uri* base_uri    = raptor_new_uri(self.raptor_world_ptr, (const unsigned char*) [self.baseURI UTF8String]);
+        raptor_uri* base_uri    = raptor_new_uri(self.raptor_world_ptr, (const unsigned char*) [self.baseURI.value UTF8String]);
     //    const unsigned char *buffer;
     //    size_t buffer_len;
         

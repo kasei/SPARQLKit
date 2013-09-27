@@ -10,7 +10,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
 - (GTWTurtleParser*) initWithLexer: (GTWTurtleLexer*) lex base: (GTWIRI*) base {
     if (self = [self init]) {
         self.lexer  = lex;
-        self.base   = base;
+        self.baseIRI   = base;
     }
     return self;
 }
@@ -42,8 +42,8 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
     return YES;
 }
 
-- (GTWTurtleToken*) nextNonCommentToken {
-    GTWTurtleToken* t   = [self.lexer getToken];
+- (GTWSPARQLToken*) nextNonCommentToken {
+    GTWSPARQLToken* t   = [self.lexer getToken];
     while (t.type == COMMENT) {
         t   = [self.lexer getToken];
     }
@@ -52,7 +52,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
 
 - (id<GTWTriple>) nextObject {
     while (YES) {
-        GTWTurtleToken* t   = [self nextNonCommentToken];
+        GTWSPARQLToken* t   = [self nextNonCommentToken];
         if (t == nil) {
 //            NSLog(@"no remaining tokens. finished.");
             return nil;
@@ -90,7 +90,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
                 
                 
                 if ([term isMemberOfClass:[GTWLiteral class]]) {
-                    GTWTurtleToken* t   = [self.lexer peekToken];
+                    GTWSPARQLToken* t   = [self.lexer peekToken];
 //                    NSLog(@"check for LANG or DT: %@", t);
                     if (t.type == LANG) {
                         [self nextNonCommentToken];
@@ -99,7 +99,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
                         term            = l;
                     } else if (t.type == HATHAT) {
                         [self nextNonCommentToken];
-                        GTWTurtleToken* t   = [self nextNonCommentToken];
+                        GTWSPARQLToken* t   = [self nextNonCommentToken];
                         id<GTWTerm> dt   = [self tokenAsTerm:t];
                         GTWLiteral* l   = [[GTWLiteral alloc] initWithString:[term value] datatype:dt.value];
                         term            = l;
@@ -118,15 +118,15 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
             }
         } else if (t.type == KEYWORD) {
             if ([t.value isEqualToString:@"prefix"]) {
-                GTWTurtleToken* name    = [self nextNonCommentToken];
-                GTWTurtleToken* iri     = [self nextNonCommentToken];
-                GTWTurtleToken* dot     = [self nextNonCommentToken];
+                GTWSPARQLToken* name    = [self nextNonCommentToken];
+                GTWSPARQLToken* iri     = [self nextNonCommentToken];
+                GTWSPARQLToken* dot     = [self nextNonCommentToken];
                 [self.namespaces setValue:iri.value forKey:name.value];
 //                NSLog(@"PREFIX %@: %@\n", name.value, iri.value);
             } else if ([t.value isEqualToString:@"base"]) {
-                GTWTurtleToken* iri     = [self nextNonCommentToken];
-                self.base   = [self tokenAsTerm:iri];
-                GTWTurtleToken* dot     = [self nextNonCommentToken];
+                GTWSPARQLToken* iri     = [self nextNonCommentToken];
+                self.baseIRI   = [self tokenAsTerm:iri];
+                GTWSPARQLToken* dot     = [self nextNonCommentToken];
 //                NSLog(@"BASE %@\n", iri.value);
             } else {
                 NSLog(@"unexpected keyword: %@", t);
@@ -138,9 +138,9 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
     }
 }
 
-- (id<GTWTerm>) tokenAsTerm: (GTWTurtleToken*) t {
+- (id<GTWTerm>) tokenAsTerm: (GTWSPARQLToken*) t {
     if (t.type == IRI) {
-        id<GTWTerm> iri     = [[GTWIRI alloc] initWithIRI:t.value base:self.base];
+        id<GTWTerm> iri     = [[GTWIRI alloc] initWithIRI:t.value base:self.baseIRI];
         if (!iri) {
             iri = (id<GTWTerm>) [NSNull null];
         }
@@ -156,11 +156,11 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
             NSString* base  = (self.namespaces)[ns];
 //            NSLog(@"constructing IRI from prefixname <%@> <%@> with base: %@", base, local, self.base);
             NSString* iri   = [NSString stringWithFormat:@"%@%@", base, local];
-            return [[GTWIRI alloc] initWithIRI:iri base:self.base];
+            return [[GTWIRI alloc] initWithIRI:iri base:self.baseIRI];
         } else {
             NSString* ns    = t.args[0];
             NSString* base  = (self.namespaces)[ns];
-            return [[GTWIRI alloc] initWithIRI:base base:self.base];
+            return [[GTWIRI alloc] initWithIRI:base base:self.baseIRI];
         }
     } else if (t.type == BNODE) {
         return self.bnodeIDGenerator(t.value);
