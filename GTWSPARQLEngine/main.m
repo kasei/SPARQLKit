@@ -214,8 +214,8 @@ int parseQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
     
     GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
-//    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-//    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+    //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+    //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
     GTWTree* algebra            = [parser parseSPARQL:query withBaseURI:base];
@@ -226,6 +226,23 @@ int parseQuery(NSString* query, NSString* base) {
     NSLog(@"Query plan:\n%@\n\n", plan);
     
     [plan computeProjectVariables];
+    return 0;
+}
+
+int lexQuery(NSString* query, NSString* base) {
+    NSLog(@"Query string:\n%@\n\n", query);
+    
+    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
+    //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+    //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+    GTWSPARQLLexer* l           = [[GTWSPARQLLexer alloc] initWithString:query];
+    
+    NSLog(@"Query tokens:\n-----------------------\n");
+    GTWSPARQLToken* t;
+    while ((t = [l getToken])) {
+        NSLog(@"%@\n", t);
+    }
     return 0;
 }
 
@@ -297,6 +314,11 @@ int main(int argc, const char * argv[]) {
         NSString* query     = fileContents(filename);
         NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : @"http://query-base.example.com/";
         parseQuery(query, base);
+    } else if (!strncmp(argv[1], "lex", 3)) {
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
+        NSString* query     = fileContents(filename);
+        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : @"http://query-base.example.com/";
+        lexQuery(query, base);
     } else if (!strcmp(argv[1], "queryfile")) {
         NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[2]]);
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];

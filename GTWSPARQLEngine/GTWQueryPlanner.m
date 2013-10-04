@@ -74,8 +74,22 @@
             }
             return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
         } else {
-            NSLog(@"JOIN must be 2-ary");
-            return nil;
+            id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
+            id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
+            if (!lhs || !rhs) {
+                NSLog(@"Failed to plan both sides of JOIN");
+                return nil;
+            }
+            id<GTWTree, GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+            for (NSUInteger i = 2; i < [algebra.arguments count]; i++) {
+                id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[i] usingDataset:dataset];
+                if (!rhs) {
+                    NSLog(@"Failed to plan JOIN branch");
+                    return nil;
+                }
+                plan    = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[plan, rhs]];
+            }
+            return plan;
         }
     } else if (algebra.type == kAlgebraMinus) {
         NSLog(@"MINUS must be 2-ary");

@@ -60,14 +60,23 @@ extern GTWTreeType __strong const kTreeSet;					// GTWTree* arguments[size]
 extern GTWTreeType __strong const kTreeList;					// GTWTree* arguments[size]
 extern GTWTreeType __strong const kTreeDictionary;			// GTWTree* arguments[size] of CSTRING nodes
 extern GTWTreeType __strong const kTreeAggregate;				// same as STRING
-extern GTWTreeType __strong const kTreeTriple;				// id<Triple> ptr
-extern GTWTreeType __strong const kTreeQuad;					// id<Quad> ptr
+extern GTWTreeType __strong const kTreeTriple;				// id<GTWTriple> ptr
+extern GTWTreeType __strong const kTreeQuad;					// id<GTWQuad> ptr
 extern GTWTreeType __strong const kTreeExpression;			// expr* ptr
 extern GTWTreeType __strong const kTreeNode;					// id<GTWTerm> ptr
 extern GTWTreeType __strong const kTreePath;					// @@ ?
 extern GTWTreeType __strong const kTreeOrderCondition;		// @@ ?
 extern GTWTreeType __strong const kTreeSolutionSequence;		// solutionset* ptr
 extern GTWTreeType __strong const kTreeString;				// char* ptr
+// Property Path types
+extern GTWTreeType __strong const kPathIRI;
+extern GTWTreeType __strong const kPathInverse;
+extern GTWTreeType __strong const kPathNegate;
+extern GTWTreeType __strong const kPathSequence;
+extern GTWTreeType __strong const kPathOr;
+extern GTWTreeType __strong const kPathZeroOrMore;
+extern GTWTreeType __strong const kPathOneOrMore;
+extern GTWTreeType __strong const kPathZeroOrOne;
 // Expression types
 extern GTWTreeType __strong const kExprAnd;
 extern GTWTreeType __strong const kExprOr;
@@ -80,6 +89,8 @@ extern GTWTreeType __strong const kExprGe;
 extern GTWTreeType __strong const kExprUMinus;
 extern GTWTreeType __strong const kExprPlus;
 extern GTWTreeType __strong const kExprMinus;
+extern GTWTreeType __strong const kExprMul;
+extern GTWTreeType __strong const kExprDiv;
 extern GTWTreeType __strong const kExprBang;
 extern GTWTreeType __strong const kExprLiteral;
 extern GTWTreeType __strong const kExprFunction;
@@ -153,6 +164,9 @@ extern GTWTreeType __strong const kExprStrAfter;
 extern GTWTreeType __strong const kExprReplace;
 extern GTWTreeType __strong const kExprUUID;
 extern GTWTreeType __strong const kExprStrUUID;
+extern GTWTreeType __strong const kExprExists;
+extern GTWTreeType __strong const kExprNotExists;
+
     //
 extern GTWTreeType __strong const kTreeResult;
 

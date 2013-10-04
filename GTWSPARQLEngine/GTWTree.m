@@ -5,6 +5,7 @@
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
 
+// Plans
 GTWTreeType __strong const kPlanAsk                     = @"PlanAsk";
 GTWTreeType __strong const kPlanEmpty					= @"PlanEmpty";
 GTWTreeType __strong const kPlanScan					= @"PlanScan";
@@ -25,6 +26,8 @@ GTWTreeType __strong const kPlanResultSet				= @"PlanResultSet";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
 GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
 GTWTreeType __strong const kPlanDescribe				= @"PlanDescribe";
+
+// Algebras
 GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";
 GTWTreeType __strong const kAlgebraBGP					= @"AlgebraBGP";
 GTWTreeType __strong const kAlgebraJoin					= @"AlgebraJoin";
@@ -49,6 +52,8 @@ GTWTreeType __strong const kAlgebraReduced				= @"AlgebraReduced";
 GTWTreeType __strong const kAlgebraSlice				= @"AlgebraSlice";
 GTWTreeType __strong const kAlgebraToMultiset			= @"AlgebraToMultiset";
 GTWTreeType __strong const kAlgebraDescribe				= @"AlgebraDescribe";
+
+// Leaving the tree value space
 GTWTreeType __strong const kTreeSet						= @"TreeSet";
 GTWTreeType __strong const kTreeList					= @"TreeList";
 GTWTreeType __strong const kTreeDictionary				= @"TreeDictionary";
@@ -61,6 +66,18 @@ GTWTreeType __strong const kTreePath					= @"TreePath";
 GTWTreeType __strong const kTreeOrderCondition			= @"TreeOrderCondition";
 GTWTreeType __strong const kTreeSolutionSequence		= @"TreeSolutionSequence";
 GTWTreeType __strong const kTreeString					= @"TreeString";
+
+// Property Path types
+GTWTreeType __strong const kPathIRI                     = @"link";
+GTWTreeType __strong const kPathInverse                 = @"inv";
+GTWTreeType __strong const kPathNegate                  = @"!";
+GTWTreeType __strong const kPathSequence                = @"seq";
+GTWTreeType __strong const kPathOr                      = @"alt";
+GTWTreeType __strong const kPathZeroOrMore              = @"*";
+GTWTreeType __strong const kPathOneOrMore               = @"+";
+GTWTreeType __strong const kPathZeroOrOne               = @"?";
+
+// Expressions
 GTWTreeType __strong const kExprAnd						= @"ExprAnd";
 GTWTreeType __strong const kExprOr						= @"ExprOr";
 GTWTreeType __strong const kExprEq						= @"ExprEq";
@@ -72,6 +89,8 @@ GTWTreeType __strong const kExprGe						= @"ExprGe";
 GTWTreeType __strong const kExprUMinus					= @"ExprUMinus";
 GTWTreeType __strong const kExprPlus					= @"ExprPlus";
 GTWTreeType __strong const kExprMinus					= @"ExprMinus";
+GTWTreeType __strong const kExprMul                     = @"ExprMul";
+GTWTreeType __strong const kExprDiv                     = @"ExprDiv";
 GTWTreeType __strong const kExprBang					= @"ExprBang";
 GTWTreeType __strong const kExprLiteral					= @"ExprLiteral";
 GTWTreeType __strong const kExprFunction				= @"ExprFunction";
@@ -140,6 +159,9 @@ GTWTreeType __strong const kExprStrAfter				= @"ExprStrAfter";
 GTWTreeType __strong const kExprReplace					= @"ExprReplace";
 GTWTreeType __strong const kExprUUID					= @"ExprUUID";
 GTWTreeType __strong const kExprStrUUID					= @"ExprStrUUID";
+GTWTreeType __strong const kExprExists                  = @"ExprExists";
+GTWTreeType __strong const kExprNotExists               = @"ExprNotExists";
+
 GTWTreeType __strong const kTreeResult					= @"TreeResult";
 
 //static const char* gtw_tree_type_name ( GTWTreeType t ) {
@@ -735,15 +757,15 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
             [s appendFormat:@"[%@]", node.value];
         }
         int i;
-        [s appendString:@"("];
         NSUInteger count    = [node.arguments count];
         if (count > 0) {
+            [s appendString:@"("];
             [s appendFormat:@"%@", [node.arguments[0] conciseDescription]];
             for (i = 1; i < count; i++) {
                 [s appendFormat:@", %@", [node.arguments[i] conciseDescription]];
             }
+            [s appendString:@")"];
         }
-        [s appendString:@")"];
     }
     return s;
 }

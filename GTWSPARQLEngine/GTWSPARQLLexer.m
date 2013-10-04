@@ -22,8 +22,8 @@ static NSDictionary* SPARQLCharTokens() {
                               @"{": @(LBRACE),
                               @"[": @(LBRACKET),
                               @"(": @(LPAREN),
-                              //		@"-": [NSNumber numberWithLong:MINUS],
-                              //		@"+": [NSNumber numberWithLong:PLUS],
+                              @"-": [NSNumber numberWithLong:MINUS],
+                              @"+": [NSNumber numberWithLong:PLUS],
                               @"}": @(RBRACE),
                               @"]": @(RBRACKET),
                               @")": @(RPAREN),
@@ -320,6 +320,10 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSString* pname	= [self _readLength:range.length];
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
         //# 		warn "full prefixedname: '$pname'";
+        if ([values count] != 2) {
+            [self throwError:[NSString stringWithFormat:@"Bad PrefixName: %@", pname]];
+            return nil;
+        }
 		return [self newPName: values];
 	} else if (range2.location == 0) {
 		NSString* pname	= [self _readLength:range2.length];

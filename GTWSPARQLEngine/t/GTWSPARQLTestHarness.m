@@ -221,6 +221,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 //        NSLog(@"%lu total quads\n", count);
     }
 }
+
 - (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWMutableQuadStore>) testStore defaultGraph: defaultGraph {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     //    GTWIRI* mfresult = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
@@ -239,7 +240,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:query.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-//        NSLog(@"query file: %@", query.value);
+        NSLog(@"query file: %@", query.value);
 
         
         
@@ -270,14 +271,14 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return nil;
 }
 
-- (id<GTWQueryPlan>) queryPlanForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
+- (id<GTWTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     id<GTWTerm> action  = [model anyObjectForSubject:test predicate:mfaction graph:nil];
     if (action) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:action.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-//        NSLog(@"query file: %@", action.value);
+        NSLog(@"query file: %@", action.value);
 
         
         
@@ -293,19 +294,18 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             return nil;
         }
         
-        GTWIRI* data    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
-//        NSLog(@"query:\n%@", algebra);
-        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
-        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[data.value]];
-        id<GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
-        if (!plan) {
-            NSLog(@"failed to plan query: %@", action.value);
-            return nil;
-        }
+        return algebra;
         
-        NSLog(@"%@", sparql);
-        NSLog(@"%@", plan);
-        return plan;
+//        GTWIRI* data    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
+//        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+//        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[data.value]];
+//        id<GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
+//        if (!plan) {
+//            NSLog(@"failed to plan query: %@", action.value);
+//            return nil;
+//        }
+//        
+//        return plan;
     } else {
         NSLog(@"No action for test %@", test);
         return nil;
@@ -317,17 +317,20 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 //    NSLog(@"--> %@", test);
     self.testsCount++;
     self.syntaxTests++;
-    id<GTWQueryPlan> plan   = [self queryPlanForSyntaxTest: test withModel: model];
-    BOOL ok = (BOOL) plan;
+    id<GTWTree> algebra   = [self queryAlgebraForSyntaxTest: test withModel: model];
+    BOOL ok = (BOOL) algebra;
     if (!expect)
         ok  = !ok;
     
     if (ok) {
+        NSLog(@"%@", algebra);
         NSLog(@"ok %lu # %@\n", self.testsCount, test);
         self.testsPassing++;
         self.passingSyntaxTests++;
         return YES;
     } else {
+//        NSLog(@"%@", sparql);
+        NSLog(@"%@", algebra);
         [self.failingTests addObject:test];
         NSLog(@"not ok %lu # %@\n", self.testsCount, test);
         self.testsFailing++;
@@ -345,7 +348,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
-        NSLog(@"eval query plan: %@", plan);
+//        NSLog(@"eval query plan: %@", plan);
         [plan computeProjectVariables];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
         NSArray* got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
