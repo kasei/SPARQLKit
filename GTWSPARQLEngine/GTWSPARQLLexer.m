@@ -321,8 +321,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
         //# 		warn "full prefixedname: '$pname'";
         if ([values count] != 2) {
-            [self throwError:[NSString stringWithFormat:@"Bad PrefixName: %@", pname]];
-            return nil;
+            NSMutableArray* mvalues = [NSMutableArray arrayWithArray:values];
+            [mvalues removeObjectAtIndex:0];
+            NSString* first = values[0];
+            NSString* rest  = [mvalues componentsJoinedByString:@":"];
+            values  = @[ first, rest ];
         }
 		return [self newPName: values];
 	} else if (range2.location == 0) {
@@ -935,9 +938,9 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		self.startCharacter	= self.character;
 		
 		NSRange bnode_range		= [self.buffer rangeOfString:@"[(][ \r\n\t]*[)]" options:NSRegularExpressionSearch];
-		NSRange double_range	= [self.buffer rangeOfString:@"[-+]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
-        NSRange decimal_range   = [self.buffer rangeOfString:@"[-+]?[0-9]*[.][0-9]+" options:NSRegularExpressionSearch];
-		NSRange integer_range	= [self.buffer rangeOfString:@"[-+]?[0-9]+" options:NSRegularExpressionSearch];
+		NSRange double_range	= [self.buffer rangeOfString:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
+        NSRange decimal_range   = [self.buffer rangeOfString:@"[0-9]*[.][0-9]+" options:NSRegularExpressionSearch];
+		NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
 //		NSRange anon_range		= [self.buffer rangeOfString:@"\\[\\]" options:NSRegularExpressionSearch];
 		
 		// WS

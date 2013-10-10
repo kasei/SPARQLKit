@@ -40,7 +40,10 @@
             NSLog(@"GRAPH must be 1-ary");
             return nil;
         }
-        return [[GTWQueryPlan alloc] initWithType:kPlanGraph value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset]]];
+        id<GTWTree> graphtree   = algebra.value;
+        id<GTWTerm> graph       = graphtree.value;
+        GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanGraph value: algebra.value arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset]]];
     } else if (algebra.type == kAlgebraUnion) {
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
