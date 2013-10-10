@@ -126,6 +126,31 @@
     return [results objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateGraphPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    id<GTWTree> graph   = plan.value;
+    id<GTWTerm> term    = graph.value;
+    id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
+    NSMutableArray* graphs  = [NSMutableArray array];
+    [model enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
+        [graphs addObject: g];
+    } error:nil];
+    if ([graphs count]) {
+        NSMutableArray* results = [NSMutableArray array];
+        for (id<GTWTerm> g in graphs) {
+            GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
+                                  [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
+                                  [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]]
+                              ]];
+            id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend value:list arguments:@[subplan]];
+            NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
+            [results addObjectsFromArray:[rhs allObjects]];
+        }
+        return [results objectEnumerator];
+    } else {
+        return [@[] objectEnumerator];
+    }
+}
+
 - (NSEnumerator*) evaluateFilter:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     GTWTree* expr       = plan.value;
     id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
@@ -221,6 +246,8 @@
         return [self evaluateExtend:plan withModel:model];
     } else if (type == kPlanSlice) {
         return [self evaluateSlice:plan withModel:model];
+    } else if (type == kPlanGraph) {
+        return [self evaluateGraphPlan:plan withModel:model];
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
     } else {

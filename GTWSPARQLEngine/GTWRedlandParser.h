@@ -11,6 +11,6 @@
 @property (retain, readwrite) GTWIRI* baseURI;
 //@property (copy) void(^handler)(id<Triple>t);
 
-- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format WithRaptorWorld: (raptor_world*) raptor_world_ptr;
+- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr;
 
 @end

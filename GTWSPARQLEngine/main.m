@@ -163,7 +163,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 int run_redland_parser_example (NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data            = [fh readDataToEndOfFile];
-    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" WithRaptorWorld:raptor_world_ptr];
+    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" base: nil WithRaptorWorld:raptor_world_ptr];
     {
         __block NSUInteger count    = 0;
         NSError* error  = nil;
@@ -253,7 +253,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
     {
         NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
         NSData* data            = [fh readDataToEndOfFile];
-        id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
+        id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
             [store addQuad:q error:nil];

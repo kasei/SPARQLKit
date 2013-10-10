@@ -45,9 +45,12 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
 
 @implementation GTWRedlandParser
 
-- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format WithRaptorWorld: (raptor_world*) raptor_world_ptr {
+- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr {
     if (self = [super init]) {
-        self.baseURI            = [[GTWIRI alloc] initWithValue:@"http://base.example.com/"];
+        if (!base) {
+            base    = [[GTWIRI alloc] initWithValue:@"http://base.example.com/"];
+        }
+        self.baseURI            = base;
         self.data               = data;
         self.raptor_world_ptr   = raptor_world_ptr;
         self.parser             = raptor_new_parser(raptor_world_ptr, [format UTF8String]);

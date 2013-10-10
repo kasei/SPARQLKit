@@ -70,8 +70,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     
     NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
     NSData* data                = [fh readDataToEndOfFile];
-    id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
-    parser.baseURI              = base;
+    id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
     [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
         [store addQuad:q error:&error];
@@ -88,8 +87,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     for (id<GTWIRI> file in manifests) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
         NSData* data                = [fh readDataToEndOfFile];
-        id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" WithRaptorWorld:raptor_world_ptr];
-        parser.baseURI              = file;
+        id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
         __block NSUInteger count    = 0;
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
@@ -169,6 +167,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 return YES;
             }
         } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"]) {
+//            return YES; // XXXXXXXXXXXXX
             if (self.runSyntaxTests) {
                 return [self runQuerySyntaxTest: test withModel: model expectSuccess: NO];
             } else {
@@ -191,19 +190,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return YES;
 }
 
-- (void) loadFile:(NSString*) filename intoStore: (id<GTWMutableQuadStore>) store withGraph: (id<GTWIRI>) graph {
+- (void) loadFile:(NSString*) filename intoStore: (id<GTWMutableQuadStore>) store withGraph: (id<GTWIRI>) graph base: (id<GTWIRI>) base {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     if (!fh) {
         NSLog(@"no file handle for string: %@", filename);
     }
     id<GTWRDFParser> parser;
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
-        GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
+//        GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
         GTWTurtleLexer* lexer   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
         parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
     } else {
         NSData* data            = [fh readDataToEndOfFile];
-        parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" WithRaptorWorld:raptor_world_ptr];
+        parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
     }
     
 //    NSLog(@"parsing data with %@", parser);
@@ -222,7 +221,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     }
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWMutableQuadStore>) testStore defaultGraph: defaultGraph {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: defaultGraph {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     //    GTWIRI* mfresult = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
     
@@ -231,12 +230,26 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         id<GTWTerm> action  = actions[0];
         GTWIRI* qtquery = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#query"];
         GTWIRI* qtdata  = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#data"];
+        GTWIRI* qtgraphdata = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#graphData"];
         
         id<GTWTerm> query   = [model anyObjectForSubject:action predicate:qtquery graph:nil];
         NSArray* data       = [model objectsForSubject:action predicate:qtdata graph:nil];
-        for (id<GTWTerm> datafile in data) {
-            [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:defaultGraph];
+        NSArray* graphData  = [model objectsForSubject:action predicate:qtgraphdata graph:nil];
+        for (id<GTWIRI> datafile in data) {
+            [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:defaultGraph base: datafile];
         }
+        for (id<GTWIRI> datafile in graphData) {
+            [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:datafile base: datafile];
+        }
+        
+        if (NO) {
+            NSLog(@"test model ------------------->\n");
+            [testStore enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
+                NSLog(@"-> %@", q);
+            } error:nil];
+            NSLog(@"<------------------- test model\n");
+        }
+        
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:query.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
@@ -246,6 +259,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
         
+        NSLog(@"SPARQL:\n%@", sparql);
         GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:query.value];
         if (!algebra) {
             NSLog(@"failed to parse query: %@", query.value);
@@ -254,7 +268,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
 //        GTWIRI* base    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
         
-//        NSLog(@"query:\n%@", algebra);
+        NSLog(@"query:\n%@", algebra);
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
@@ -348,7 +362,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
-//        NSLog(@"eval query plan: %@", plan);
         [plan computeProjectVariables];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
         NSArray* got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
@@ -370,6 +383,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSLog(@"ok %lu # %@\n", self.testsCount, test);
             return YES;
         } else {
+            NSLog(@"eval query plan: %@", plan);
             [self.failingTests addObject:test];
             NSLog(@"not ok %lu # %@\n", self.testsCount, test);
 
