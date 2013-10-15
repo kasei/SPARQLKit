@@ -23,6 +23,7 @@
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
 #import "GTWSPARQLParser.h"
+#import "GTWNTriplesSerializer.h"
 
 rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
@@ -113,6 +114,7 @@ int run_memory_quad_store_example(NSString* filename, NSString* base) {
     //    [store addIndexType: @"term" value:@[@"subject", @"predicate"] synchronous:YES error: nil];
     //    [store addIndexType: @"term" value:@[@"object"] synchronous:YES error: nil];
     //    [store addIndexType: @"term" value:@[@"graph", @"subject"] synchronous:YES error: nil];
+    
     NSLog(@"%@", store);
     //    NSLog(@"best index for S___: %@\n", [store bestIndexForMatchingSubject:greg predicate:nil object:nil graph:nil]);
     //    NSLog(@"best index for ___G: %@\n", [store bestIndexForMatchingSubject:nil predicate:nil object:nil graph:greg]);
@@ -136,24 +138,34 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
         while ((t = [p nextObject])) {
             [store addTriple:t error:nil];
         }
-        //        NSLog(@"%lu total triples", count);
+//        NSLog(@"%lu total triples", count);
     } else {
         NSLog(@"Could not construct parser");
     }
     
-    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
-//    GTWIRI* type  =[[GTWIRI alloc] initWithIRI:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
     
-    {
-        __block NSUInteger count    = 0;
-        NSLog(@"Quads:\n");
-        [store enumerateTriplesMatchingSubject:greg predicate:rdftype object:nil usingBlock:^(id<GTWTriple> t){
-            count++;
-            NSLog(@"-> %@\n", t);
-        } error:nil];
-        NSLog(@"%lu total quads\n", count);
-    }
+    GTWIRI* g = [[GTWIRI alloc] initWithIRI:@"http://example.org/"];
+    GTWTripleModel* model = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:g];
+    id<GTWTriplesSerializer> s    = [[GTWNTriplesSerializer alloc] init];
+//    NSLog(@"model: %@\n--------------\n", model);
+    NSEnumerator* e = [model quadsMatchingSubject:nil predicate:nil object:nil graph:nil error:nil];
+    NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+    [s serializeTriples:e toHandle:out];
+    
+    
+//    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+//    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
+////    GTWIRI* type  =[[GTWIRI alloc] initWithIRI:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
+//    
+//    {
+//        __block NSUInteger count    = 0;
+//        NSLog(@"Quads:\n");
+//        [store enumerateTriplesMatchingSubject:greg predicate:rdftype object:nil usingBlock:^(id<GTWTriple> t){
+//            count++;
+//            NSLog(@"-> %@\n", t);
+//        } error:nil];
+//        NSLog(@"%lu total quads\n", count);
+//    }
 
     librdf_free_world(librdf_world_ptr);
 //    NSLog(@"%@", store);
@@ -329,8 +341,8 @@ int main(int argc, const char * argv[]) {
             fprintf(stdout, "- %s\n", [[datasources[s] description] UTF8String]);
         }
     } else if (!strcmp(argv[1], "test")) {
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
-        NSString* base      = [NSString stringWithFormat:@"%s", argv[3]];
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
+        NSString* base      = [NSString stringWithFormat:@"%s", argv[4]];
         if (!strcmp(argv[2], "parser")) {
             run_redland_parser_example(filename, base);
         } else if (!strcmp(argv[2], "endpoint")) {
