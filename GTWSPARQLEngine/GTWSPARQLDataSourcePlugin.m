@@ -19,6 +19,8 @@ NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
         if ([plugInClass instancesRespondToSelector: @selector(interfaceVersion)] && [plugInClass instancesRespondToSelector: @selector(initWithDictionary:)]) {
 //            NSLog(@"is valid: %@", plugInClass);
             return YES;
+        } else {
+            NSLog(@"%@ is not a valid plugin class", plugInClass);
         }
     }
     return NO;
