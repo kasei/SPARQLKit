@@ -29,6 +29,8 @@ rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
 raptor_world* raptor_world_ptr;
 
+static NSString* kDefaultBase    = @"http://base.example.com/";
+
 NSString* fileContents (NSString* filename) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data        = [fh readDataToEndOfFile];
@@ -312,6 +314,7 @@ int main(int argc, const char * argv[]) {
         fprintf(stderr, "    %s test endpoint\n", argv[0]);
         fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
         fprintf(stderr, "    %s testsuite\n", argv[0]);
+        fprintf(stderr, "    %s dump SOURCE\n", argv[0]);
         fprintf(stderr, "    %s sources\n", argv[0]);
         fprintf(stderr, "\n");
         exit(1);
@@ -320,21 +323,44 @@ int main(int argc, const char * argv[]) {
     if (!strcmp(argv[1], "query")) {
         NSString* query     = [NSString stringWithFormat:@"%s", argv[2]];
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
-        runQuery(query, filename, @"http://query-base.example.com/");
+        runQuery(query, filename, kDefaultBase);
     } else if (!strcmp(argv[1], "qparse")) {
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
         NSString* query     = fileContents(filename);
-        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : @"http://query-base.example.com/";
+        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : kDefaultBase;
         parseQuery(query, base);
     } else if (!strncmp(argv[1], "lex", 3)) {
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
         NSString* query     = fileContents(filename);
-        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : @"http://query-base.example.com/";
+        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : kDefaultBase;
         lexQuery(query, base);
     } else if (!strcmp(argv[1], "queryfile")) {
         NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[2]]);
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
-        runQuery(query, filename, @"http://query-base.example.com/");
+        runQuery(query, filename, kDefaultBase);
+    } else if (!strcmp(argv[1], "dump")) {
+        NSString* sourceName     = [NSString stringWithFormat:@"%s", argv[2]];
+        NSDictionary* dict       = @{};
+        id<GTWTripleStore> store        = [[[datasources objectForKey:sourceName] alloc] initWithDictionary:dict];
+        if (!store) {
+            NSLog(@"Failed to create triple store from source '%@'", sourceName);
+            return 1;
+        }
+        GTWIRI* graph = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+        GTWTripleModel* model           = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
+        
+        GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
+        GTWVariable* p  = [[GTWVariable alloc] initWithName:@"p"];
+        GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
+        NSError* error  = nil;
+        NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:graph error:&error];
+        if (error) {
+            NSLog(@"*** %@", error);
+            return 1;
+        }
+        id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
+        NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+        [ser serializeTriples:e toHandle:out];
     } else if (!strcmp(argv[1], "sources")) {
         fprintf(stdout, "Available data sources:\n");
         for (id s in datasources) {
@@ -348,16 +374,16 @@ int main(int argc, const char * argv[]) {
         } else if (!strcmp(argv[2], "endpoint")) {
             NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
             id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
+            GTWIRI* graph = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+            GTWTripleModel* model           = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
             GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
             GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
             GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
             NSError* error  = nil;
-            [store enumerateTriplesMatchingSubject:s predicate:rdftype object:o usingBlock:^(id<GTWTriple> t) {
-                ;
-            } error:&error];
-            if (error) {
-                NSLog(@"error: %@", error);
-            }
+            NSEnumerator* e = [model quadsMatchingSubject:s predicate:rdftype object:o graph:graph error:&error];
+            id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
+            NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+            [ser serializeTriples:e toHandle:out];
         } else if (!strcmp(argv[2], "triple")) {
             run_redland_triple_store_example(filename, base);
         } else {
