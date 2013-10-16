@@ -26,7 +26,6 @@ extern GTWTreeType __strong const kPlanOrder;					// Order( P, cond )
 extern GTWTreeType __strong const kPlanDistinct;				// Distinct( P )
 extern GTWTreeType __strong const kPlanGraph;               // Graph( G, P )
 extern GTWTreeType __strong const kPlanSlice;					// Slice( P, start, length )
-extern GTWTreeType __strong const kPlanResultSet;				// ResultSet( length, results )
 extern GTWTreeType __strong const kPlanJoinIdentity;			// JoinIdentity()
 extern GTWTreeType __strong const kPlanFedStub;				// FedStub( P )
 extern GTWTreeType __strong const kPlanDescribe;
@@ -55,6 +54,8 @@ extern GTWTreeType __strong const kAlgebraReduced;			// Reduced( M )
 extern GTWTreeType __strong const kAlgebraSlice;				// Slice( M, start, length )
 extern GTWTreeType __strong const kAlgebraToMultiset;			// ToMultiSet( M )
 extern GTWTreeType __strong const kAlgebraDescribe;			//
+extern GTWTreeType __strong const kAlgebraConstruct;
+
 // these are the algebra types that "leave" the algebra/plan value space
 extern GTWTreeType __strong const kTreeSet;					// GTWTree* arguments[size]
 extern GTWTreeType __strong const kTreeList;					// GTWTree* arguments[size]
@@ -169,6 +170,7 @@ extern GTWTreeType __strong const kExprNotExists;
 
     //
 extern GTWTreeType __strong const kTreeResult;
+extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, results )
 
 // ---------------------------------------------------------
 
@@ -191,6 +193,7 @@ extern GTWTreeType __strong const kTreeResult;
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
 - (void) computeProjectVariables;
+- (NSSet*) nonAggregatedVariables;
 
 - (NSString*) conciseDescription;
 - (NSString*) longDescription;

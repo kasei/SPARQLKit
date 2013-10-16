@@ -44,6 +44,7 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
+- (NSSet*) nonAggregatedVariables;
 - (NSString*) conciseDescription;
 - (NSString*) longDescription;
 @end

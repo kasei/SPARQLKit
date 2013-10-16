@@ -14,6 +14,7 @@
 //@property NSUInteger bnodeID;
 @property (nonatomic, copy) IDGenerator bnodeIDGenerator;
 @property NSError* error;
+@property BOOL seenAggregate;
 
 - (GTWSPARQLParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
 

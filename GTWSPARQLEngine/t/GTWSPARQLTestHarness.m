@@ -11,6 +11,7 @@
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWDataset.h>
 #import <GTWSWBase/GTWGraphIsomorphism.h>
+#import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
@@ -21,7 +22,6 @@
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "GTWTurtleParser.h"
-#import "GTWSPARQLResultsXMLParser.h"
 #import "GTWSPARQLParser.h"
 
 extern raptor_world* raptor_world_ptr;
@@ -332,19 +332,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     self.testsCount++;
     self.syntaxTests++;
     id<GTWTree> algebra   = [self queryAlgebraForSyntaxTest: test withModel: model];
-    BOOL ok = (BOOL) algebra;
+    BOOL ok = (algebra == nil) ? NO : YES;
     if (!expect)
         ok  = !ok;
     
     if (ok) {
-        NSLog(@"%@", algebra);
+//        NSLog(@"%@", algebra);
         NSLog(@"ok %lu # %@\n", self.testsCount, test);
         self.testsPassing++;
         self.passingSyntaxTests++;
         return YES;
     } else {
 //        NSLog(@"%@", sparql);
-        NSLog(@"%@", algebra);
+        NSLog(@"algebra: %@", algebra);
         [self.failingTests addObject:test];
         NSLog(@"not ok %lu # %@\n", self.testsCount, test);
         self.testsFailing++;

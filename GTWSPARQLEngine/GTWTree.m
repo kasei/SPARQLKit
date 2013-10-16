@@ -22,7 +22,6 @@ GTWTreeType __strong const kPlanOrder					= @"PlanOrder";
 GTWTreeType __strong const kPlanDistinct				= @"PlanDistinct";
 GTWTreeType __strong const kPlanGraph                   = @"PlanGraph";
 GTWTreeType __strong const kPlanSlice					= @"PlanSlice";
-GTWTreeType __strong const kPlanResultSet				= @"PlanResultSet";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
 GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
 GTWTreeType __strong const kPlanDescribe				= @"PlanDescribe";
@@ -52,6 +51,7 @@ GTWTreeType __strong const kAlgebraReduced				= @"AlgebraReduced";
 GTWTreeType __strong const kAlgebraSlice				= @"AlgebraSlice";
 GTWTreeType __strong const kAlgebraToMultiset			= @"AlgebraToMultiset";
 GTWTreeType __strong const kAlgebraDescribe				= @"AlgebraDescribe";
+GTWTreeType __strong const kAlgebraConstruct            = @"AlgebraConstruct";
 
 // Leaving the tree value space
 GTWTreeType __strong const kTreeSet						= @"TreeSet";
@@ -163,6 +163,7 @@ GTWTreeType __strong const kExprExists                  = @"ExprExists";
 GTWTreeType __strong const kExprNotExists               = @"ExprNotExists";
 
 GTWTreeType __strong const kTreeResult					= @"TreeResult";
+GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 //static const char* gtw_tree_type_name ( GTWTreeType t ) {
 //	switch (t) {
@@ -737,6 +738,22 @@ GTWTreeType __strong const kTreeResult					= @"TreeResult";
         }
         return nil;
     }];
+}
+
+- (NSSet*) nonAggregatedVariables {
+    if (self.type == kTreeNode) {
+        return [NSSet setWithObject:self.value];
+    } else if (self.type == kAlgebraExtend) {
+        return [self.arguments[0] nonAggregatedVariables];
+    } else if (self.type == kExprCount || self.type == kExprSum || self.type == kExprMin || self.type == kExprMax || self.type == kExprAvg || self.type == kExprSample || self.type == kExprGroupConcat) {
+        return [NSSet set];
+    } else {
+        NSMutableSet* set   = [NSMutableSet set];
+        for (id<GTWTree> n in self.arguments) {
+            [set addObjectsFromArray:[[n nonAggregatedVariables] allObjects]];
+        }
+        return set;
+    }
 }
 
 - (NSString*) conciseDescription {
