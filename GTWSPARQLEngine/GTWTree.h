@@ -55,6 +55,7 @@ extern GTWTreeType __strong const kAlgebraSlice;				// Slice( M, start, length )
 extern GTWTreeType __strong const kAlgebraToMultiset;			// ToMultiSet( M )
 extern GTWTreeType __strong const kAlgebraDescribe;			//
 extern GTWTreeType __strong const kAlgebraConstruct;
+extern GTWTreeType __strong const kAlgebraDataset;
 
 // these are the algebra types that "leave" the algebra/plan value space
 extern GTWTreeType __strong const kTreeSet;					// GTWTree* arguments[size]

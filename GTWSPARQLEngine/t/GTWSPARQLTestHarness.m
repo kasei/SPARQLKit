@@ -292,7 +292,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:action.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-        NSLog(@"query file: %@", action.value);
+//        NSLog(@"query file: %@", action.value);
 
         
         

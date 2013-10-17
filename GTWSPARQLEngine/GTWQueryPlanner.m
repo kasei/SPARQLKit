@@ -80,7 +80,7 @@
             id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
             id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset];
             if (!lhs || !rhs) {
-                NSLog(@"Failed to plan both sides of JOIN");
+                NSLog(@"Failed to plan both sides of %lu-way JOIN", [algebra.arguments count]);
                 return nil;
             }
             id<GTWTree, GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
@@ -125,7 +125,7 @@
             NSLog(@"Extend: %@", algebra);
             return nil;
         }
-        id<GTWTree> pat = algebra.arguments[0];
+        id<GTWTree> pat = ([algebra.arguments count]) ? algebra.arguments[0] : nil;
         if (pat) {
             id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset];
             if (!p)
@@ -161,6 +161,8 @@
             }
             return plan;
         }
+    } else if (algebra.type == kTreeResultSet) {
+        return (id<GTWTree, GTWQueryPlan>) algebra;
     } else {
         NSLog(@"cannot plan query algebra of type %@\n", [algebra treeTypeName]);
     }
@@ -189,11 +191,6 @@
         for (i = 1; i < [triples count]; i++) {
             id<GTWTree> triple  = triples[i];
             NSSet* projvars     = [triple annotationForKey:kProjectVariables];
-            if (projvars) {
-                NSLog(@"********* %@ projected for (%@)", triple, projvars);
-            }
-            
-            
             id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:triples[i] usingDataset:dataset];
             plan    = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[plan, quad]];
         }

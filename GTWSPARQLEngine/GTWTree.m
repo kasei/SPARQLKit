@@ -52,6 +52,7 @@ GTWTreeType __strong const kAlgebraSlice				= @"AlgebraSlice";
 GTWTreeType __strong const kAlgebraToMultiset			= @"AlgebraToMultiset";
 GTWTreeType __strong const kAlgebraDescribe				= @"AlgebraDescribe";
 GTWTreeType __strong const kAlgebraConstruct            = @"AlgebraConstruct";
+GTWTreeType __strong const kAlgebraDataset              = @"AlgebraDataset";
 
 // Leaving the tree value space
 GTWTreeType __strong const kTreeSet						= @"TreeSet";
@@ -740,11 +741,64 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }];
 }
 
+- (NSSet*) inScopeVariables {
+    if (self.type == kTreeNode) {
+        return [NSSet setWithObject:self.value];
+    } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
+        NSMutableSet* set   = [NSMutableSet set];
+        NSArray* nodes  = [self.value allValues];
+        for (id<GTWTerm> n in nodes) {
+            if ([n conformsToProtocol:@protocol(GTWVariable)]) {
+                [set addObject:n];
+            }
+        }
+        return set;
+    } else if (self.type == kAlgebraProject) {
+//        NSLog(@"computing in-scope variables for projection: %@", self);
+        id<GTWTree> project = self.value;
+        NSMutableSet* set   = [NSMutableSet set];
+        for (id<GTWTree> t in project.arguments) {
+            if (t.type == kTreeNode) {
+                [set addObject:t.value];
+            } else if (t.type == kAlgebraExtend) {
+                id<GTWTree> list    = t.value;
+                id<GTWTree> node    = list.arguments[1];
+                [set addObject:node.value];
+                for (id<GTWTree> pattern in t.arguments) {
+                    NSSet* patvars      = [pattern inScopeVariables];
+                    [set addObjectsFromArray:[patvars allObjects]];
+                }
+            }
+        }
+//        NSLog(@"---> %@", set);
+        return set;
+    } else if (self.type == kAlgebraExtend) {
+        id<GTWTree> list    = self.value;
+        NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] inScopeVariables]];
+        id<GTWTree> node    = list.arguments[1];
+        id<GTWTerm> term    = node.value;
+        [set addObject: term];
+        return set;
+    } else {
+        NSMutableSet* set   = [NSMutableSet set];
+        for (id<GTWTree> n in self.arguments) {
+            [set addObjectsFromArray:[[n inScopeVariables] allObjects]];
+        }
+        return set;
+    }
+}
+
 - (NSSet*) nonAggregatedVariables {
     if (self.type == kTreeNode) {
         return [NSSet setWithObject:self.value];
     } else if (self.type == kAlgebraExtend) {
-        return [self.arguments[0] nonAggregatedVariables];
+        id<GTWTree> list    = self.value;
+        NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] nonAggregatedVariables]];
+        for (id<GTWTree> pattern in self.arguments) {
+            NSSet* patvars      = [pattern nonAggregatedVariables];
+            [set addObjectsFromArray:[patvars allObjects]];
+        }
+        return set;
     } else if (self.type == kExprCount || self.type == kExprSum || self.type == kExprMin || self.type == kExprMax || self.type == kExprAvg || self.type == kExprSample || self.type == kExprGroupConcat) {
         return [NSSet set];
     } else {

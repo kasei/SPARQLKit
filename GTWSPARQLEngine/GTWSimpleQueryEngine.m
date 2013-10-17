@@ -250,6 +250,8 @@
         return [self evaluateGraphPlan:plan withModel:model];
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
+    } else if (type == kTreeResultSet) {
+        return [plan.arguments objectEnumerator];
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);
     }
