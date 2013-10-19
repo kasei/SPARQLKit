@@ -37,6 +37,14 @@
     return [results objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateAsk:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSDictionary* result    = [results nextObject];
+    GTWLiteral* l   = [[GTWLiteral alloc] initWithString:(result ? @"true" : @"false") datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+    NSDictionary* r = @{ @".bool": l };
+    return [@[r] objectEnumerator];
+}
+
 - (NSEnumerator*) evaluateDistinct:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSMutableArray* distinct    = [NSMutableArray array];
@@ -65,7 +73,7 @@
                     result[name]    = r[name];
                 }
             } else if (treenode.type == kAlgebraExtend) {
-                id<GTWTree> list    = treenode.value;
+                id<GTWTree> list    = treenode.treeValue;
                 GTWTree* expr       = list.arguments[0];
                 GTWTree* node       = list.arguments[1];
                 id<GTWVariable> v   = node.value;
@@ -167,7 +175,7 @@
         NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
         for (id<GTWTree> g in groupList.arguments) {
             if (g.type == kAlgebraExtend) {
-                id<GTWTree> list    = g.value;
+                id<GTWTree> list    = g.treeValue;
                 id<GTWTree> expr    = list.arguments[0];
                 id<GTWTree> tn      = list.arguments[1];
                 id<GTWTerm> var = tn.value;
@@ -222,16 +230,42 @@
             }
         }
         return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [counter count]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+    } else if (expr.type == kExprGroupConcat) {
+        GTWLiteral* distinct    = expr.value;
+        NSMutableArray* array   = [NSMutableArray array];
+        for (NSDictionary* result in results) {
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            if (t)
+                [array addObject:t.value];
+        }
+        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
     } else if (expr.type == kExprMax) {
         id<GTWTerm> max = nil;
         for (NSDictionary* result in results) {
             id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
-            if (!t || [t compare:max] == NSOrderedDescending) {
+            if (!max || [t compare:max] == NSOrderedDescending) {
                 max = t;
             }
         }
         return max;
+    } else if (expr.type == kExprMin) {
+        id<GTWTerm> min = nil;
+        for (NSDictionary* result in results) {
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            if (!min || [t compare:min] == NSOrderedAscending) {
+                min = t;
+            }
+        }
+        return min;
+    } else if (expr.type == kExprSample) {
+        id<GTWTerm> term = nil;
+        for (NSDictionary* result in results) {
+            term   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            break;
+        }
+        return term;
     } else {
+        // Handle more aggregate types
         NSLog(@"Cannot compute aggregate %@", expr.type);
         return nil;
     }
@@ -340,7 +374,9 @@
 //        case kPlanExtend:
 //        case kPlanSlice:
 //    }
-    if (type == kPlanNLjoin) {
+    if (type == kPlanAsk) {
+        return [self evaluateAsk:plan withModel:model];
+    } else if (type == kPlanNLjoin) {
         return [self evaluateNLJoin:plan withModel:model];
     } else if (type == kPlanDistinct) {
         return [self evaluateDistinct:plan withModel:model];

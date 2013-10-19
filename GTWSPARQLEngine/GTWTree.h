@@ -41,13 +41,13 @@ extern GTWTreeType __strong const kAlgebraUnion;				// Union( P, Q )
 extern GTWTreeType __strong const kAlgebraGraph;				// Graph( IRI|var, P )
 extern GTWTreeType __strong const kAlgebraExtend;				// Extend( P, var, expr )
 extern GTWTreeType __strong const kAlgebraMinus;				// Minus( P, Q )
-extern GTWTreeType __strong const kAlgebraZeroLengthPath;		// ZeroLengthPath( term|var, path, term|var )
-extern GTWTreeType __strong const kAlgebraZeroOrMorePath;		// ZeroOrMorePath( term|var, path, term|var )
-extern GTWTreeType __strong const kAlgebraOneOrMorePath;		// OneOrMorePath( term|var, path, term|var )
-extern GTWTreeType __strong const kAlgebraNegatedPropertySet;	// NegatedPropertySet( term|var, IRIset, term|var )
+//extern GTWTreeType __strong const kAlgebraZeroLengthPath;		// ZeroLengthPath( term|var, path, term|var )
+//extern GTWTreeType __strong const kAlgebraZeroOrMorePath;		// ZeroOrMorePath( term|var, path, term|var )
+//extern GTWTreeType __strong const kAlgebraOneOrMorePath;		// OneOrMorePath( term|var, path, term|var )
+//extern GTWTreeType __strong const kAlgebraNegatedPropertySet;	// NegatedPropertySet( term|var, IRIset, term|var )
 extern GTWTreeType __strong const kAlgebraGroup;				// Group( exprlist, P )
-extern GTWTreeType __strong const kAlgebraAggregation;		// Aggregation( args, aggregate, scalarvals, G )
-extern GTWTreeType __strong const kAlgebraAggregateJoin;		// AggregateJoin( aggregates )
+//extern GTWTreeType __strong const kAlgebraAggregation;		// Aggregation( args, aggregate, scalarvals, G )
+//extern GTWTreeType __strong const kAlgebraAggregateJoin;		// AggregateJoin( aggregates )
 extern GTWTreeType __strong const kAlgebraToList;				// ToList( P )
 extern GTWTreeType __strong const kAlgebraOrderBy;			// OrderBy( M, cond )
 extern GTWTreeType __strong const kAlgebraProject;			// Project( M, vars )
@@ -179,6 +179,7 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 
 @property BOOL leaf;
 @property GTWTreeType type;
+@property id<GTWTree> treeValue;
 @property NSArray* arguments;
 
 // if node.value or node.ptr is set, the node is considered a leaf node, and node.arguments are ignored. node.value and node.ptr may be used to store any relevant semantic value(s) for the node
@@ -187,9 +188,11 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 @property NSUInteger location;
 @property NSMutableDictionary* annotations;
 
+- (GTWTree*) initLeafWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue;
 - (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr;
 - (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args;
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args;
+- (GTWTree*) initWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
 //- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr arguments: (NSArray*) args;
 - (NSString*) treeTypeName;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;

@@ -110,7 +110,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     }
     
     NSLog(@"Failing tests: %@", self.failingTests);
-    NSLog(@"%lu/%lu passing tests", self.testsPassing, self.testsCount);
+    NSLog(@"%lu/%lu passing tests (%.1f%%)", self.testsPassing, self.testsCount, (100.0 * (float) self.testsPassing / (float) self.testsCount));
     if (self.runSyntaxTests) {
         NSLog(@"-> %lu/%lu passing syntax tests", self.passingSyntaxTests, self.syntaxTests);
         if (self.passingSyntaxTests < self.syntaxTests) {

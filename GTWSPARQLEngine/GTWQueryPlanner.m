@@ -32,9 +32,9 @@
     NSArray* list;
     
     // TODO: if any of these recursive calls fails and returns nil, we need to propogate that nil up the stack instead of having it crash when an array atempts to add the nil value
-    if (algebra.type == kAlgebraDistinct) {
+    if (algebra.type == kAlgebraDistinct || algebra.type == kAlgebraReduced) {
         if ([algebra.arguments count] != 1) {
-            NSLog(@"DISTINCT must be 1-ary");
+            NSLog(@"DISTINCT/REDUCED must be 1-ary");
             return nil;
         }
         id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
@@ -58,7 +58,7 @@
         id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         if (!plan)
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanGroup value: algebra.value arguments:@[plan]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanGroup value: algebra.treeValue arguments:@[plan]];
     } else if (algebra.type == kAlgebraGraph) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");
@@ -115,7 +115,7 @@
             return nil;
         }
         // TODO: need to convert kAlgebraExtend in algebra.value[] to kPlanExtend
-        return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.value arguments:@[lhs]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanProject value: algebra.treeValue arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
         if ([algebra.arguments count] == 0) {
             return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
@@ -174,7 +174,7 @@
         id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         if (!plan)
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanFilter value: algebra.value arguments:@[plan]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanFilter value: algebra.treeValue arguments:@[plan]];
     } else if (algebra.type == kAlgebraExtend) {
         if ([algebra.arguments count] > 1) {
             NSLog(@"EXTEND must be 0- or 1-ary");
@@ -183,10 +183,10 @@
         }
         id<GTWTree> pat = ([algebra.arguments count]) ? algebra.arguments[0] : nil;
         if (pat) {
-            id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:pat usingDataset:dataset withModel:model];
             if (!p)
                 return nil;
-            return [[GTWQueryPlan alloc] initWithType:kPlanExtend value: algebra.value arguments:@[p]];
+            return [[GTWQueryPlan alloc] initWithType:kPlanExtend value: algebra.treeValue arguments:@[p]];
         } else {
             id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanEmpty value:nil pointer:NULL];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend value: algebra.value arguments:@[empty]];
@@ -199,7 +199,7 @@
     } else if (algebra.type == kAlgebraOrderBy) {
         if ([algebra.arguments count] != 1)
             return nil;
-        list    = algebra.value;
+        list    = algebra.treeValue;
         
         id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         if (!plan)

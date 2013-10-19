@@ -37,13 +37,13 @@ GTWTreeType __strong const kAlgebraUnion				= @"AlgebraUnion";
 GTWTreeType __strong const kAlgebraGraph				= @"AlgebraGraph";
 GTWTreeType __strong const kAlgebraExtend				= @"AlgebraExtend";
 GTWTreeType __strong const kAlgebraMinus				= @"AlgebraMinus";
-GTWTreeType __strong const kAlgebraZeroLengthPath		= @"AlgebraZeroLengthPath";
-GTWTreeType __strong const kAlgebraZeroOrMorePath		= @"AlgebraZeroOrMorePath";
-GTWTreeType __strong const kAlgebraOneOrMorePath		= @"AlgebraOneOrMorePath";
-GTWTreeType __strong const kAlgebraNegatedPropertySet	= @"AlgebraNegatedPropertySet";
+//GTWTreeType __strong const kAlgebraZeroLengthPath		= @"AlgebraZeroLengthPath";
+//GTWTreeType __strong const kAlgebraZeroOrMorePath		= @"AlgebraZeroOrMorePath";
+//GTWTreeType __strong const kAlgebraOneOrMorePath		= @"AlgebraOneOrMorePath";
+//GTWTreeType __strong const kAlgebraNegatedPropertySet	= @"AlgebraNegatedPropertySet";
 GTWTreeType __strong const kAlgebraGroup				= @"AlgebraGroup";
-GTWTreeType __strong const kAlgebraAggregation			= @"AlgebraAggregation";
-GTWTreeType __strong const kAlgebraAggregateJoin		= @"AlgebraAggregateJoin";
+//GTWTreeType __strong const kAlgebraAggregation			= @"AlgebraAggregation";
+//GTWTreeType __strong const kAlgebraAggregateJoin		= @"AlgebraAggregateJoin";
 GTWTreeType __strong const kAlgebraToList				= @"AlgebraToList";
 GTWTreeType __strong const kAlgebraOrderBy				= @"AlgebraOrderBy";
 GTWTreeType __strong const kAlgebraProject				= @"AlgebraProject";
@@ -438,22 +438,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 @implementation GTWTree
 
-- (id)copyWithZone:(NSZone *)zone {
-    return [self copy];
-}
-
-- (GTWTree*) copy {
-    GTWTree* copy       = [GTWTree alloc];
-    copy.leaf           = self.leaf;
-    copy.type           = self.type;
-    copy.arguments      = [self.arguments copy];
-    copy.value          = [self.value copy];
-    copy.ptr            = self.ptr;
-    copy.location       = self.location;
-    copy.annotations    = [self.annotations copy];
-    return copy;
-}
-
 - (GTWTree*) init {
     if (self = [super init]) {
         self.annotations = [NSMutableDictionary dictionary];
@@ -462,12 +446,21 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     return self;
 }
 
+- (GTWTree*) initLeafWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue {
+    return [self initLeafWithType:type value:nil treeValue:treeValue pointer:NULL];
+}
+
 - (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr {
+    return [self initLeafWithType:type value:value treeValue:nil pointer:NULL];
+}
+
+- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue pointer: (void*) ptr {
     if (self = [self init]) {
         self.leaf   = YES;
         self.type   = type;
         self.ptr	= ptr;
         self.value  = value;
+        self.treeValue  = treeValue;
         if (!type) {
             NSLog(@"no type specified for GTWTree leaf");
         }
@@ -475,13 +468,14 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     return self;
 }
 
-- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args {
+- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args {
     if (self = [self init]) {
         int i;
         self.leaf   = NO;
         self.type   = type;
         self.ptr	= NULL;
         self.value  = value;
+        self.treeValue  = treeValue;
         NSUInteger size     = [args count];
         NSMutableArray* arguments  = [NSMutableArray arrayWithCapacity:size];
         self.arguments  = args;
@@ -548,7 +542,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         self.location	= location;
     }
     
-    if (self.type == kTreeNode && !(self.value)) {
+    if (self.type == kTreeNode && !(self.value || self.treeValue)) {
         NSLog(@"TreeNode without node!");
         return nil;
     }
@@ -556,9 +550,62 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     return self;
 }
 
-- (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args {
-    return [self initWithType:type value:nil arguments:args];
+
+- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args {
+    return [self initWithType:type value:value treeValue:nil arguments:args];
 }
+
+- (GTWTree*) initWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args {
+    return [self initWithType:type value:nil treeValue:treeValue arguments:args];
+}
+
+- (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args {
+    return [self initWithType:type value:nil treeValue: nil arguments:args];
+}
+
+- (id) copyReplacingSubtrees: (NSDictionary*) map {
+    id<GTWTree> replace = [map objectForKey:self];
+    if (replace) {
+        id r    = replace;
+        return [r copy];
+    } else {
+        GTWTree* copy       = [[GTWTree alloc] init];
+        copy.leaf           = self.leaf;
+        copy.type           = self.type;
+        NSMutableArray* args    = [NSMutableArray array];
+        for (id<GTWTree> a in self.arguments) {
+            id<GTWTree> c   = [a copyReplacingSubtrees: map];
+            [args addObject:c];
+        }
+        copy.arguments      = args;
+        copy.value          = [self.value copy];
+        id tv               = self.treeValue;
+        copy.treeValue      = [tv copyReplacingSubtrees: map];
+        copy.ptr            = self.ptr;
+        copy.location       = self.location;
+        copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
+        return copy;
+    }
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+    return [self copy];
+}
+
+- (GTWTree*) copy {
+    GTWTree* copy       = [GTWTree alloc];
+    copy.leaf           = self.leaf;
+    copy.type           = self.type;
+    copy.arguments      = [self.arguments copy];
+    copy.value          = [self.value copy];
+    id tv               = self.treeValue;
+    copy.treeValue      = [tv copy];
+    copy.ptr            = self.ptr;
+    copy.location       = self.location;
+    copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
+    return copy;
+}
+
 
 - (NSString*) treeTypeName {
     return self.type;
@@ -688,7 +735,8 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 }
                 
             }
-            (node.annotations)[kUsedVariables] = set;
+            NSMutableDictionary* a  = [node annotations];
+            a[kUsedVariables] = [set copy];
         }
         return nil;
     }];
@@ -704,7 +752,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 if (v.type == kTreeNode && [v.value isKindOfClass:[GTWVariable class]]) {
                     [vars addObject:v.value];
                 } else if (v.type == kAlgebraExtend) {
-                    id<GTWTree> list    = v.value;
+                    id<GTWTree> list    = v.treeValue;
                     id<GTWTree> node    = list.arguments[1];
                     id<GTWTerm> v       = node.value;
                     if ([v isKindOfClass:[GTWVariable class]]) {
@@ -782,13 +830,13 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         return set;
     } else if (self.type == kAlgebraProject) {
 //        NSLog(@"computing in-scope variables for projection: %@", self);
-        id<GTWTree> project = self.value;
+        id<GTWTree> project = self.treeValue;
         NSMutableSet* set   = [NSMutableSet set];
         for (id<GTWTree> t in project.arguments) {
             if (t.type == kTreeNode) {
                 [set addObject:t.value];
             } else if (t.type == kAlgebraExtend) {
-                id<GTWTree> list    = t.value;
+                id<GTWTree> list    = t.treeValue;
                 id<GTWTree> node    = list.arguments[1];
                 [set addObject:node.value];
                 for (id<GTWTree> pattern in t.arguments) {
@@ -800,7 +848,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 //        NSLog(@"---> %@", set);
         return set;
     } else if (self.type == kAlgebraExtend) {
-        id<GTWTree> list    = self.value;
+        id<GTWTree> list    = self.treeValue;
         NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] inScopeVariables]];
         id<GTWTree> node    = list.arguments[1];
         id<GTWTerm> term    = node.value;
@@ -819,7 +867,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     if (self.type == kTreeNode) {
         return [NSSet setWithObject:self.value];
     } else if (self.type == kAlgebraExtend) {
-        id<GTWTree> list    = self.value;
+        id<GTWTree> list    = self.treeValue;
         NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] nonAggregatedVariables]];
         for (id<GTWTree> pattern in self.arguments) {
             NSSet* patvars      = [pattern nonAggregatedVariables];
@@ -842,7 +890,9 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     GTWTree* node = self;
     if (node.leaf) {
         [s appendFormat: @"%@(", [node treeTypeName]];
-        if (node.value) {
+        if (node.treeValue) {
+            [s appendFormat:@"%@", node.treeValue];
+        } else if (node.value) {
             [s appendFormat:@"%@", node.value];
         }
         if (node.ptr) {
@@ -851,7 +901,9 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         [s appendString:@")"];
     } else {
         [s appendFormat: @"%@", [node treeTypeName]];
-        if (node.value) {
+        if (node.treeValue) {
+            [s appendFormat:@"[%@]", node.treeValue];
+        } else if (node.value) {
             [s appendFormat:@"[%@]", node.value];
         }
         int i;
@@ -878,7 +930,9 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         //        [s appendFormat: @"%@%s\n", indent, gtw_tree_type_name(node.type)];
         if (node.leaf) {
             [s appendFormat: @"%@%@", indent, [node treeTypeName]];
-            if (node.value) {
+            if (node.treeValue) {
+                [s appendFormat:@" %@", node.treeValue];
+            } else if (node.value) {
                 [s appendFormat:@" %@", node.value];
             }
             if (node.ptr) {
@@ -887,7 +941,9 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             [s appendFormat:@"\n"];
         } else {
             [s appendFormat: @"%@%@", indent, [node treeTypeName]];
-            if (node.value) {
+            if (node.treeValue) {
+                [s appendFormat:@" %@", [node.treeValue conciseDescription]];
+            } else if (node.value) {
                 if ([node.value isKindOfClass:[GTWTree class]]) {
                     [s appendFormat:@" %@", [node.value conciseDescription]];
                 } else {

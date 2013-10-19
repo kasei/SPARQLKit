@@ -447,7 +447,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
                                [[GTWTree alloc] initLeafWithType:kTreeNode value:v pointer:NULL],
                                expression
                                ]];
-            return [[GTWTree alloc] initLeafWithType:kAlgebraExtend value:list pointer:NULL];
+            return [[GTWTree alloc] initLeafWithType:kAlgebraExtend treeValue:list];
         } else {
             fprintf(fh, "unknown BIND value\n");
         }
@@ -567,10 +567,10 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 						pat	= children2[size2];
                         [children2 removeObject:pat];
 					}
-                    id extend = c.value;
+                    id extend = c.treeValue;
 //                    NSLog(@"extend values: %@", extend);
 //                    NSLog(@"extend tree: %@", pat);
-                    GTWTree* e  = [[GTWTree alloc] initWithType:kAlgebraExtend value: extend arguments:@[pat]];
+                    GTWTree* e  = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue: extend arguments:@[pat]];
 //                    NSLog(@"        ->>> %@", e);
                     children2[size2++]  = e;
 //                    NSLog(@"extend: %@", e);
@@ -588,11 +588,11 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //					children2[size2++]	= gtw_new_tree_va(ALGEBRA_FILTER, NULL, 2, gtw_tree_copy(tree_child(c,0)), pat);
                     //					gtw_free_tree(c);
                     
-                    GTWTree* expr       = c.value;
+                    GTWTree* expr       = c.treeValue;
 //                    NSLog(@"FILTER expression: %@", expr);
                     
                     if (expr) {
-                        children2[size2++]  = [[GTWTree alloc] initWithType:kAlgebraFilter value: expr arguments:@[pat]];
+                        children2[size2++]  = [[GTWTree alloc] initWithType:kAlgebraFilter treeValue: expr arguments:@[pat]];
                     } else {
                         NSLog(@"Failed to construct filter expression tree");
                         children2[size2++]  = pat;
@@ -630,7 +630,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
         GTWTree* expression = rasqal_expression_to_tree(expr);
 //        GTWTree* e  = [[GTWTree alloc] initLeafWithType:TREE_EXPRESSION value: nil pointer:rasqal_new_expression_from_expression(expr)];
 //		gtw_tree_node* e	= gtw_new_tree_va(TREE_EXPRESSION, rasqal_new_expression_from_expression(expr), 0);
-        a   = [[GTWTree alloc] initWithType:kAlgebraFilter value: expression arguments:@[]];
+        a   = [[GTWTree alloc] initWithType:kAlgebraFilter treeValue: expression arguments:@[]];
 //		a	= gtw_new_tree_va(ALGEBRA_FILTER, NULL, 1, e);
 		if (!a) {
 			return NULL;
@@ -764,7 +764,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
             
             GTWTree* vlist  = [[GTWTree alloc] initWithType:kTreeList arguments:vars];
 //			gtw_tree_node* vlist	= gtw_new_tree(kTreeList, NULL, osize, vars);
-            a   = [[GTWTree alloc] initWithType:kAlgebraOrderBy value: vlist arguments:@[a]];
+            a   = [[GTWTree alloc] initWithType:kAlgebraOrderBy treeValue: vlist arguments:@[a]];
 //			a	= gtw_new_tree_va(ALGEBRA_ORDERBY, NULL, 2, a, vlist);
 		}
 	}
@@ -797,7 +797,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
             GTWTree* vlist  = [[GTWTree alloc] initWithType:kTreeList arguments:vars];
 //			gtw_tree_node* vlist	= gtw_new_tree(kTreeList, NULL, psize, vars);
 			//		fprintf(fh, "project\t%d\n", raptor_sequence_size(seq));
-            a   = [[GTWTree alloc] initWithType:kAlgebraProject value: vlist arguments:@[a]];
+            a   = [[GTWTree alloc] initWithType:kAlgebraProject treeValue: vlist arguments:@[a]];
 //			a	= gtw_new_tree_va(ALGEBRA_PROJECT, NULL, 2, a, vlist);
 		}
 	}
