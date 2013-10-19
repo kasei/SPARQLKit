@@ -25,6 +25,7 @@ GTWTreeType __strong const kPlanSlice					= @"PlanSlice";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
 GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
 GTWTreeType __strong const kPlanDescribe				= @"PlanDescribe";
+GTWTreeType __strong const kPlanGroup                   = @"PlanGroup";
 
 // Algebras
 GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";
@@ -436,6 +437,22 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 //}
 
 @implementation GTWTree
+
+- (id)copyWithZone:(NSZone *)zone {
+    return [self copy];
+}
+
+- (GTWTree*) copy {
+    GTWTree* copy       = [GTWTree alloc];
+    copy.leaf           = self.leaf;
+    copy.type           = self.type;
+    copy.arguments      = [self.arguments copy];
+    copy.value          = [self.value copy];
+    copy.ptr            = self.ptr;
+    copy.location       = self.location;
+    copy.annotations    = [self.annotations copy];
+    return copy;
+}
 
 - (GTWTree*) init {
     if (self = [super init]) {
@@ -893,6 +910,19 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     } else {
         return [self longDescription];
     }
+}
+
+- (BOOL)isEqual:(id)anObject {
+    return [[self description] isEqual: [anObject description]];
+}
+
+- (NSComparisonResult)compare:(id<GTWTree>)tree {
+    return [[self description] compare:[tree description]];
+}
+
+- (NSUInteger)hash {
+    NSUInteger h    = [[self description] hash];
+    return h;
 }
 
 @end

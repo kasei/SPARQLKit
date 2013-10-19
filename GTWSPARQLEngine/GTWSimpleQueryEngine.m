@@ -11,6 +11,7 @@
 #import "NSObject+NSDictionary_QueryBindings.h"
 #import <GTWSWBase/GTWSWBase.h>
 #import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWLiteral.h>
 #import "GTWExpression.h"
 
 @implementation GTWSimpleQueryEngine
@@ -93,7 +94,6 @@
     id<GTWQuad> q    = plan.value;
     NSMutableArray* results = [NSMutableArray array];
     [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
-        NSLog(@"QUAD----> %@", r);
         [results addObject:r];
     } error:nil];
     return [results objectEnumerator];
@@ -137,6 +137,104 @@
     NSMutableArray* results = [NSMutableArray arrayWithArray:[lhs allObjects]];
     [results addObjectsFromArray:[rhs allObjects]];
     return [results objectEnumerator];
+}
+
+- (NSEnumerator*) evaluateGroupPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+//    TreeList(
+//             TreeList(TreeNode[?x]),
+//             TreeList(
+//                      TreeList[?.0](ExprMax[0](TreeNode[?y])),
+//                      TreeList[?.1](ExprMax[0](TreeNode[?z]))
+//             )
+//    )
+    id<GTWTree> groupData   = plan.value;
+    id<GTWTree> groupList   = groupData.arguments[0];
+    id<GTWTree> aggListTree = groupData.arguments[1];
+    NSArray* aggList        = aggListTree.arguments;
+    NSMutableDictionary* aggregates = [NSMutableDictionary dictionary];
+    for (id<GTWTree> list in aggList) {
+        GTWVariable* v      = list.value;
+        id<GTWTree, NSCopying> expr    = list.arguments[0];
+        aggregates[expr]    = v;
+    }
+    NSLog(@"grouping trees: %@", groupList.arguments);
+    NSLog(@"aggregates: %@", aggregates);
+
+    NSMutableDictionary* resultGroups   = [NSMutableDictionary dictionary];
+    NSEnumerator* results    = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    for (NSDictionary* result in results) {
+        NSMutableArray* resultGroupData = [NSMutableArray array];
+        NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
+        for (id<GTWTree> g in groupList.arguments) {
+            if (g.type == kAlgebraExtend) {
+                id<GTWTree> list    = g.value;
+                id<GTWTree> expr    = list.arguments[0];
+                id<GTWTree> tn      = list.arguments[1];
+                id<GTWTerm> var = tn.value;
+                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr withResult:result];
+                [resultGroupData addObject:t];
+                groupKeyDict[var.value]   = t;
+            } else {
+                id<GTWTerm> var = g.value;
+                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)g withResult:result];
+                [resultGroupData addObject:t];
+                groupKeyDict[var.value]   = t;
+            }
+        }
+        
+//        id groupKey   = [resultGroupData componentsJoinedByString:@":"];
+        id groupKey = groupKeyDict;
+        
+//        resultGroupTerms[groupKey]   = resultGroupData;
+        
+        if (!resultGroups[groupKey]) {
+            resultGroups[groupKey]   = [NSMutableArray array];
+        }
+        [resultGroups[groupKey] addObject:result];
+    }
+    NSLog(@"-------------\nGroups:%@", resultGroups);
+    NSMutableArray* finalResults    = [NSMutableArray array];
+    for (id groupKey in resultGroups) {
+        NSArray* groupResults   = resultGroups[groupKey];
+        NSMutableDictionary* result = [NSMutableDictionary dictionaryWithDictionary:groupKey];
+        for (id<GTWTree> expr in aggregates) {
+            GTWVariable* v  = aggregates[expr];
+            id<GTWTerm> value   = [self valueOfAggregate:expr forResults:groupResults];
+            if (value) {
+                result[v.value]   = value;
+            }
+        }
+        [finalResults addObject:result];
+    }
+    return [finalResults objectEnumerator];
+}
+
+- (id<GTWTerm>) valueOfAggregate: (id<GTWTree>) expr forResults: (NSArray*) results {
+    if (expr.type == kExprCount) {
+        GTWLiteral* distinct    = expr.value;
+        id counter  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
+        for (NSDictionary* result in results) {
+            if ([expr.arguments count]) {
+                id<GTWTerm> f   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+                [counter addObject:f];
+            } else {
+                [counter addObject:@(1)];
+            }
+        }
+        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [counter count]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+    } else if (expr.type == kExprMax) {
+        id<GTWTerm> max = nil;
+        for (NSDictionary* result in results) {
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            if (!t || [t compare:max] == NSOrderedDescending) {
+                max = t;
+            }
+        }
+        return max;
+    } else {
+        NSLog(@"Cannot compute aggregate %@", expr.type);
+        return nil;
+    }
 }
 
 - (NSEnumerator*) evaluateGraphPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
@@ -264,6 +362,8 @@
         return [self evaluateSlice:plan withModel:model];
     } else if (type == kPlanGraph) {
         return [self evaluateGraphPlan:plan withModel:model];
+    } else if (type == kPlanGroup) {
+        return [self evaluateGroupPlan:plan withModel:model];
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
     } else if (type == kTreeResultSet) {

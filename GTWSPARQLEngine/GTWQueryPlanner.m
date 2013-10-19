@@ -50,6 +50,15 @@
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanAsk value: algebra.value arguments:@[plan]];
+    } else if (algebra.type == kAlgebraGroup) {
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"Group must be 1-ary");
+            return nil;
+        }
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        if (!plan)
+            return nil;
+        return [[GTWQueryPlan alloc] initWithType:kPlanGroup value: algebra.value arguments:@[plan]];
     } else if (algebra.type == kAlgebraGraph) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");

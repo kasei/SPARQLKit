@@ -4,7 +4,7 @@
 extern NSString * __strong const kUsedVariables;
 extern NSString * __strong const kProjectVariables;
 
-@interface GTWTree : NSObject<GTWTree>
+@interface GTWTree : NSObject<GTWTree, NSCopying>
 
 // ---------------------------------------------------------
 
@@ -29,6 +29,8 @@ extern GTWTreeType __strong const kPlanSlice;					// Slice( P, start, length )
 extern GTWTreeType __strong const kPlanJoinIdentity;			// JoinIdentity()
 extern GTWTreeType __strong const kPlanFedStub;				// FedStub( P )
 extern GTWTreeType __strong const kPlanDescribe;
+extern GTWTreeType __strong const kPlanGroup;
+
 // algebra tree nodes:
 extern GTWTreeType __strong const kAlgebraAsk;
 extern GTWTreeType __strong const kAlgebraBGP;				// BGP(t1, t2, ...)
