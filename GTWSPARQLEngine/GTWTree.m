@@ -459,19 +459,12 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args {
-    if (self = [self initWithType:type arguments:args]) {
-        self.value  = value;
-    }
-    return self;
-}
-
-- (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args {
     if (self = [self init]) {
         int i;
         self.leaf   = NO;
         self.type   = type;
         self.ptr	= NULL;
-        self.value  = nil;
+        self.value  = value;
         NSUInteger size     = [args count];
         NSMutableArray* arguments  = [NSMutableArray arrayWithCapacity:size];
         self.arguments  = args;
@@ -492,27 +485,27 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 return nil;
             }
             
-//            if (type == TREE_NODE || type == TREE_TRIPLE || type == TREE_QUAD || type == TREE_EXPRESSION) {
-//                
-//            } else {
-                if (![n isKindOfClass:[GTWTree class]]) {
-                    NSLog(@"argument object isn't a tree object: %@", n);
-                    ;
-                }
+            //            if (type == TREE_NODE || type == TREE_TRIPLE || type == TREE_QUAD || type == TREE_EXPRESSION) {
+            //
+            //            } else {
+            if (![n isKindOfClass:[GTWTree class]]) {
+                NSLog(@"argument object isn't a tree object: %@", n);
+                ;
+            }
             
-//            NSLog(@"argument object: %@", n);
-                if (i < locsize) {
-                    //			fprintf(stderr, "- %"PRIu32"\n", n->location);
-                    if (location_set) {
-                        if (location != n.location) {
-                            location	= 0;
-                        }
-                    } else {
-                        location_set	= 1;
-                        location		= n.location;
+            //            NSLog(@"argument object: %@", n);
+            if (i < locsize) {
+                //			fprintf(stderr, "- %"PRIu32"\n", n->location);
+                if (location_set) {
+                    if (location != n.location) {
+                        location	= 0;
                     }
+                } else {
+                    location_set	= 1;
+                    location		= n.location;
                 }
-//            }
+            }
+            //            }
             [arguments addObject:n];
         }
         self.arguments  = arguments;
@@ -537,7 +530,17 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
         self.location	= location;
     }
+    
+    if (self.type == kTreeNode && !(self.value)) {
+        NSLog(@"TreeNode without node!");
+        return nil;
+    }
+    
     return self;
+}
+
+- (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args {
+    return [self initWithType:type value:nil arguments:args];
 }
 
 - (NSString*) treeTypeName {
@@ -681,8 +684,15 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             GTWTree* list   = node.value;
             NSMutableArray* vars    = [NSMutableArray array];
             for (id<GTWTree> v in list.arguments) {
-                if (v.type == kTreeNode && [v.value conformsToProtocol:@protocol(GTWVariable)]) {
+                if (v.type == kTreeNode && [v.value isKindOfClass:[GTWVariable class]]) {
                     [vars addObject:v.value];
+                } else if (v.type == kAlgebraExtend) {
+                    id<GTWTree> list    = v.value;
+                    id<GTWTree> node    = list.arguments[1];
+                    id<GTWTerm> v       = node.value;
+                    if ([v isKindOfClass:[GTWVariable class]]) {
+                        [vars addObject:v];
+                    }
                 }
             }
             NSSet* set      = [NSMutableSet setWithArray:vars];
@@ -748,7 +758,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         NSMutableSet* set   = [NSMutableSet set];
         NSArray* nodes  = [self.value allValues];
         for (id<GTWTerm> n in nodes) {
-            if ([n conformsToProtocol:@protocol(GTWVariable)]) {
+            if ([n isKindOfClass:[GTWVariable class]]) {
                 [set addObject:n];
             }
         }

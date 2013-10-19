@@ -203,7 +203,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     }
     
     GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
     if (YES) {
         NSLog(@"plan:\n%@", plan);
     }
@@ -235,8 +235,10 @@ int parseQuery(NSString* query, NSString* base) {
     GTWTree* algebra            = [parser parseSPARQL:query withBaseURI:base];
     NSLog(@"Query algebra:\n%@\n\n", algebra);
     
+    id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
+    id<GTWModel> model          = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
     NSLog(@"Query plan:\n%@\n\n", plan);
     
     [plan computeProjectVariables];
@@ -393,7 +395,7 @@ int main(int argc, const char * argv[]) {
     } else if (!strcmp(argv[1], "testsuite")) {
         GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
         NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[2]] : nil;
-        harness.runEvalTests    = NO;
+        harness.runEvalTests    = YES;
         harness.runSyntaxTests  = YES;
         if (pattern) {
             [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];

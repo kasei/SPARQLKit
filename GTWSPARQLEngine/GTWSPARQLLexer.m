@@ -1,11 +1,11 @@
 #import "GTWSPARQLLexer.h"
 
 
-static NSSet* SPARQLKeywords() {
-    static NSSet *_SPARQLKeywords = nil;
+static NSArray* SPARQLKeywords() {
+    static NSArray *_SPARQLKeywords = nil;
     static dispatch_once_t keywordsOnceToken;
     dispatch_once(&keywordsOnceToken, ^{
-        _SPARQLKeywords = [NSSet setWithObjects:@"ABS", @"ADD", @"ALL", @"AS", @"ASC", @"ASK", @"AVG", @"BASE", @"BIND", @"BNODE", @"BOUND", @"BY", @"CEIL", @"CLEAR", @"COALESCE", @"CONCAT", @"CONSTRUCT", @"CONTAINS", @"COPY", @"COUNT", @"CREATE", @"DATATYPE", @"DAY", @"DEFAULT", @"DELETE", @"DELETE DATA", @"DELETE WHERE", @"DESC", @"DESCRIBE", @"DISTINCT", @"DISTINCT", @"DROP", @"ENCODE_FOR_URI", @"EXISTS", @"FILTER", @"FLOOR", @"FROM", @"GRAPH", @"GROUP", @"GROUP_CONCAT", @"HAVING", @"HOURS", @"IF", @"IN", @"INSERT", @"INSERT DATA", @"INTO", @"IRI", @"ISBLANK", @"ISIRI", @"ISLITERAL", @"ISNUMERIC", @"ISURI", @"LANG", @"LANGMATCHES", @"LCASE", @"LIMIT", @"LOAD", @"MAX", @"MD5", @"MIN", @"MINUS", @"MINUTES", @"MONTH", @"MOVE", @"NAMED", @"NOT", @"NOW", @"OFFSET", @"OPTIONAL", @"ORDER", @"PREFIX", @"RAND", @"REDUCED", @"REGEX", @"REPLACE", @"ROUND", @"SAMETERM", @"SAMPLE", @"SECONDS", @"SELECT", @"SEPARATOR", @"SERVICE", @"SHA1", @"SHA256", @"SHA384", @"SHA512", @"SILENT", @"STR", @"STRAFTER", @"STRBEFORE", @"STRDT", @"STRENDS", @"STRLANG", @"STRLEN", @"STRSTARTS", @"STRUUID", @"SUBSTR", @"SUM", @"TIMEZONE", @"TO", @"TZ", @"UCASE", @"UNDEF", @"UNION", @"URI", @"USING", @"UUID", @"VALUES", @"WHERE", @"WITH", @"YEAR", nil];
+        _SPARQLKeywords = [NSArray arrayWithObjects:@"ABS", @"ADD", @"ALL", @"AS", @"ASC", @"ASK", @"AVG", @"BASE", @"BIND", @"BNODE", @"BOUND", @"BY", @"CEIL", @"CLEAR", @"COALESCE", @"CONCAT", @"CONSTRUCT", @"CONTAINS", @"COPY", @"COUNT", @"CREATE", @"DATATYPE", @"DAY", @"DEFAULT", @"DELETE", @"DELETE WHERE", @"DESC", @"DESCRIBE", @"DISTINCT", @"DISTINCT", @"DROP", @"ENCODE_FOR_URI", @"EXISTS", @"FILTER", @"FLOOR", @"FROM", @"GRAPH", @"GROUP", @"GROUP_CONCAT", @"HAVING", @"HOURS", @"IF", @"IN", @"INSERT", @"INSERT", @"DATA", @"INTO", @"IRI", @"ISBLANK", @"ISIRI", @"ISLITERAL", @"ISNUMERIC", @"ISURI", @"LANGMATCHES", @"LANG", @"LCASE", @"LIMIT", @"LOAD", @"MAX", @"MD5", @"MINUS", @"MINUTES", @"MIN", @"MONTH", @"MOVE", @"NAMED", @"NOT", @"NOW", @"OFFSET", @"OPTIONAL", @"ORDER", @"PREFIX", @"RAND", @"REDUCED", @"REGEX", @"REPLACE", @"ROUND", @"SAMETERM", @"SAMPLE", @"SECONDS", @"SELECT", @"SEPARATOR", @"SERVICE", @"SHA1", @"SHA256", @"SHA384", @"SHA512", @"SILENT", @"STRAFTER", @"STRBEFORE", @"STRDT", @"STRENDS", @"STRLANG", @"STRLEN", @"STRSTARTS", @"STRUUID", @"STR", @"SUBSTR", @"SUM", @"TIMEZONE", @"TO", @"TZ", @"UCASE", @"UNDEF", @"UNION", @"URI", @"USING", @"UUID", @"VALUES", @"WHERE", @"WITH", @"YEAR", nil];
     });
     
     return _SPARQLKeywords;
@@ -419,7 +419,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (GTWSPARQLToken*) _getKeyword {
-	NSSet* keywords	= SPARQLKeywords();
+	NSArray* keywords	= SPARQLKeywords();
 	for (NSString* kw in keywords) {
 		NSRange range	= [self.buffer rangeOfString:kw options:NSAnchoredSearch|NSCaseInsensitiveSearch];
 		if (range.location != NSNotFound) {

@@ -57,10 +57,22 @@
     for (id r in results) {
         NSMutableDictionary* result = [NSMutableDictionary dictionary];
         for (GTWTree* treenode in list) {
-            GTWVariable* v  = treenode.value;
-            NSString* name  = [v value];
-            if (r[name]) {
-                result[name]    = r[name];
+            if (treenode.type == kTreeNode) {
+                GTWVariable* v  = treenode.value;
+                NSString* name  = [v value];
+                if (r[name]) {
+                    result[name]    = r[name];
+                }
+            } else if (treenode.type == kAlgebraExtend) {
+                id<GTWTree> list    = treenode.value;
+                GTWTree* expr       = list.arguments[0];
+                GTWTree* node       = list.arguments[1];
+                id<GTWVariable> v   = node.value;
+                NSString* name  = [v value];
+                id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:r];
+                if (f) {
+                    result[name]    = f;
+                }
             }
         }
         [projected addObject:result];
@@ -81,6 +93,7 @@
     id<GTWQuad> q    = plan.value;
     NSMutableArray* results = [NSMutableArray array];
     [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
+        NSLog(@"QUAD----> %@", r);
         [results addObject:r];
     } error:nil];
     return [results objectEnumerator];
@@ -138,8 +151,8 @@
         NSMutableArray* results = [NSMutableArray array];
         for (id<GTWTerm> g in graphs) {
             GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
+                                  [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
                                   [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
-                                  [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]]
                               ]];
             id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend value:list arguments:@[subplan]];
             NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
@@ -167,8 +180,8 @@
 
 - (NSEnumerator*) evaluateExtend:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     GTWTree* list       = plan.value;
-    GTWTree* node       = list.arguments[0];
-    GTWTree* expr       = list.arguments[1];
+    GTWTree* expr       = list.arguments[0];
+    GTWTree* node       = list.arguments[1];
     
     id<GTWVariable> v   = node.value;
     id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
@@ -177,8 +190,11 @@
     for (id result in results) {
         id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:result];
         NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
-        [e setValue:f forKey:v.value];
-        [extended addObject:e];
+        id<GTWTerm> value   = [e objectForKey:v.value];
+        if (!value || [value isEqual:f]) {
+            [e setValue:f forKey:v.value];
+            [extended addObject:e];
+        }
     }
     return [extended objectEnumerator];
 }
@@ -251,7 +267,20 @@
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
     } else if (type == kTreeResultSet) {
-        return [plan.arguments objectEnumerator];
+        NSArray* resultsTree    = plan.arguments;
+        NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];
+        for (id<GTWTree> r in resultsTree) {
+            NSDictionary* rt  = r.value;
+            NSMutableDictionary* result = [NSMutableDictionary dictionary];
+            for (id<GTWTerm> k in rt) {
+                id<GTWTree> v   = rt[k];
+                id<GTWTerm> t   = v.value;
+                result[k.value]       = t;
+            }
+            [results addObject:result];
+        }
+        NSLog(@"DATA results: %@", results);
+        return [results objectEnumerator];
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);
     }

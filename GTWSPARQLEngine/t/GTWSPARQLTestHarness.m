@@ -257,25 +257,29 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
         
         
-        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
+//        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
+        id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
         
         NSLog(@"SPARQL:\n%@", sparql);
-        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:query.value];
+        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value];
         if (!algebra) {
-            NSLog(@"failed to parse query: %@", query.value);
+            NSLog(@"failed to parse eval query: %@", query.value);
             return nil;
         }
         
 //        GTWIRI* base    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
         
+        id<GTWModel> testModel  = [[GTWQuadModel alloc] initWithQuadStore:testStore];
+        
         NSLog(@"query:\n%@", algebra);
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
+        id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel optimize: YES];
         if (!plan) {
 //            NSLog(@"failed to plan query: %@", query.value);
             return nil;
         }
+        NSLog(@"plan:\n%@", plan);
         
         return plan;
     } else {
@@ -304,7 +308,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value];
         if (!algebra) {
-//            NSLog(@"failed to parse query: %@", action.value);
+//            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
         }
         
@@ -344,7 +348,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         return YES;
     } else {
 //        NSLog(@"%@", sparql);
-        NSLog(@"algebra: %@", algebra);
+//        NSLog(@"algebra: %@", algebra);
         [self.failingTests addObject:test];
         NSLog(@"not ok %lu # %@\n", self.testsCount, test);
         self.testsFailing++;
@@ -364,6 +368,18 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     if (plan) {
         [plan computeProjectVariables];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
+        
+        if (NO) {
+            __block NSUInteger count    = 0;
+            NSLog(@"Quads:\n");
+            [testModel enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
+                count++;
+                NSLog(@"-> %@\n", q);
+            } error:nil];
+            NSLog(@"%lu total quads\n", count);
+        }
+        
+        
         NSArray* got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
         id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
         
@@ -378,12 +394,13 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSArray* expected  = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
         
         if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator]]) {
+//            NSLog(@"eval query plan: %@", plan);
             self.testsPassing++;
             self.passingEvalTests++;
             NSLog(@"ok %lu # %@\n", self.testsCount, test);
             return YES;
         } else {
-            NSLog(@"eval query plan: %@", plan);
+//            NSLog(@"eval query plan: %@", plan);
             [self.failingTests addObject:test];
             NSLog(@"not ok %lu # %@\n", self.testsCount, test);
 
@@ -396,7 +413,10 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             }
             
             {
-                NSSet* variables    = [plan annotationForKey:kProjectVariables];
+                NSMutableSet* variables = [NSMutableSet set];
+                for (NSString* v in vars) {
+                    [variables addObject:[[GTWVariable alloc] initWithValue:v]];
+                }
                 NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
                 fprintf(stdout, "expected:\n");
                 fwrite([data bytes], [data length], 1, stdout);

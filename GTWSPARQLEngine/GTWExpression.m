@@ -148,6 +148,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
         id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
         if (lhs && rhs) {
+            if (![lhs isKindOfClass:[GTWLiteral class]])
+                return nil;
+            if (![rhs isKindOfClass:[GTWLiteral class]])
+                return nil;
             NSInteger lhsI  = [lhs integerValue];
             NSInteger rhsI  = [rhs integerValue];
             NSInteger sum   = lhsI + rhsI;
@@ -204,9 +208,113 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
         }
         return nil;
+    } else if (expr.type == kExprStrLen) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        if (term && [term isKindOfClass:[GTWLiteral class]]) {
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [term.value length]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        } else {
+            return nil;
+        }
+    } else if (expr.type == kExprUUID) {
+//        urn:uuid:b9302fb5-642e-4d3b-af19-29a8f6d894c9
+        CFUUIDRef uuid = CFUUIDCreate(NULL);
+        NSString *uuidStr = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
+        CFRelease(uuid);
+        return [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"urn:uuid:%@", uuidStr]];
+    } else if (expr.type == kExprStrUUID) {
+        CFUUIDRef uuid = CFUUIDCreate(NULL);
+        NSString *uuidStr = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
+        CFRelease(uuid);
+        return [[GTWLiteral alloc] initWithString:uuidStr];
+    } else if (expr.type == kExprSubStr) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result];
+        NSUInteger startloc = [start integerValue];
+        NSString* substr;
+        if ([expr.arguments count] > 2) {
+            GTWLiteral* l = (GTWLiteral*) [self evaluateExpression:expr.arguments[2] withResult:result];
+            NSUInteger length = [l integerValue];
+            NSRange range       = { .location = (startloc-1), .length = (length) };
+            substr    = [term.value substringWithRange: range];
+        } else {
+            substr    = [term.value substringFromIndex:(startloc-1)];
+        }
+        
+        if (term.language) {
+            return [[GTWLiteral alloc] initWithString:substr language:term.language];
+        } else if (term.datatype) {
+            return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+        } else {
+            return [[GTWLiteral alloc] initWithString:substr];
+        }
+    } else if (expr.type == kExprConcat) {
+        NSMutableArray* array   = [NSMutableArray array];
+        for (id<GTWTree> t in expr.arguments) {
+            id<GTWTerm> term  = [self evaluateExpression:t withResult:result];
+            [array addObject:term.value];
+        }
+        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
+    } else if (expr.type == kExprLang) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            GTWLiteral* l   = (GTWLiteral*) term;
+            NSString* lang  = l.language;
+            if (!lang)
+                lang    = @"";
+            return [[GTWLiteral alloc] initWithString:lang];
+        }
+        return [[GTWLiteral alloc] initWithString:@""];
+    } else if (expr.type == kExprStrEnds) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result];
+        if ([term isKindOfClass:[GTWLiteral class]] && [pat isKindOfClass:[GTWLiteral class]]) {
+            if ([term.value hasSuffix:pat.value]) {
+                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            } else {
+                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            }
+        }
+        return nil;
+    } else if (expr.type == kExprStrDT) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> dt  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
+            return [[GTWLiteral alloc] initWithString:term.value datatype:dt.value];
+        } else {
+            return nil;
+        }
+    } else if (expr.type == kExprStrLang) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> lang  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
+            return [[GTWLiteral alloc] initWithString:term.value language:lang.value];
+        } else {
+            return nil;
+        }
     } else if (expr.type == kExprIsNumeric) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if (isNumeric(term)) {
+            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        } else {
+            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        }
+    } else if (expr.type == kExprIsLiteral) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        if (term && [term isKindOfClass:[GTWLiteral class]]) {
+            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        } else {
+            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        }
+    } else if (expr.type == kExprIsURI) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        if (term && [term isKindOfClass:[GTWIRI class]]) {
+            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        } else {
+            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        }
+    } else if (expr.type == kExprIsBlank) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        if (term && [term isKindOfClass:[GTWBlank class]]) {
             return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
         } else {
             return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];

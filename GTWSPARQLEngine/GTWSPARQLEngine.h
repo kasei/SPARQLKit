@@ -75,7 +75,7 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 
 @protocol GTWQueryPlanner
 @property id<GTWLogger> logger;
-- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWQueryDataset>) dataset optimize: (BOOL) opt;
+- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWQueryDataset>) dataset withModel: (id<GTWModel>) model optimize: (BOOL) opt;
 //- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWQueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
 @end
 

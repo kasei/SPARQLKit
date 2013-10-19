@@ -43,15 +43,16 @@
             NSString* name   = vars[pos];
 //            NSLog(@"mapping variable %@", name);
             id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
-            if (r[name]) {
+            if (!(r[name]) || ([r[name] isEqual: value])) {
+                r[name] = value;
+            } else {
                 ok  = NO;
                 break;
-            } else {
-                r[name] = value;
             }
         }
-        if (ok)
+        if (ok) {
             block(r);
+        }
     } error: error];
 }
 

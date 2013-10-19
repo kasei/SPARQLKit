@@ -15,6 +15,7 @@
 @property (nonatomic, copy) IDGenerator bnodeIDGenerator;
 @property NSError* error;
 @property BOOL seenAggregate;
+@property NSMutableArray* seenAggregates;
 
 - (GTWSPARQLParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
 
