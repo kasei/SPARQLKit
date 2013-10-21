@@ -25,7 +25,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
 
 @implementation GTWExpression
 
-+ (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result {
++ (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
     if (!expr)
         return nil;
     id<GTWTerm> lhs, rhs;
@@ -38,31 +38,31 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return value;
     } else if (expr.type == kExprOr) {
-        lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
-        rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
+        lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([((GTWLiteral*) lhs) booleanValue] || [((GTWLiteral*) rhs) booleanValue]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprAnd) {
-        lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
-        rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
+        lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([((GTWLiteral*) lhs) booleanValue] && [((GTWLiteral*) rhs) booleanValue]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprEq) {
-        lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
-        rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
+        lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([lhs isEqual:rhs]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsURI) {
-        lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
+        lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         NSLog(@"ISIRI(%@)", lhs);
         if ([lhs conformsToProtocol:@protocol(GTWIRI)]) {
             return [GTWLiteral trueLiteral];
@@ -70,8 +70,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprGe) {
-        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (isNumeric(term)) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
@@ -83,8 +83,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprLe) {
-        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (isNumeric(term)) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
@@ -96,8 +96,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprLt) {
-        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (isNumeric(term)) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
@@ -109,8 +109,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprGt) {
-        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> cmp = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (isNumeric(term)) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
@@ -125,7 +125,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         GTWLiteral* l   = [GTWLiteral doubleLiteralWithValue:((double)rand() / RAND_MAX)];
         return l;
     } else if (expr.type == kExprAbs) {
-        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (isNumeric(term)) {
             NSString* datatype  = term.datatype;
             if ([datatype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
@@ -146,8 +146,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprPlus) {
         // TODO: handle double and float in addition to integer
-        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (lhs && rhs) {
             if (![lhs isKindOfClass:[GTWLiteral class]])
                 return nil;
@@ -161,13 +161,13 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return nil;
         }
     } else if (expr.type == kExprStr) {
-        id<GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         GTWLiteral* str = [[GTWLiteral alloc] initWithString:term.value];
         return str;
     } else if (expr.type == kExprMinus) {
         // TODO: handle double and float in addition to integer
-        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if (lhs && rhs) {
             NSInteger lhsI  = [lhs integerValue];
             NSInteger rhsI  = [rhs integerValue];
@@ -178,10 +178,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprRegex) {
 //        NSLog(@"REGEX arguments: %@", expr.arguments);
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         NSString* string    = term.value;
-        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result];
-        id<GTWTerm> args    = ([expr.arguments count] > 2) ? [self evaluateExpression:expr.arguments[2] withResult:result] : nil;
+        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+        id<GTWTerm> args    = ([expr.arguments count] > 2) ? [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model] : nil;
         NSInteger opt       = NSRegularExpressionSearch;
         if (args && [args.value isEqual:@"i"]) {
             opt |= NSCaseInsensitiveSearch;
@@ -192,7 +192,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
 //        NSLog(@"regex location {%lu %lu}", range.location, range.length);
         return [[GTWLiteral alloc] initWithString:(range.location == NSNotFound ? @"false" : @"true") datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
     } else if (expr.type == kExprLang) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         NSString* lang  = [term language];
         if (lang) {
             return [[GTWLiteral alloc] initWithValue:lang];
@@ -200,8 +200,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return nil;
         }
     } else if (expr.type == kExprLangMatches) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         NSString* lang      = term.value;
         if (lang && [lang hasPrefix:pattern.value]) {
             return [GTWLiteral trueLiteral];
@@ -210,7 +210,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprStrLen) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (term && [term isKindOfClass:[GTWLiteral class]]) {
             return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [term.value length]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         } else {
@@ -235,7 +235,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (dataLength == 0) {
             return nil;
         }
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         unsigned char digest[dataLength];
         NSData *stringBytes = [term.value dataUsingEncoding: NSUTF8StringEncoding]; /* or some other encoding */
         
@@ -259,12 +259,12 @@ static BOOL isNumeric(id<GTWTerm> term) {
         CFRelease(uuid);
         return [[GTWLiteral alloc] initWithString:uuidStr];
     } else if (expr.type == kExprSubStr) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
-        GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         NSUInteger startloc = [start integerValue];
         NSString* substr;
         if ([expr.arguments count] > 2) {
-            GTWLiteral* l = (GTWLiteral*) [self evaluateExpression:expr.arguments[2] withResult:result];
+            GTWLiteral* l = (GTWLiteral*) [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
             NSUInteger length = [l integerValue];
             NSRange range       = { .location = (startloc-1), .length = (length) };
             substr    = [term.value substringWithRange: range];
@@ -285,7 +285,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSString* datatype      = nil;
         NSString* language      = nil;
         for (id<GTWTree> t in expr.arguments) {
-            id<GTWTerm> term  = [self evaluateExpression:t withResult:result];
+            id<GTWTerm> term  = [self evaluateExpression:t withResult:result usingModel: model];
             if (term.datatype) {
                 if (!([term.datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"] || [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"])) {
                     return nil;
@@ -314,7 +314,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
         }
     } else if (expr.type == kExprLang) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]]) {
             GTWLiteral* l   = (GTWLiteral*) term;
             NSString* lang  = l.language;
@@ -324,8 +324,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return [[GTWLiteral alloc] initWithString:@""];
     } else if (expr.type == kExprStrEnds) {
-        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]] && [pat isKindOfClass:[GTWLiteral class]]) {
             if ([term.value hasSuffix:pat.value]) {
                 return [GTWLiteral trueLiteral];
@@ -335,57 +335,111 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprStrDT) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWTerm> dt  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> dt      = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
             return [[GTWLiteral alloc] initWithString:term.value datatype:dt.value];
         } else {
             return nil;
         }
     } else if (expr.type == kExprStrLang) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWTerm> lang  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> lang  = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
             return [[GTWLiteral alloc] initWithString:term.value language:lang.value];
         } else {
             return nil;
         }
     } else if (expr.type == kExprIsNumeric) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (isNumeric(term)) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsLiteral) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (term && [term isKindOfClass:[GTWLiteral class]]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsURI) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (term && [term isKindOfClass:[GTWIRI class]]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsBlank) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (term && [term isKindOfClass:[GTWBlank class]]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIRI) {
-        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
-        id<GTWTerm> base  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> base  = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         NSURL* url  = [[NSURL alloc] initWithString:term.value relativeToURL:[NSURL URLWithString:base.value]];
         NSString* iri   = [url absoluteString];
         if (!iri)
             return nil;
         return [[GTWIRI alloc] initWithValue:iri];
+    } else if (expr.type == kExprUCase) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        NSString* value     = [term.value uppercaseString];
+        if (term.language) {
+            return [[GTWLiteral alloc] initWithString:value language:term.language];
+        } else {
+            return [[GTWLiteral alloc] initWithString:value datatype:term.datatype];
+        }
+    } else if (expr.type == kExprLCase) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        NSString* value     = [term.value lowercaseString];
+        if (term.language) {
+            return [[GTWLiteral alloc] initWithString:value language:term.language];
+        } else {
+            return [[GTWLiteral alloc] initWithString:value datatype:term.datatype];
+        }
+    } else if (expr.type == kExprContains) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+        if ([term isKindOfClass:[GTWLiteral class]] && [pat isKindOfClass:[GTWLiteral class]]) {
+            // TODO: return nil if the two terms aren't 'argument compatible'
+            NSRange range       = [term.value rangeOfString:pat.value options:0];
+            if (range.location != NSNotFound) {
+                return [GTWLiteral trueLiteral];
+            } else {
+                return [GTWLiteral falseLiteral];
+            }
+        }
+        return nil;
+    } else if (expr.type == kExprExists) {
+        // TODO: the EXISTS pattern isn't planned at this point.
+        // needs to be planned and then have a way to call back into the query engine (not just access to the model)
+        NSLog(@"Evaluating ExprExists expressions not implemented yet: %@", expr);
+        return nil;
+    } else if (expr.type == kExprIn) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTree> list    = expr.arguments[1];
+        for (id<GTWTree> t in list.arguments) {
+            id<GTWTerm> tn  = [self evaluateExpression:t withResult:result usingModel: model];
+            if ([term isEqual:tn]) {
+                return [GTWLiteral trueLiteral];
+            }
+        }
+        return [GTWLiteral falseLiteral];
+    } else if (expr.type == kExprNotIn) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTree> list    = expr.arguments[1];
+        for (id<GTWTree> t in list.arguments) {
+            id<GTWTerm> tn  = [self evaluateExpression:t withResult:result usingModel: model];
+            if ([term isEqual:tn]) {
+                return [GTWLiteral falseLiteral];
+            }
+        }
+        return [GTWLiteral trueLiteral];
     } else {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;

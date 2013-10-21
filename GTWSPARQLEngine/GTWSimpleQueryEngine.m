@@ -82,7 +82,7 @@
                 GTWTree* node       = list.arguments[1];
                 id<GTWVariable> v   = node.value;
                 NSString* name  = [v value];
-                id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:r];
+                id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:r usingModel:model];
                 if (f) {
                     result[name]    = f;
                 }
@@ -183,12 +183,12 @@
                 id<GTWTree> expr    = list.arguments[0];
                 id<GTWTree> tn      = list.arguments[1];
                 id<GTWTerm> var = tn.value;
-                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr withResult:result];
+                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr withResult:result usingModel: model];
                 [resultGroupData addObject:t];
                 groupKeyDict[var.value]   = t;
             } else {
                 id<GTWTerm> var = g.value;
-                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)g withResult:result];
+                id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)g withResult:result usingModel: model];
                 [resultGroupData addObject:t];
                 groupKeyDict[var.value]   = t;
             }
@@ -211,7 +211,7 @@
         NSMutableDictionary* result = [NSMutableDictionary dictionaryWithDictionary:groupKey];
         for (id<GTWTree> expr in aggregates) {
             GTWVariable* v  = aggregates[expr];
-            id<GTWTerm> value   = [self valueOfAggregate:expr forResults:groupResults];
+            id<GTWTerm> value   = [self valueOfAggregate:expr forResults:groupResults withModel:model];
             if (value) {
                 result[v.value]   = value;
             }
@@ -221,13 +221,13 @@
     return [finalResults objectEnumerator];
 }
 
-- (id<GTWTerm>) valueOfAggregate: (id<GTWTree>) expr forResults: (NSArray*) results {
+- (id<GTWTerm>) valueOfAggregate: (id<GTWTree>) expr forResults: (NSArray*) results withModel: (id<GTWModel>) model {
     if (expr.type == kExprCount) {
         GTWLiteral* distinct    = expr.value;
         id counter  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
         for (NSDictionary* result in results) {
             if ([expr.arguments count]) {
-                id<GTWTerm> f   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+                id<GTWTerm> f   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
                 [counter addObject:f];
             } else {
                 [counter addObject:@(1)];
@@ -238,7 +238,7 @@
         GTWLiteral* distinct    = expr.value;
         NSMutableArray* array   = [NSMutableArray array];
         for (NSDictionary* result in results) {
-            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             if (t)
                 [array addObject:t.value];
         }
@@ -246,7 +246,7 @@
     } else if (expr.type == kExprMax) {
         id<GTWTerm> max = nil;
         for (NSDictionary* result in results) {
-            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             if (!max || [t compare:max] == NSOrderedDescending) {
                 max = t;
             }
@@ -255,7 +255,7 @@
     } else if (expr.type == kExprMin) {
         id<GTWTerm> min = nil;
         for (NSDictionary* result in results) {
-            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            id<GTWTerm> t   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             if (!min || [t compare:min] == NSOrderedAscending) {
                 min = t;
             }
@@ -264,7 +264,7 @@
     } else if (expr.type == kExprSample) {
         id<GTWTerm> term = nil;
         for (NSDictionary* result in results) {
-            term   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result];
+            term   = [GTWExpression evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             break;
         }
         return term;
@@ -306,7 +306,7 @@
     NSArray* results    = [[self evaluateQueryPlan:subplan withModel:model] allObjects];
     NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
     for (id result in results) {
-        id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:result];
+        id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:result usingModel: model];
         if ([f respondsToSelector:@selector(booleanValue)] && [(id<GTWLiteral>)f booleanValue]) {
             [filtered addObject:result];
         }
@@ -324,7 +324,7 @@
     NSEnumerator* results    = [self evaluateQueryPlan:subplan withModel:model];
     NSMutableArray* extended   = [NSMutableArray array];
     for (id result in results) {
-        id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:result];
+        id<GTWTerm> f   = [GTWExpression evaluateExpression:expr withResult:result usingModel: model];
         NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
         id<GTWTerm> value   = [e objectForKey:v.value];
         if (!value || [value isEqual:f]) {
@@ -380,8 +380,8 @@
     
     for (NSDictionary* result in pathResults) {
         NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
-        id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result];
-        id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result];
+        id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result usingModel: model];
+        id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result usingModel: model];
         
         BOOL ok             = YES;
         if ([subj isKindOfClass:[GTWVariable class]]) {
@@ -455,8 +455,8 @@
         NSUInteger lastCount    = [results count];
         for (NSDictionary* result in loopResults) {
             NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
-            id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result];
-            id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result];
+            id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result usingModel: model];
+            id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result usingModel: model];
             
             BOOL ok             = YES;
             if ([subj isKindOfClass:[GTWVariable class]]) {
