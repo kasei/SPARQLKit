@@ -30,6 +30,9 @@ extern GTWTreeType __strong const kPlanJoinIdentity;			// JoinIdentity()
 extern GTWTreeType __strong const kPlanFedStub;				// FedStub( P )
 extern GTWTreeType __strong const kPlanDescribe;
 extern GTWTreeType __strong const kPlanGroup;
+extern GTWTreeType __strong const kPlanZeroOrMorePath;
+extern GTWTreeType __strong const kPlanOneOrMorePath;
+extern GTWTreeType __strong const kPlanZeroOrOnePath;
 
 // algebra tree nodes:
 extern GTWTreeType __strong const kAlgebraAsk;

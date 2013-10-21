@@ -18,9 +18,13 @@
 
 - (NSEnumerator*) evaluateNLJoin:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     BOOL leftJoin   = (plan.value && [plan.value isEqualToString:@"left"]);
-    NSMutableArray* results = [NSMutableArray array];
     NSEnumerator* lhs    = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSArray* rhs    = [[self evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
+    return [self joinResultsEnumerator:lhs withResults:rhs leftJoin: leftJoin];
+}
+
+- (NSEnumerator*) joinResultsEnumerator: (NSEnumerator*) lhs withResults: (NSArray*) rhs leftJoin: (BOOL) leftJoin {
+    NSMutableArray* results = [NSMutableArray array];
     for (NSDictionary* l in lhs) {
         BOOL joined = NO;
         for (NSDictionary* r in rhs) {
@@ -200,7 +204,7 @@
         }
         [resultGroups[groupKey] addObject:result];
     }
-    NSLog(@"-------------\nGroups:%@", resultGroups);
+//    NSLog(@"-------------\nGroups:%@", resultGroups);
     NSMutableArray* finalResults    = [NSMutableArray array];
     for (id groupKey in resultGroups) {
         NSArray* groupResults   = resultGroups[groupKey];
@@ -331,6 +335,199 @@
     return [extended objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateZeroOrOnePathPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    id<GTWTree> list        = plan.treeValue;
+    id<GTWTree> s           = list.arguments[0];
+    id<GTWTree> o           = list.arguments[1];
+    id<GTWTree> ts          = list.arguments[2];
+    id<GTWTree> to          = list.arguments[3];
+    id<GTWTree> graphs      = list.arguments[4];
+    id<GTWTerm> subj        = s.value;
+    id<GTWTerm> obj         = o.value;
+    NSEnumerator* r         = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSArray* pathResults    = [r allObjects];
+    
+    NSMutableSet* results = [NSMutableSet set];
+    {
+        BOOL subjVar    = [subj isKindOfClass:[GTWVariable class]];
+        BOOL objVar     = [obj isKindOfClass:[GTWVariable class]];
+        if (subjVar && objVar) {
+            // results map both (subj, obj) to each graph node in current graph
+            NSMutableSet* nodes = [NSMutableSet set];
+            for (id<GTWTree> graphTree in graphs.arguments) {
+                [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graphTree.value usingBlock:^(id<GTWQuad> q) {
+                    [nodes addObject:q.subject];
+                    [nodes addObject:q.object];
+                } error:nil];
+            }
+            for (id<GTWTerm> t in nodes) {
+                NSDictionary* result    = @{subj.value: t, obj.value: t};
+                [results addObject:result];
+            }
+        } else if (subjVar) {
+            // one result: { subj -> obj }
+            NSDictionary* result    = @{subj.value: obj};
+            [results addObject:result];
+        } else if (objVar) {
+            // one result: { obj -> subj }
+            NSDictionary* result    = @{obj.value: subj};
+            [results addObject:result];
+        } else {
+            // TODO: one result (the join identity)
+            [results addObject:@{}];
+        }
+    }
+    
+    for (NSDictionary* result in pathResults) {
+        NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
+        id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result];
+        id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result];
+        
+        BOOL ok             = YES;
+        if ([subj isKindOfClass:[GTWVariable class]]) {
+            newResult[subj.value]   = subjTerm;
+        } else if (![subjTerm isEqual:subj]) {
+            // the subject of this property path is a Term (not a variable) that doesn't match this result
+            ok  = NO;
+        }
+        
+        if ([obj isKindOfClass:[GTWVariable class]]) {
+            newResult[obj.value]   = objTerm;
+        } else if (![objTerm isEqual:obj]) {
+            // the object of this property path is a Term (not a variable) that doesn't match this result
+            ok  = NO;
+        }
+        
+        if (ok) {
+            [results addObject:newResult];
+        }
+    }
+
+    return [results objectEnumerator];
+}
+
+- (NSEnumerator*) evaluateMorePathPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model includeZeroLengthResults: (BOOL) zeroLength {
+    id<GTWTree> list        = plan.treeValue;
+    id<GTWTree> s           = list.arguments[0];
+    id<GTWTree> o           = list.arguments[1];
+    id<GTWTree> ts          = list.arguments[2];
+    id<GTWTree> to          = list.arguments[3];
+    id<GTWTree> graphs      = list.arguments[4];
+    id<GTWTerm> subj        = s.value;
+    id<GTWTerm> obj         = o.value;
+    NSEnumerator* r         = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSArray* pathResults    = [r allObjects];
+    NSArray* loopResults    = pathResults;
+    
+    NSMutableSet* results = [NSMutableSet set];
+    if (zeroLength) {
+        BOOL subjVar    = [subj isKindOfClass:[GTWVariable class]];
+        BOOL objVar     = [obj isKindOfClass:[GTWVariable class]];
+        if (subjVar && objVar) {
+            // results map both (subj, obj) to each graph node in current graph
+            NSMutableSet* nodes = [NSMutableSet set];
+            for (id<GTWTree> graphTree in graphs.arguments) {
+                [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graphTree.value usingBlock:^(id<GTWQuad> q) {
+                    [nodes addObject:q.subject];
+                    [nodes addObject:q.object];
+                } error:nil];
+            }
+            for (id<GTWTerm> t in nodes) {
+                NSDictionary* result    = @{subj.value: t, obj.value: t};
+                [results addObject:result];
+            }
+        } else if (subjVar) {
+            // one result: { subj -> obj }
+            NSDictionary* result    = @{subj.value: obj};
+            [results addObject:result];
+        } else if (objVar) {
+            // one result: { obj -> subj }
+            NSDictionary* result    = @{obj.value: subj};
+            [results addObject:result];
+        } else {
+            // TODO: one result (the join identity)
+            [results addObject:@{}];
+        }
+    }
+    NSUInteger loop         = 1;
+    while (YES) {
+        loopResults    = [self resultsForMorePathPlan:plan withResults:loopResults forLength:loop withModel:model]; //zeroOrMorePathResults:pathResults forLength: loop];
+        NSUInteger lastCount    = [results count];
+        for (NSDictionary* result in loopResults) {
+            NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
+            id<GTWTerm> subjTerm    = [GTWExpression evaluateExpression:ts withResult:result];
+            id<GTWTerm> objTerm     = [GTWExpression evaluateExpression:to withResult:result];
+            
+            BOOL ok             = YES;
+            if ([subj isKindOfClass:[GTWVariable class]]) {
+                newResult[subj.value]   = subjTerm;
+            } else if (![subjTerm isEqual:subj]) {
+                // the subject of this property path is a Term (not a variable) that doesn't match this result
+                ok  = NO;
+            }
+            
+            if ([obj isKindOfClass:[GTWVariable class]]) {
+                newResult[obj.value]   = objTerm;
+            } else if (![objTerm isEqual:obj]) {
+                // the object of this property path is a Term (not a variable) that doesn't match this result
+                ok  = NO;
+            }
+            
+            if (ok) {
+                [results addObject:newResult];
+            }
+        }
+        if ([results count] == lastCount)
+            break;
+        loop++;
+    }
+//    NSLog(@"ZeroOrMore path results: %@", results);
+    return [results objectEnumerator];
+}
+
+- (NSArray*) resultsForMorePathPlan: (id<GTWTree, GTWQueryPlan>)plan withResults: (NSArray*) pathResults forLength: (NSUInteger) length withModel:(id<GTWModel>)model  {
+    id<GTWTree> list        = plan.treeValue;
+    id<GTWTree> ts          = list.arguments[2];
+    id<GTWTree> to          = list.arguments[3];
+    id<GTWTerm> temps       = ts.value;
+    id<GTWTerm> tempo       = to.value;
+
+    if (length == 1) {
+//        NSLog(@"ZeroOrMore path results for loop #%lu: %@", length, pathResults);
+        return pathResults;
+    } else {
+        NSEnumerator* newPathResults   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+        
+        NSMutableArray* rhsResults  = [NSMutableArray array];
+        NSMutableArray* lhsResults  = [NSMutableArray array];
+        GTWVariable* b = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zmr%lu", self.bnodeCounter++]];
+        for (NSDictionary* result in newPathResults) {
+            // rename temp object to b
+            NSMutableDictionary* newResult  = [NSMutableDictionary dictionaryWithDictionary:result];
+            id<GTWTerm> term    = result[tempo.value];
+            if (term) {
+                [newResult removeObjectForKey:tempo.value];
+                newResult[b.value]  = term;
+            }
+            [lhsResults addObject:newResult];
+        }
+        for (NSDictionary* result in pathResults) {
+            // rename subject to b
+            NSMutableDictionary* newResult  = [NSMutableDictionary dictionaryWithDictionary:result];
+            id<GTWTerm> term    = result[temps.value];
+            if (term) {
+                [newResult removeObjectForKey:temps.value];
+                newResult[b.value]  = term;
+            }
+            [rhsResults addObject:newResult];
+        }
+        NSEnumerator* e = [self joinResultsEnumerator:[lhsResults objectEnumerator] withResults:rhsResults leftJoin:NO];
+        NSArray* a      = [e allObjects];
+//        NSLog(@"ZeroOrMore path results for loop #%lu: %@", length, a);
+        return a;
+    }
+}
+
 - (NSEnumerator*) evaluateSlice:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
     id<GTWTree> offsetNode  = plan.arguments[1];
@@ -402,6 +599,12 @@
         return [self evaluateGroupPlan:plan withModel:model];
     } else if (type == kPlanEmpty) {
         return [@[ @{} ] objectEnumerator];
+    } else if (type == kPlanZeroOrOnePath) {
+        return [self evaluateZeroOrOnePathPlan:plan withModel:model];
+    } else if (type == kPlanOneOrMorePath) {
+        return [self evaluateMorePathPlan:plan withModel:model includeZeroLengthResults:NO];
+    } else if (type == kPlanZeroOrMorePath) {
+        return [self evaluateMorePathPlan:plan withModel:model includeZeroLengthResults:YES];
     } else if (type == kTreeResultSet) {
         NSArray* resultsTree    = plan.arguments;
         NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];

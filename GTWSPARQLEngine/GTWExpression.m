@@ -24,7 +24,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
 
 @implementation GTWExpression
 
-+ (id<GTWTerm>) evaluateExpression: (GTWTree*) expr withResult: (NSDictionary*) result {
++ (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result {
     if (!expr)
         return nil;
     id<GTWTerm> lhs, rhs;
@@ -249,11 +249,38 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprConcat) {
         NSMutableArray* array   = [NSMutableArray array];
+        BOOL seen   = NO;
+        NSString* datatype      = nil;
+        NSString* language      = nil;
         for (id<GTWTree> t in expr.arguments) {
             id<GTWTerm> term  = [self evaluateExpression:t withResult:result];
+            if (term.datatype) {
+                if (!([term.datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"] || [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"])) {
+                    return nil;
+                }
+            }
+            if (!seen) {
+                language    = term.language;
+                datatype    = term.datatype;
+            } else {
+                if (![language isEqual: term.language]) {
+                    language    = nil;
+                }
+                if (![datatype isEqual: term.datatype]) {
+                    datatype    = nil;
+                }
+            }
+            seen    = YES;
             [array addObject:term.value];
         }
-        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
+        
+        if (language) {
+            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""] language:language];
+        } else if (datatype && ![datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"]) {
+            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""] datatype:datatype];
+        } else {
+            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
+        }
     } else if (expr.type == kExprLang) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if ([term isKindOfClass:[GTWLiteral class]]) {

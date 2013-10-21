@@ -11,4 +11,6 @@
 
 @interface GTWSimpleQueryEngine : NSObject<GTWQueryEngine>
 
+@property NSUInteger bnodeCounter;
+
 @end

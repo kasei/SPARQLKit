@@ -429,7 +429,7 @@ cleanup:
             if (v.type == kTreeNode) {
                 id<GTWTerm> t   = v.value;
                 if (![groupVars containsObject:t]) {
-                    if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@"."])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
+                    if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
                         return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
                     }
                 }
@@ -438,7 +438,7 @@ cleanup:
 //                NSLog(@"non-aggregated variables: %@", vars);
                 for (id<GTWTerm> t in vars) {
                     if (![groupVars containsObject:t]) {
-                        if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@"."])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
+                        if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
                             return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
                         }
                     }
@@ -744,7 +744,7 @@ cleanup:
         NSUInteger i    = 0;
         NSMutableArray* aggregateList   = [NSMutableArray array];
         for (id<GTWTree, NSCopying> agg in aggregates) {
-            GTWVariable* v  = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@".%lu", i++]];
+            GTWVariable* v  = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@".agg%lu", i++]];
             mapping[agg]   = v;
             id<GTWTree> aggPair   = [[GTWTree alloc] initWithType:kTreeList value:v arguments:@[agg]];
             [aggregateList addObject:aggPair];

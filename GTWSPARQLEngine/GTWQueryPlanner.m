@@ -13,7 +13,7 @@
     return self;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize: (BOOL) opt {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize: (BOOL) opt {
     id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
     if (opt) {
         [plan computeScopeVariables];
@@ -21,7 +21,7 @@
     return plan;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     if (algebra == nil) {
         NSLog(@"trying to plan nil algebra");
         return nil;
@@ -73,7 +73,6 @@
                 return nil;
             return [[GTWQueryPlan alloc] initWithType:kPlanGraph value: algebra.value arguments:@[plan]];
         } else {
-            NSError* error  = nil;
             NSArray* graphs = [dataset availableGraphsFromModel:model];
             
             id<GTWTree,GTWQueryPlan> gplan     = nil;
@@ -83,7 +82,7 @@
                 if (!plan)
                     return nil;
                 
-                GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
+                id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
                                                                                       [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
                                                                                       graphtree,
                                                                                       ]];
@@ -223,7 +222,7 @@
             return plan;
         }
     } else if (algebra.type == kTreePath) {
-        return [self queryPlanForPath:algebra usingDataset:dataset withModel:model];
+        return [self queryPlanForPathAlgebra:algebra usingDataset:dataset withModel:model];
     } else if (algebra.type == kTreeResultSet) {
         return (id<GTWTree, GTWQueryPlan>) algebra;
     } else {
@@ -234,11 +233,14 @@
     return nil;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForPath: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForPathAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     id<GTWTree> s       = algebra.arguments[0];
     id<GTWTree> path    = algebra.arguments[1];
     id<GTWTree> o       = algebra.arguments[2];
-    
+    return [self queryPlanForPath:path starting:s ending:o usingDataset:dataset withModel:model];
+}
+
+- (id<GTWTree,GTWQueryPlan>) queryPlanForPath: (id<GTWTree>) path starting: (id<GTWTree>) s ending: (id<GTWTree>) o usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     if (path.type == kPathSequence) {
         GTWVariable* b = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"qp__%lu", self.bnodeCounter++]];
         id<GTWTree> blank   = [[GTWTree alloc] initWithType:kTreeNode value:b arguments:nil];
@@ -246,14 +248,59 @@
         id<GTWTree> rest    = path.arguments[1];
         id<GTWTree> lhsPath = [[GTWTree alloc] initWithType:kTreePath arguments:@[s, first, blank]];
         id<GTWTree> rhsPath = [[GTWTree alloc] initWithType:kTreePath arguments:@[blank, rest, o]];
-        id<GTWTree, GTWQueryPlan> lhs = [self queryPlanForPath:lhsPath usingDataset:dataset withModel:model];
-        id<GTWTree, GTWQueryPlan> rhs = [self queryPlanForPath:rhsPath usingDataset:dataset withModel:model];
+        id<GTWTree, GTWQueryPlan> lhs = [self queryPlanForPathAlgebra:lhsPath usingDataset:dataset withModel:model];
+        id<GTWTree, GTWQueryPlan> rhs = [self queryPlanForPathAlgebra:rhsPath usingDataset:dataset withModel:model];
         if (!(lhs && rhs))
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+    } else if (path.type == kPathZeroOrOne) {
+        GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        id<GTWTree> temps  = [[GTWTree alloc] initWithType:kTreeNode value:ts arguments:nil];
+        id<GTWTree> tempo  = [[GTWTree alloc] initWithType:kTreeNode value:to arguments:nil];
+        id<GTWTree, GTWQueryPlan> plan  = [self queryPlanForPath:path.arguments[0] starting:temps ending:tempo usingDataset:dataset withModel:model];
+        NSArray* graphs     = [dataset defaultGraphs];
+        NSMutableArray* graphsTrees = [NSMutableArray array];
+        for (id<GTWTerm> g in graphs) {
+            id<GTWTree> t   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
+            [graphsTrees addObject:t];
+        }
+        id<GTWTree> activeGraphs    = [[GTWTree alloc] initWithType:kTreeList arguments:graphsTrees];
+        id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanZeroOrOnePath treeValue:list arguments:@[plan]];
+    } else if (path.type == kPathZeroOrMore) {
+        GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        id<GTWTree> temps  = [[GTWTree alloc] initWithType:kTreeNode value:ts arguments:nil];
+        id<GTWTree> tempo  = [[GTWTree alloc] initWithType:kTreeNode value:to arguments:nil];
+        id<GTWTree, GTWQueryPlan> plan  = [self queryPlanForPath:path.arguments[0] starting:temps ending:tempo usingDataset:dataset withModel:model];
+        NSArray* graphs     = [dataset defaultGraphs];
+        NSMutableArray* graphsTrees = [NSMutableArray array];
+        for (id<GTWTerm> g in graphs) {
+            id<GTWTree> t   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
+            [graphsTrees addObject:t];
+        }
+        id<GTWTree> activeGraphs    = [[GTWTree alloc] initWithType:kTreeList arguments:graphsTrees];
+        id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanZeroOrMorePath treeValue:list arguments:@[plan]];
+    } else if (path.type == kPathOneOrMore) {
+        GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
+        id<GTWTree> temps  = [[GTWTree alloc] initWithType:kTreeNode value:ts arguments:nil];
+        id<GTWTree> tempo  = [[GTWTree alloc] initWithType:kTreeNode value:to arguments:nil];
+        id<GTWTree, GTWQueryPlan> plan  = [self queryPlanForPath:path.arguments[0] starting:temps ending:tempo usingDataset:dataset withModel:model];
+        NSArray* graphs     = [dataset defaultGraphs];
+        NSMutableArray* graphsTrees = [NSMutableArray array];
+        for (id<GTWTerm> g in graphs) {
+            id<GTWTree> t   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
+            [graphsTrees addObject:t];
+        }
+        id<GTWTree> activeGraphs    = [[GTWTree alloc] initWithType:kTreeList arguments:graphsTrees];
+        id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanOneOrMorePath treeValue:list arguments:@[plan]];
     } else if (path.type == kPathInverse) {
         id<GTWTree> p   = [[GTWTree alloc] initWithType:kTreePath arguments:@[o, path.arguments[0], s]];
-        return [self queryPlanForPath:p usingDataset:dataset withModel:model];
+        return [self queryPlanForPathAlgebra:p usingDataset:dataset withModel:model];
     } else if (path.type == kTreeNode) {
         id<GTWTerm> subj    = s.value;
         id<GTWTerm> pred    = path.value;
@@ -262,13 +309,13 @@
         id<GTWTree> triple  = [[GTWTree alloc] initWithType:kTreeTriple value: t arguments:nil];
         return [self queryPlanForAlgebra:triple usingDataset:dataset withModel:model];
     } else {
-        NSLog(@"Cannot plan property path %@", algebra);
+        NSLog(@"Cannot plan property path <%@ %@>: %@", s, o, path);
         return nil;
     }
     return nil;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (GTWTree*) algebra withModel: (id<GTWModel>) model {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra withModel: (id<GTWModel>) model {
     GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[]];
     return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
 }

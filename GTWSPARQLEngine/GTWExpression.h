@@ -4,6 +4,6 @@
 
 @interface GTWExpression : GTWTree
 
-+ (id<GTWTerm>) evaluateExpression: (GTWTree*) expr withResult: (NSDictionary*) result;
++ (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result;
 
 @end
