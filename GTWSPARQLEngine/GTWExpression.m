@@ -7,10 +7,11 @@
 //
 
 #include <CommonCrypto/CommonDigest.h>
-#import "GTWExpression.h"
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWIRI.h>
+#import "GTWExpression.h"
+#import "NSDate+W3CDTFSupport.h"
 
 static BOOL isNumeric(id<GTWTerm> term) {
     if (!term)
@@ -56,6 +57,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprEq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+//        NSLog(@"%@ <=> %@", lhs, rhs);
         if ([lhs isEqual:rhs]) {
             return [GTWLiteral trueLiteral];
         } else {
@@ -63,7 +65,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprIsURI) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        NSLog(@"ISIRI(%@)", lhs);
+//        NSLog(@"ISIRI(%@)", lhs);
         if ([lhs conformsToProtocol:@protocol(GTWIRI)]) {
             return [GTWLiteral trueLiteral];
         } else {
@@ -216,7 +218,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return nil;
         }
-    } else if (expr.type == kExprSHA1 || expr.type == kExprSHA224 || expr.type == kExprSHA256 || expr.type == kExprSHA512) {
+    } else if (expr.type == kExprSHA1 || expr.type == kExprSHA224 || expr.type == kExprSHA256 || expr.type == kExprSHA512 || expr.type == kExprMD5) {
         NSUInteger dataLength   = 0;
         unsigned char* (*SHA_FUNC)(const void *data, CC_LONG len, unsigned char *md)    = NULL;
         if (expr.type == kExprSHA1) {
@@ -231,7 +233,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else if (expr.type == kExprSHA512) {
             SHA_FUNC    = CC_SHA512;
             dataLength  = CC_SHA512_DIGEST_LENGTH;
+        } else if (expr.type == kExprMD5) {
+            SHA_FUNC    = CC_MD5;
+            dataLength  = CC_MD5_DIGEST_LENGTH;
         }
+        
         if (dataLength == 0) {
             return nil;
         }
@@ -258,6 +264,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSString *uuidStr = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
         CFRelease(uuid);
         return [[GTWLiteral alloc] initWithString:uuidStr];
+    } else if (expr.type == kExprNow) {
+        NSDate* date    = [[NSDate alloc] init];
+        id<GTWTerm> now = [[GTWLiteral alloc] initWithString:[date getW3CDTFString] datatype:@"http://www.w3.org/2001/XMLSchema#dateTime"];
+        NSLog(@"%@", now);
+        return now;
     } else if (expr.type == kExprSubStr) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
@@ -313,6 +324,16 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
         }
+    } else if (expr.type == kExprDatatype) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            GTWLiteral* l   = (GTWLiteral*) term;
+            NSString* dt    = l.datatype;
+            if (!dt)
+                dt    = @"";
+            return [[GTWIRI alloc] initWithValue:dt];
+        }
+        return nil;
     } else if (expr.type == kExprLang) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]]) {
