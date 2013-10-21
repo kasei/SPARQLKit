@@ -81,7 +81,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     NSMutableArray* manifests   = [NSMutableArray array];
     [model enumerateBindingsMatchingSubject:nil predicate:include object:v graph:nil usingBlock:^(NSDictionary *q) {
         id<GTWTerm> list    = q[@"o"];
-        [manifests addObjectsFromArray:[self arrayFromModel: model withList: list]];
+        NSArray* files      = [self arrayFromModel:model withList:list];
+        NSMutableArray* matchingFiles   = [NSMutableArray array];
+        for (id<GTWTerm> f in files) {
+            // Skip entailment tests as well as the protocol and SD manifests which don't contain tests we can run
+            if ([f.value rangeOfString:@"entailment"].location != NSNotFound)
+                continue;
+            if ([f.value rangeOfString:@"protocol"].location != NSNotFound)
+                continue;
+            if ([f.value rangeOfString:@"service-description"].location != NSNotFound)
+                continue;
+            [matchingFiles addObject:f];
+        }
+        [manifests addObjectsFromArray:matchingFiles];
     } error:nil];
     
     for (id<GTWIRI> file in manifests) {
@@ -112,13 +124,13 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     NSLog(@"Failing tests: %@", self.failingTests);
     NSLog(@"%lu/%lu passing tests (%.1f%%)", self.testsPassing, self.testsCount, (100.0 * (float) self.testsPassing / (float) self.testsCount));
     if (self.runSyntaxTests) {
-        NSLog(@"-> %lu/%lu passing syntax tests", self.passingSyntaxTests, self.syntaxTests);
+        NSLog(@"-> %lu/%lu passing syntax tests (%.1f%%)", self.passingSyntaxTests, self.syntaxTests, (100.0 * (float) self.passingSyntaxTests / (float) self.syntaxTests));
         if (self.passingSyntaxTests < self.syntaxTests) {
             //            NSLog(@"%@", self.testData[kFailingSyntaxTests]);
         }
     }
     if (self.runEvalTests) {
-        NSLog(@"-> %lu/%lu passing eval tests", self.passingEvalTests, self.evalTests);
+        NSLog(@"-> %lu/%lu passing eval tests (%.1f%%)", self.passingEvalTests, self.evalTests, (100.0 * (float) self.passingEvalTests / (float) self.evalTests));
         if (self.passingEvalTests < self.evalTests) {
             //            NSLog(@"%@", self.testData[kFailingEvalTests]);
         }
