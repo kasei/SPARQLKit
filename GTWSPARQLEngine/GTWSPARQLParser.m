@@ -2056,6 +2056,7 @@ cleanup:
             }
             [self parseExpectedTokenOfType:RPAREN withErrors:errors];
         }
+        ASSERT_EMPTY(errors);
         
         NSDictionary* funcdict  = @{
                                     @"STR": kExprStr,
@@ -2112,9 +2113,11 @@ cleanup:
                                     @"REGEX": kExprRegex,
                                     };
         GTWTreeType functype    = [funcdict objectForKey:funcname];
+        if (functype == kExprIRI) {
+            id<GTWTree> base    = [[GTWTree alloc] initWithType:kTreeNode value:self.baseIRI arguments:nil];
+            [arguments addObject:base];
+        }
         id<GTWTree> func    = [[GTWTree alloc] initWithType:functype arguments:arguments];
-        ASSERT_EMPTY(errors);
-        ASSERT_EMPTY(errors);
         return func;
     }
     return nil;

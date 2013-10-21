@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
+#include <CommonCrypto/CommonDigest.h>
 #import "GTWExpression.h"
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
@@ -215,6 +216,37 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return nil;
         }
+    } else if (expr.type == kExprSHA1 || expr.type == kExprSHA224 || expr.type == kExprSHA256 || expr.type == kExprSHA512) {
+        NSUInteger dataLength   = 0;
+        unsigned char* (*SHA_FUNC)(const void *data, CC_LONG len, unsigned char *md)    = NULL;
+        if (expr.type == kExprSHA1) {
+            SHA_FUNC    = CC_SHA1;
+            dataLength  = CC_SHA1_DIGEST_LENGTH;
+        } else if (expr.type == kExprSHA224) {
+            SHA_FUNC    = CC_SHA224;
+            dataLength  = CC_SHA224_DIGEST_LENGTH;
+        } else if (expr.type == kExprSHA256) {
+            SHA_FUNC    = CC_SHA256;
+            dataLength  = CC_SHA256_DIGEST_LENGTH;
+        } else if (expr.type == kExprSHA512) {
+            SHA_FUNC    = CC_SHA512;
+            dataLength  = CC_SHA512_DIGEST_LENGTH;
+        }
+        if (dataLength == 0) {
+            return nil;
+        }
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        unsigned char digest[dataLength];
+        NSData *stringBytes = [term.value dataUsingEncoding: NSUTF8StringEncoding]; /* or some other encoding */
+        
+        if (SHA_FUNC([stringBytes bytes], (CC_LONG) [stringBytes length], digest)) {
+            NSMutableString     *hexString  = [NSMutableString stringWithCapacity:(dataLength * 2)];
+            for (int i = 0; i < dataLength; ++i)
+                [hexString appendString:[NSString stringWithFormat:@"%02lx", (unsigned long)digest[i]]];
+            return [[GTWLiteral alloc] initWithValue:hexString];
+        } else {
+            return nil;
+        }
     } else if (expr.type == kExprUUID) {
 //        urn:uuid:b9302fb5-642e-4d3b-af19-29a8f6d894c9
         CFUUIDRef uuid = CFUUIDCreate(NULL);
@@ -346,6 +378,14 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
         }
+    } else if (expr.type == kExprIRI) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
+        id<GTWTerm> base  = [self evaluateExpression:expr.arguments[1] withResult:result];
+        NSURL* url  = [[NSURL alloc] initWithString:term.value relativeToURL:[NSURL URLWithString:base.value]];
+        NSString* iri   = [url absoluteString];
+        if (!iri)
+            return nil;
+        return [[GTWIRI alloc] initWithValue:iri];
     } else {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;
