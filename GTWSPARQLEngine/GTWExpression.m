@@ -41,33 +41,33 @@ static BOOL isNumeric(id<GTWTerm> term) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
         if ([((GTWLiteral*) lhs) booleanValue] || [((GTWLiteral*) rhs) booleanValue]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprAnd) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
         if ([((GTWLiteral*) lhs) booleanValue] && [((GTWLiteral*) rhs) booleanValue]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprEq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result];
         if ([lhs isEqual:rhs]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsURI) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result];
         NSLog(@"ISIRI(%@)", lhs);
         if ([lhs conformsToProtocol:@protocol(GTWIRI)]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprGe) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result];
@@ -76,9 +76,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
             if (value >= cmpvalue) {
-                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral trueLiteral];
             } else {
-                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral falseLiteral];
             }
         }
         return nil;
@@ -89,9 +89,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
             if (value <= cmpvalue) {
-                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral trueLiteral];
             } else {
-                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral falseLiteral];
             }
         }
         return nil;
@@ -102,9 +102,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
             if (value < cmpvalue) {
-                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral trueLiteral];
             } else {
-                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral falseLiteral];
             }
         }
         return nil;
@@ -115,9 +115,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             double value    = [term doubleValue];
             double cmpvalue = [cmp doubleValue];
             if (value > cmpvalue) {
-                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral trueLiteral];
             } else {
-                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral falseLiteral];
             }
         }
         return nil;
@@ -204,9 +204,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result];
         NSString* lang      = term.value;
         if (lang && [lang hasPrefix:pattern.value]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
         return nil;
     } else if (expr.type == kExprStrLen) {
@@ -328,9 +328,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result];
         if ([term isKindOfClass:[GTWLiteral class]] && [pat isKindOfClass:[GTWLiteral class]]) {
             if ([term.value hasSuffix:pat.value]) {
-                return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral trueLiteral];
             } else {
-                return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+                return [GTWLiteral falseLiteral];
             }
         }
         return nil;
@@ -353,30 +353,30 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprIsNumeric) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if (isNumeric(term)) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsLiteral) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if (term && [term isKindOfClass:[GTWLiteral class]]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsURI) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if (term && [term isKindOfClass:[GTWIRI class]]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIsBlank) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
         if (term && [term isKindOfClass:[GTWBlank class]]) {
-            return [[GTWLiteral alloc] initWithString:@"true" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral trueLiteral];
         } else {
-            return [[GTWLiteral alloc] initWithString:@"false" datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+            return [GTWLiteral falseLiteral];
         }
     } else if (expr.type == kExprIRI) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result];
