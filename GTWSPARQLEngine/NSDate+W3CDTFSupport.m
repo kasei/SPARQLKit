@@ -16,8 +16,8 @@
 @implementation NSDate (W3CDTFSupport)
 +(NSDate*) dateWithW3CDTFString:(NSString*)dateAndTimeFormat
 {
-    NSTimeInterval interval;
-    @autoreleasepool {
+  NSTimeInterval interval;
+  @autoreleasepool {
   NSRange separator = [dateAndTimeFormat rangeOfString:@"T"];
   NSString *timeString, *dateString;
 
@@ -61,7 +61,9 @@
     offsetSign  = -1;
     timeDictionary = [[self class] W3CDTF_timeDictionaryWithString:timeString range:tzMinus];
   } else {
-    return nil;
+    // floating
+      NSRange range = { .location = [timeString length], .length = 0 };
+      timeDictionary = [[self class] W3CDTF_timeDictionaryWithString:timeString range:range];
   }
 
   // 時刻を取得
@@ -85,14 +87,16 @@
   interval = [utcDate timeIntervalSinceReferenceDate] - offset;
 
 //  [NSAutoreleasePool showPools];
-    }
+  }
   return [NSDate dateWithTimeIntervalSinceReferenceDate:interval];
 }
 
 +(NSDictionary*) W3CDTF_timeDictionaryWithString:(NSString*)timeString range:(NSRange)range
 {
-  NSString *offsetHour, *offsetMin;
-  NSArray  *offsetArray = [[timeString substringFromIndex:range.location + 1] componentsSeparatedByString:@":"];
+  NSString *offsetHour  = @"";
+  NSString *offsetMin   = @"";
+  NSString *substring = (range.location < [timeString length]) ? [timeString substringFromIndex:range.location + 1] : @"";
+  NSArray  *offsetArray = [substring componentsSeparatedByString:@":"];
 
   if([offsetArray count] == 2) {
     offsetHour = [offsetArray objectAtIndex:0];
