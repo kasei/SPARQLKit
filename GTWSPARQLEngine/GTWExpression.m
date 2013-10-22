@@ -269,6 +269,36 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> now = [[GTWLiteral alloc] initWithString:[date getW3CDTFString] datatype:@"http://www.w3.org/2001/XMLSchema#dateTime"];
         NSLog(@"%@", now);
         return now;
+    } else if (expr.type == kExprYear || expr.type == kExprMonth || expr.type == kExprDay || expr.type == kExprMinutes || expr.type == kExprSeconds) {
+        id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if (term && [term isKindOfClass:[GTWLiteral class]] && [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#dateTime"]) {
+            NSDate* date    = [NSDate dateWithW3CDTFString:term.value];
+            NSLog(@"date function date: %@ (%@)", date, term.value);
+            if (!date)
+                return nil;
+            NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+            [dateFormatter setLocale:[NSLocale systemLocale]];
+            [dateFormatter setTimeStyle:NSDateFormatterFullStyle];
+            [dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+            NSString* format    = @"";
+            NSString* datatype  = @"http://www.w3.org/2001/XMLSchema#integer";
+            if (expr.type == kExprYear) {
+                format= @"yyyy";
+            } else if (expr.type == kExprMonth) {
+                format= @"MM";
+            } else if (expr.type == kExprDay) {
+                format= @"dd";
+            } else if (expr.type == kExprMinutes) {
+                format= @"mm";
+            } else if (expr.type == kExprSeconds) {
+                format= @"ss";
+                datatype  = @"http://www.w3.org/2001/XMLSchema#decimal";
+            }
+            [dateFormatter setDateFormat:format];
+            NSString* value  = [dateFormatter stringFromDate:date];
+            return [[GTWLiteral alloc] initWithString:value datatype:datatype];
+        }
+        return nil;
     } else if (expr.type == kExprSubStr) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
