@@ -384,7 +384,7 @@ cleanup:
 }
 
 - (id<GTWTree>) algebraVerifyingProjectionAndGroupingInAlgebra: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
-    id<GTWTree> projectList = algebra.value;
+    id<GTWTree> projectList = algebra.treeValue;
     NSArray* plist          = projectList.arguments;
     
     id<GTWTree> pattern     = algebra.arguments[0];
@@ -1017,7 +1017,7 @@ cleanup:
         for (id<GTWTree> value in values) {
             NSMutableDictionary* dict = [NSMutableDictionary dictionary];
             id<GTWTree> key     = var;
-            dict[key.value]     = value;
+            dict[key.value]     = value;    // TODO: this should be key.treeValue
             id<GTWTree> result  = [[GTWTree alloc] initWithType:kTreeResult value:dict arguments:nil];
             [results addObject:result];
         }
@@ -1075,7 +1075,7 @@ cleanup:
             for (i = 0; i < [vars count]; i++) {
                 id<GTWTree> key     = [vars objectAtIndex:i];
                 id<GTWTree> value   = [values objectAtIndex:i];
-                dict[key.value]   = value;
+                dict[key.value]   = value;  // TODO: this should be key.treeValue
             }
             id<GTWTree> result  = [[GTWTree alloc] initWithType:kTreeResult value:dict arguments:nil];
             [results addObject:result];
@@ -1902,7 +1902,6 @@ cleanup:
         return expr;
     } else {
         return [self parseBuiltInCallWithErrors:errors];
-//        return [self errorMessage:[NSString stringWithFormat:@"primary expression not implemented: %@", t] withErrors:errors];
     }
 }
 
@@ -2015,7 +2014,7 @@ cleanup:
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
 	NSRange agg_range	= [t.value rangeOfString:@"(COUNT|SUM|MIN|MAX|AVG|SAMPLE|GROUP_CONCAT)" options:NSRegularExpressionSearch];
     NSRange func_range  = [t.value rangeOfString:@"(STR|LANG|LANGMATCHES|DATATYPE|BOUND|IRI|URI|BNODE|RAND|ABS|CEIL|FLOOR|ROUND|CONCAT|STRLEN|UCASE|LCASE|ENCODE_FOR_URI|CONTAINS|STRSTARTS|STRENDS|STRBEFORE|STRAFTER|YEAR|MONTH|DAY|HOURS|MINUTES|SECONDS|TIMEZONE|TZ|NOW|UUID|STRUUID|MD5|SHA1|SHA256|SHA384|SHA512|COALESCE|IF|STRLANG|STRDT|SAMETERM|SUBSTR|REPLACE|ISIRI|ISURI|ISBLANK|ISLITERAL|ISNUMERIC|REGEX)" options:NSRegularExpressionSearch];
-    if (t.type == KEYWORD && agg_range.location == 0) {
+    if (t.type == KEYWORD && agg_range.location == 0 && (![t.value isEqual:@"MIN"] || [t.value length] == 3)) {    // the length check is in case we've mistaken a longer token (e.g. MINUTES) for MIN here
         return [self parseAggregateWithErrors: errors];
     } else if (t.type == KEYWORD && [t.value isEqualToString:@"NOT"]) {
         [self parseExpectedTokenOfType:KEYWORD withValue:@"NOT" withErrors:errors];
