@@ -218,6 +218,37 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return nil;
         }
+    } else if (expr.type == kExprStrBefore) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+        if (pattern.language && ![pattern.language isEqual: term.language]) {
+            return nil;
+        }
+        
+        if (term.datatype && !(term.language) && ![term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
+            return nil;
+        }
+        
+        NSRange range       = [term.value rangeOfString:pattern.value];
+
+        if (([pattern.value length] && range.location == NSNotFound) || range.location == 0) {
+            return [[GTWLiteral alloc] initWithValue:@""];
+        } else {
+            NSString* substr;
+            if ([pattern.value length] > 0) {
+                NSRange before      = { .location = 0, .length = range.location };
+                substr  = [term.value substringWithRange:before];
+            } else {
+                substr  = @"";
+            }
+            if (term.language) {
+                return [[GTWLiteral alloc] initWithString:substr language:term.language];
+            } else if (term.datatype) {
+                return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+            } else {
+                return [[GTWLiteral alloc] initWithValue:substr];
+            }
+        }
     } else if (expr.type == kExprSHA1 || expr.type == kExprSHA224 || expr.type == kExprSHA256 || expr.type == kExprSHA512 || expr.type == kExprMD5) {
         NSUInteger dataLength   = 0;
         unsigned char* (*SHA_FUNC)(const void *data, CC_LONG len, unsigned char *md)    = NULL;
