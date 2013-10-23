@@ -2604,6 +2604,10 @@ cleanup:
             ASSERT_EMPTY(errors);
             return [[GTWLiteral alloc] initWithString:value datatype:dt.value];
         }
+        GTWSPARQLToken* lang  = [self parseOptionalTokenOfType:LANG];
+        if (lang) {
+            return [[GTWLiteral alloc] initWithString:value language:lang.value];
+        }
         return [[GTWLiteral alloc] initWithString:value];
     } else if (t.type == STRING3D || t.type == STRING3S) {
         NSString* value = t.value;
