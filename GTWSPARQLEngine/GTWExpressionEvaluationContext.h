@@ -7,7 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "GTWExpression.h"
+#import "GTWSPARQLEngine.h"
 
 @interface GTWExpressionEvaluationContext : NSObject
+
+@property NSUInteger bnodeID;
+
+- (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model;
 
 @end

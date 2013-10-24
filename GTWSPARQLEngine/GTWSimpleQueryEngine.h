@@ -8,9 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "GTWSPARQLEngine.h"
+#import "GTWExpressionEvaluationContext.h"
 
 @interface GTWSimpleQueryEngine : NSObject<GTWQueryEngine>
 
+@property GTWExpressionEvaluationContext* evalctx;
 @property NSUInteger bnodeCounter;
 
 @end
