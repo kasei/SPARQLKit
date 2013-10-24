@@ -303,7 +303,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         id r    = replace;
         return [r copy];
     } else {
-        GTWTree* copy       = [[GTWTree alloc] init];
+        GTWTree* copy       = [[[self class] alloc] init];
         copy.leaf           = self.leaf;
         copy.type           = self.type;
         NSMutableArray* args    = [NSMutableArray array];
