@@ -297,7 +297,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     return [self initWithType:type value:nil treeValue: nil arguments:args];
 }
 
-- (id) copyReplacingSubtrees: (NSDictionary*) map {
+- (id) copyReplacingValues: (NSDictionary*) map {
     id<GTWTree> replace = [map objectForKey:self];
     if (replace) {
         id r    = replace;
@@ -308,13 +308,18 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         copy.type           = self.type;
         NSMutableArray* args    = [NSMutableArray array];
         for (id<GTWTree> a in self.arguments) {
-            id<GTWTree> c   = [a copyReplacingSubtrees: map];
+            id<GTWTree> c   = [a copyReplacingValues: map];
             [args addObject:c];
         }
         copy.arguments      = args;
-        copy.value          = [self.value copy];
+        if ([self.value conformsToProtocol:@protocol(GTWRewriteable)]) {
+            id<GTWRewriteable> value    = self.value;
+            copy.value          = [value copyReplacingValues: map];
+        } else {
+            copy.value          = [self.value copy];
+        }
         id tv               = self.treeValue;
-        copy.treeValue      = [tv copyReplacingSubtrees: map];
+        copy.treeValue      = [tv copyReplacingValues: map];
         copy.ptr            = self.ptr;
         copy.location       = self.location;
         copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
@@ -480,7 +485,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     [self computeScopeVariables];
     [self applyPrefixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
         if (node.type == kPlanProject) {
-            GTWTree* list   = node.value;
+            GTWTree* list   = node.treeValue;
             NSMutableArray* vars    = [NSMutableArray array];
             for (id<GTWTree> v in list.arguments) {
                 if (v.type == kTreeNode && [v.value isKindOfClass:[GTWVariable class]]) {
@@ -512,7 +517,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             (node.annotations)[kProjectVariables] = set;
 //            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
         } else if (node.type == kPlanOrder) {
-            GTWTree* list   = node.value;
+            id<GTWTree> list   = node.treeValue;
             NSMutableArray* vars    = [NSMutableArray array];
             for (id<GTWTree> v in list.arguments) {
                 if (v.type == kTreeNode && [v.value conformsToProtocol:@protocol(GTWVariable)]) {

@@ -65,9 +65,10 @@
 - (NSEnumerator*) evaluateProject:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSArray* results   = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
     NSMutableArray* projected   = [NSMutableArray arrayWithCapacity:[results count]];
-    GTWTree* listtree   = plan.value;
+    GTWTree* listtree   = plan.treeValue;
     NSArray* list       = listtree.arguments;
     for (id r in results) {
+        NSMutableDictionary* testResult = [NSMutableDictionary dictionaryWithDictionary:r];
         NSMutableDictionary* result = [NSMutableDictionary dictionary];
         for (GTWTree* treenode in list) {
             if (treenode.type == kTreeNode) {
@@ -75,6 +76,7 @@
                 NSString* name  = [v value];
                 if (r[name]) {
                     result[name]    = r[name];
+                    testResult[name]    = r[name];
                 }
             } else if (treenode.type == kAlgebraExtend) {
                 id<GTWTree> list    = treenode.treeValue;
@@ -82,9 +84,10 @@
                 GTWTree* node       = list.arguments[1];
                 id<GTWVariable> v   = node.value;
                 NSString* name  = [v value];
-                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:r usingModel:model];
+                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model];
                 if (f) {
                     result[name]    = f;
+                    testResult[name]    = f;
                 }
             }
         }
@@ -112,25 +115,26 @@
 }
 
 - (NSEnumerator*) evaluateOrder:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    NSArray* results   = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
-    GTWTree* list       = plan.value;
+    NSArray* results    = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
+    id<GTWTree> list    = plan.treeValue;
     NSMutableArray* orderTerms  = [NSMutableArray array];
     NSInteger i;
     for (i = 0; i < [list.arguments count]; i+=2) {
         GTWTree* vtree  = list.arguments[i];
         GTWTree* dtree  = list.arguments[i+1];
         id<GTWTerm> dirterm     = dtree.value;
-        id<GTWTerm> variable    = vtree.value;
         NSInteger direction     = [[dirterm value] integerValue];
-        [orderTerms addObject:@{ @"variable": variable, @"direction": @(direction) }];
+        [orderTerms addObject:@{ @"expr": vtree, @"direction": @(direction) }];
     }
     
     NSArray* ordered    = [results sortedArrayUsingComparator:^NSComparisonResult(id a, id b){
         for (NSDictionary* sortdata in orderTerms) {
-            id<GTWTerm> variable    = sortdata[@"variable"];
-            NSNumber* direction      = sortdata[@"direction"];
-            id<GTWTerm> aterm       = a[variable.value];
-            id<GTWTerm> bterm       = b[variable.value];
+            id<GTWTree> expr        = sortdata[@"expr"];
+            NSNumber* direction     = sortdata[@"direction"];
+            id<GTWTerm> aterm       = [self.evalctx evaluateExpression:expr withResult:a usingModel: model];
+            id<GTWTerm> bterm       = [self.evalctx evaluateExpression:expr withResult:b usingModel: model];
+//            id<GTWTerm> aterm       = a[variable.value];
+//            id<GTWTerm> bterm       = b[variable.value];
             NSComparisonResult cmp  = [aterm compare: bterm];
             if ([direction integerValue] < 0) {
                 cmp = -1 * cmp;
@@ -152,14 +156,7 @@
 }
 
 - (NSEnumerator*) evaluateGroupPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-//    TreeList(
-//             TreeList(TreeNode[?x]),
-//             TreeList(
-//                      TreeList[?.0](ExprMax[0](TreeNode[?y])),
-//                      TreeList[?.1](ExprMax[0](TreeNode[?z]))
-//             )
-//    )
-    id<GTWTree> groupData   = plan.value;
+    id<GTWTree> groupData   = plan.treeValue;
     id<GTWTree> groupList   = groupData.arguments[0];
     id<GTWTree> aggListTree = groupData.arguments[1];
     NSArray* aggList        = aggListTree.arguments;
@@ -222,10 +219,11 @@
 }
 
 - (id<GTWTerm>) valueOfAggregate: (id<GTWTree>) expr forResults: (NSArray*) results withModel: (id<GTWModel>) model {
+//    NSLog(@"computing aggregate %@", expr);
     if (expr.type == kExprCount) {
-        GTWLiteral* distinct    = expr.value;
+        NSNumber* distinct    = expr.value;
         id counter  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
-        NSLog(@"counting with counter object %@", counter);
+//        NSLog(@"counting with counter object %@", counter);
         for (NSDictionary* result in results) {
             if ([expr.arguments count]) {
                 id<GTWTerm> f   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
@@ -234,17 +232,19 @@
                 [counter addObject:@(1)];
             }
         }
-        NSLog(@"-> %lu", [counter count]);
+//        NSLog(@"-> %lu", [counter count]);
         return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [counter count]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
     } else if (expr.type == kExprGroupConcat) {
-        GTWLiteral* distinct    = expr.value;
+        NSArray* a  = expr.value;
+        NSNumber* distinct  = a[0];
+        NSString* separator = a[1];
         NSMutableArray* array   = [NSMutableArray array];
         for (NSDictionary* result in results) {
             id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             if (t)
                 [array addObject:t.value];
         }
-        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
+        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:separator]];
     } else if (expr.type == kExprMax) {
         id<GTWTerm> max = nil;
         for (NSDictionary* result in results) {
@@ -263,6 +263,32 @@
             }
         }
         return min;
+    } else if (expr.type == kExprSum) {
+        id<GTWTerm> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        for (NSDictionary* result in results) {
+            id<GTWLiteral,GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            sum = [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
+            if (!sum)
+                break;
+        }
+        return sum;
+    } else if (expr.type == kExprAvg) {
+        NSInteger count = 0;
+        id<GTWTerm> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        for (NSDictionary* result in results) {
+            id<GTWLiteral,GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            sum = [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
+            if (!sum)
+                break;
+            count++;
+        }
+        if (sum) {
+            id<GTWLiteral,GTWTerm> total   = [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%ld", count] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+            id<GTWTerm> avg = [self.evalctx evaluateNumericExpressionOfType:kExprDiv lhs:sum rhs:total];
+            return avg;
+        } else {
+            return sum;
+        }
     } else if (expr.type == kExprSample) {
         id<GTWTerm> term = nil;
         for (NSDictionary* result in results) {
@@ -292,7 +318,7 @@
                                   [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
                                   [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
                               ]];
-            id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend value:list arguments:@[subplan]];
+            id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[subplan]];
             NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
             [results addObjectsFromArray:[rhs allObjects]];
         }
@@ -303,7 +329,7 @@
 }
 
 - (NSEnumerator*) evaluateFilter:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    GTWTree* expr       = plan.value;
+    id<GTWTree> expr       = plan.treeValue;
     id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
     NSArray* results    = [[self _evaluateQueryPlan:subplan withModel:model] allObjects];
     NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
@@ -317,7 +343,7 @@
 }
 
 - (NSEnumerator*) evaluateExtend:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    GTWTree* list       = plan.value;
+    GTWTree* list       = plan.treeValue;
     GTWTree* expr       = list.arguments[0];
     GTWTree* node       = list.arguments[1];
     
@@ -630,6 +656,7 @@
 
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
     self.evalctx    = [[GTWExpressionEvaluationContext alloc] init];
+    self.evalctx.queryengine    = self;
     return [self _evaluateQueryPlan:plan withModel:model];
 }
 

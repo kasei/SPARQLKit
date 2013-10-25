@@ -41,7 +41,7 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 @property void* ptr;
 @property NSMutableDictionary* annotations;
 
-- (id) copyReplacingSubtrees: (NSDictionary*) map;
+- (id) copyReplacingValues: (NSDictionary*) map;
 - (NSString*) treeTypeName;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;

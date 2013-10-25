@@ -18,6 +18,8 @@
 static BOOL isNumeric(id<GTWTerm> term) {
     if (!term)
         return NO;
+    if (![term isKindOfClass:[GTWLiteral class]])
+        return NO;
     NSString* datatype  = term.datatype;
     if (datatype && [datatype rangeOfString:@"^http://www.w3.org/2001/XMLSchema#(integer|decimal|float|double)$" options:NSRegularExpressionSearch].location == 0) {
         return YES;
@@ -148,52 +150,47 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return nil;
         }
-    } else if (expr.type == kExprPlus) {
-        // TODO: handle double and float in addition to integer
-        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (lhs && rhs) {
-            if (![lhs isKindOfClass:[GTWLiteral class]])
-                return nil;
-            if (![rhs isKindOfClass:[GTWLiteral class]])
-                return nil;
-            NSInteger lhsI  = [lhs integerValue];
-            NSInteger rhsI  = [rhs integerValue];
-            NSInteger sum   = lhsI + rhsI;
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lu", (unsigned long) sum] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+    } else if (expr.type == kExprPlus || expr.type == kExprMinus || expr.type == kExprMul || expr.type == kExprDiv) {
+        return [self evaluateNumericExpression:expr withResult:result usingModel:model];
+    } else if (expr.type == kExprCeil || expr.type == kExprFloor || expr.type == kExprRound) {
+        double (*func)(double);
+        if (expr.type == kExprCeil) {
+            func    = ceil;
+        } else if (expr.type == kExprFloor) {
+            func    = floor;
+        } else {
+            func    = round;
+        }
+        id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if (!term.datatype)
+            return nil;
+        if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
+            return term;
+        } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
+            double value    = [term doubleValue];
+            double c        = func(value);
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+        } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#double"]) {
+            double value    = [term doubleValue];
+            double c        = func(value);
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#double"];
+        } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
+            double value    = [term doubleValue];
+            double c        = func(value);
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#float"];
         } else {
             return nil;
         }
-    } else if (expr.type == kExprMinus) {
-        // TODO: handle double and float in addition to integer
-        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (lhs && rhs) {
-            NSInteger lhsI  = [lhs integerValue];
-            NSInteger rhsI  = [rhs integerValue];
-            NSInteger diff   = lhsI - rhsI;
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lu", (unsigned long) diff] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
-        } else {
-            return nil;
-        }
-    } else if (expr.type == kExprDiv) {
-        // TODO: handle double and float in addition to integer
-        id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (lhs && rhs) {
-            if (![lhs isKindOfClass:[GTWLiteral class]])
-                return nil;
-            if (![rhs isKindOfClass:[GTWLiteral class]])
-                return nil;
-            NSInteger lhsI  = [lhs integerValue];
-            NSInteger rhsI  = [rhs integerValue];
-            if (rhsI == 0)
-                return nil;
-            NSInteger div   = lhsI / rhsI;
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lu", (unsigned long) div] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
-        } else {
-            return nil;
-        }
+    } else if (expr.type == kExprEncodeForURI) {
+        id<GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        CFStringRef escaped = CFURLCreateStringByAddingPercentEscapes(NULL,
+                                                                      (CFStringRef)term.value,
+                                                                      NULL,
+                                                                      CFSTR(";?#"),
+                                                                      kCFStringEncodingUTF8);
+        NSString* value = [NSString stringWithString:(__bridge NSString*)escaped];
+        CFRelease(escaped);
+        return [[GTWLiteral alloc] initWithString:(NSString*) value];
     } else if (expr.type == kExprStr) {
         id<GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         GTWLiteral* str = [[GTWLiteral alloc] initWithString:term.value];
@@ -723,11 +720,39 @@ static BOOL isNumeric(id<GTWTerm> term) {
             }
         }
         return nil;
-    } else if (expr.type == kExprExists) {
+    } else if (expr.type == kExprExists || expr.type == kExprNotExists) {
         // TODO: the EXISTS pattern isn't planned at this point.
         // needs to be planned and then have a way to call back into the query engine (not just access to the model)
-        NSLog(@"Evaluating ExprExists expressions not implemented yet: %@", expr);
-        return nil;
+//        NSLog(@"Evaluating ExprExists expressions not implemented yet: %@", expr);
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (NSString* varname in result) {
+            GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
+//            id<GTWTree> t   = [[GTWTree alloc] initWithType:kTreeNode value:result[varname] arguments:nil];
+            mapping[v]    = result[varname];
+        }
+        NSLog(@"rewrite mapping: %@", mapping);
+        id<GTWTree,GTWQueryPlan> plan    = expr.arguments[0];
+        plan                            = [plan copyReplacingValues:mapping];
+        NSLog(@"EXISTS rewritten plan: %@", plan);
+        NSLog(@"query engine: %@", self.queryengine);
+        NSLog(@"Model: %@", model);
+        {
+            __block NSUInteger count    = 0;
+            NSLog(@"Quads:\n");
+            [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
+                count++;
+                NSLog(@"-> %@\n", q);
+            } error:nil];
+            NSLog(@"%lu total quads\n", count);
+        }
+        NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
+        id result           = [e nextObject];
+        NSLog(@"EXISTS result: (%@) %@", e, result);
+        if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
+            return [GTWLiteral trueLiteral];
+        } else {
+            return [GTWLiteral falseLiteral];
+        }
     } else if (expr.type == kExprIn) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWTree> list    = expr.arguments[1];
@@ -753,6 +778,65 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return nil;
     }
     return nil;
+}
+
+- (id<GTWTerm>) evaluateNumericExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
+    id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+    id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+    return [self evaluateNumericExpressionOfType:expr.type lhs:lhs rhs:rhs];
+}
+
+- (id<GTWTerm>) evaluateNumericExpressionOfType: (GTWTreeType) type lhs: (id<GTWLiteral,GTWTerm>) lhs rhs: (id<GTWLiteral,GTWTerm>) rhs {
+    if (lhs && rhs) {
+        if (![lhs isKindOfClass:[GTWLiteral class]] || ![lhs isNumeric]) {
+            return nil;
+        }
+        if (![rhs isKindOfClass:[GTWLiteral class]] || ![rhs isNumeric]) {
+            return nil;
+        }
+        NSString* promotedtype  = [GTWLiteral promtedTypeForNumericTypes:lhs.datatype and:rhs.datatype];
+//        NSLog(@"promoted type: %@ (%d)", promotedtype, useDouble);
+        
+        if ([promotedtype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
+            NSInteger lhsV  = [lhs integerValue];
+            NSInteger rhsV  = [rhs integerValue];
+            NSInteger value;
+            if (type == kExprPlus) {
+                value   = lhsV + rhsV;
+            } else if (type == kExprMinus) {
+                value   = lhsV - rhsV;
+            } else if (type == kExprMul) {
+                value   = lhsV * rhsV;
+            } else if (type == kExprDiv) {
+                if (rhsV == 0)
+                    return nil;
+                value   = lhsV / rhsV;
+            } else {
+                return nil;
+            }
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%ld", (long int) value] datatype:promotedtype];
+        } else {
+            double lhsV = [lhs doubleValue];
+            double rhsV = [rhs doubleValue];
+            double value;
+            if (type == kExprPlus) {
+                value   = lhsV + rhsV;
+            } else if (type == kExprMinus) {
+                value   = lhsV - rhsV;
+            } else if (type == kExprMul) {
+                value   = lhsV * rhsV;
+            } else if (type == kExprDiv) {
+                if (rhsV == 0.0)
+                    return nil;
+                value   = lhsV / rhsV;
+            } else {
+                return nil;
+            }
+            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
+        }
+    } else {
+        return nil;
+    }
 }
 
 @end

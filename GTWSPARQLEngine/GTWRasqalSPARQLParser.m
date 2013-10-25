@@ -293,7 +293,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_RAND:
         case RASQAL_EXPR_UUID:
         case RASQAL_EXPR_STRUUID:
-            return [[GTWExpression alloc] initLeafWithType:ttype value:nil pointer:NULL];
+            return [[GTWTree alloc] initLeafWithType:ttype value:nil pointer:NULL];
         // 1-ary
         case RASQAL_EXPR_UMINUS:
         case RASQAL_EXPR_BANG:
@@ -329,7 +329,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_SHA256:
         case RASQAL_EXPR_SHA384:
         case RASQAL_EXPR_SHA512:
-            return [[GTWExpression alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1)]];
+            return [[GTWTree alloc] initWithType:ttype arguments:@[rasqal_expression_to_tree(expr->arg1)]];
         // 2-ary
         case RASQAL_EXPR_EQ:
         case RASQAL_EXPR_NEQ:
@@ -352,11 +352,11 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_STRAFTER:
             lhs = rasqal_expression_to_tree(expr->arg1);
             rhs = rasqal_expression_to_tree(expr->arg2);
-            return [[GTWExpression alloc] initWithType:ttype arguments:@[lhs, rhs]];
+            return [[GTWTree alloc] initWithType:ttype arguments:@[lhs, rhs]];
         // other
         case RASQAL_EXPR_LITERAL:
             term    = rasqal_literal_to_object(expr->literal);
-            return [[GTWExpression alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
+            return [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
         case RASQAL_EXPR_REGEX:
             array   = [NSMutableArray arrayWithCapacity:3];
             lhs = rasqal_expression_to_tree(expr->arg1);
@@ -367,7 +367,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
                 arg3    = rasqal_expression_to_tree(expr->arg3);
                 [array addObject:arg3];
             }
-            return [[GTWExpression alloc] initWithType:ttype arguments:array];
+            return [[GTWTree alloc] initWithType:ttype arguments:array];
         case RASQAL_EXPR_BNODE:
         case RASQAL_EXPR_SUBSTR:
         case RASQAL_EXPR_FUNCTION:

@@ -4,7 +4,7 @@
 extern NSString * __strong const kUsedVariables;
 extern NSString * __strong const kProjectVariables;
 
-@interface GTWTree : NSObject<GTWTree, NSCopying>
+@interface GTWTree : NSObject<GTWTree, GTWRewriteable, NSCopying>
 
 // ---------------------------------------------------------
 
@@ -191,6 +191,7 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 @property NSUInteger location;
 @property NSMutableDictionary* annotations;
 
+- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
 - (GTWTree*) initLeafWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue;
 - (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr;
 - (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args;
