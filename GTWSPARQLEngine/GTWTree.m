@@ -29,6 +29,7 @@ GTWTreeType __strong const kPlanGroup                   = @"PlanGroup";
 GTWTreeType __strong const kPlanZeroOrMorePath          = @"PlanZeroOrMorePath";
 GTWTreeType __strong const kPlanOneOrMorePath           = @"PlanOneOrMorePath";
 GTWTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
+GTWTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
 
 // Algebras
 GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";
@@ -588,7 +589,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         return set;
     } else if (self.type == kAlgebraExtend) {
         id<GTWTree> list    = self.treeValue;
-        NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] inScopeVariables]];
+        NSMutableSet* set   = [NSMutableSet setWithSet:[self.arguments[0] inScopeVariables]];
         id<GTWTree> node    = list.arguments[1];
         id<GTWTerm> term    = node.value;
         [set addObject: term];
