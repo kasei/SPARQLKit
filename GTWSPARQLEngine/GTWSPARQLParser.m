@@ -396,7 +396,7 @@ cleanup:
     NSArray* plist          = projectList.arguments;
     
     id<GTWTree> pattern     = algebra.arguments[0];
-    NSSet* scopeVars    = [pattern inScopeVariables];
+    NSSet* scopeVars        = [pattern inScopeVariables];
     for (id<GTWTree> v in plist) {
         if (v.type == kAlgebraExtend) {
             id<GTWTree> list    = v.treeValue;
@@ -885,9 +885,9 @@ cleanup:
         if (!t) {
             return [self errorMessage:@"Unexpected EOF" withErrors:errors];
         }
-        id<GTWTree> algebra;
         GTWSPARQLTokenType type = t.type;
         
+        id<GTWTree> algebra;
         if ([self tokenIsVarOrTerm:t]) {
             algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
             ASSERT_EMPTY(errors);
@@ -948,7 +948,18 @@ cleanup:
     NSMutableArray* filterargs  = [NSMutableArray arrayWithCapacity:[args count]];
     BOOL filterSeen = NO;
     for (id<GTWTree> t in args) {
-        if (t.type == kAlgebraExtend) {
+        if (t.type == kAlgebraLeftJoin) {
+            filterSeen  = YES;
+            id<GTWTree> prev;
+            if ([filterargs count]) {
+                prev    = [filterargs lastObject];
+                [filterargs removeLastObject];
+            } else {
+                prev    = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+            }
+            t.arguments = @[prev, t.arguments[0]];
+            [filterargs addObject:t];
+        } else if (t.type == kAlgebraExtend) {
             filterSeen  = YES;
             id<GTWTree> prev;
             if ([filterargs count]) {
@@ -985,9 +996,7 @@ cleanup:
         }
     }
     
-    if (filterSeen) {
-        args    = filterargs;
-    }
+    args    = filterargs;
     return [[GTWTree alloc] initWithType:kTreeList arguments:args];
 }
 
@@ -1045,9 +1054,6 @@ cleanup:
             [results addObject:result];
         }
         
-        [self parseExpectedTokenOfType:RBRACE withErrors:errors];
-        ASSERT_EMPTY(errors);
-        
         return [[GTWTree alloc] initWithType:kTreeResultSet arguments:results];
     } else {
         NSArray* vars;
@@ -1098,7 +1104,9 @@ cleanup:
             for (i = 0; i < [vars count]; i++) {
                 id<GTWTree> key     = [vars objectAtIndex:i];
                 id<GTWTree> value   = [values objectAtIndex:i];
-                dict[key.value]   = value;  // TODO: this should be key.treeValue
+                if (![value isKindOfClass:[NSNull class]]) {
+                    dict[key.value]   = value;  // TODO: this should be key.treeValue
+                }
             }
             id<GTWTree> result  = [[GTWTree alloc] initWithType:kTreeResult value:dict arguments:nil];
             [results addObject:result];
@@ -1117,12 +1125,17 @@ cleanup:
 - (NSArray*) parseDataBlockValuesWithErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
     NSMutableArray* values  = [NSMutableArray array];
-    while ([self tokenIsTerm:t]) {
-        [self nextNonCommentToken];
-        id<GTWTerm> term   = [self tokenAsTerm:t withErrors:errors];
-        id<GTWTree> data    = [[GTWTree alloc] initWithType:kTreeNode value:term arguments:nil];
-        ASSERT_EMPTY(errors);
-        [values addObject:data];
+    while ([self tokenIsTerm:t] || (t.type == KEYWORD && [t.value isEqual: @"UNDEF"])) {
+        if (t.type == KEYWORD && [t.value isEqual: @"UNDEF"]) {
+            [self nextNonCommentToken];
+            [values addObject:[NSNull null]];
+        } else {
+            [self nextNonCommentToken];
+            id<GTWTerm> term   = [self tokenAsTerm:t withErrors:errors];
+            id<GTWTree> data    = [[GTWTree alloc] initWithType:kTreeNode value:term arguments:nil];
+            ASSERT_EMPTY(errors);
+            [values addObject:data];
+        }
         t   = [self peekNextNonCommentToken];
     }
     return values;
@@ -1452,10 +1465,11 @@ cleanup:
         ASSERT_EMPTY(errors);
         return path;
     } else if (t.type == KEYWORD && [t.value isEqual: @"A"]) {
-        [self parseExpectedTokenOfType:KEYWORD withErrors:@"A"];
+        [self parseExpectedTokenOfType:KEYWORD withValue:@"A" withErrors:errors];
         id<GTWTerm> term    = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
         return [[GTWTree alloc] initWithType:kTreeNode value: term arguments:nil];
     } else if (t.type == BANG) {
+        [self parseExpectedTokenOfType:BANG withErrors:errors];
         id<GTWTree> path    = [self parsePathNegatedPropertySetWithErrors:errors];
         ASSERT_EMPTY(errors);
         return [[GTWTree alloc] initWithType:kPathNegate arguments:@[path]];
