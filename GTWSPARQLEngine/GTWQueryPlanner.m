@@ -282,6 +282,26 @@
     return [self queryPlanForPath:path starting:s ending:o usingDataset:dataset withModel:model];
 }
 
+- (void) negationPath: (id<GTWTree>) path forwardPredicates: (NSMutableSet*) fwd inversePredicates: (NSMutableSet*) inv negate: (BOOL) negate {
+    if (path.type == kPathInverse) {
+        [self negationPath:path.arguments[0] forwardPredicates:fwd inversePredicates:inv negate:!negate];
+        return;
+    } else if (path.type == kPathOr) {
+        [self negationPath:path.arguments[0] forwardPredicates:fwd inversePredicates:inv negate:negate];
+        [self negationPath:path.arguments[1] forwardPredicates:fwd inversePredicates:inv negate:negate];
+        return;
+    } else if (path.type == kTreeNode) {
+        if (negate) {
+            [inv addObject:path.value];
+        } else {
+            [fwd addObject:path.value];
+        }
+    } else {
+        return;
+    }
+        
+}
+
 - (id<GTWTree,GTWQueryPlan>) queryPlanForPath: (id<GTWTree>) path starting: (id<GTWTree>) s ending: (id<GTWTree>) o usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     if (path.type == kPathSequence) {
         GTWVariable* b = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"qp__%lu", self.bnodeCounter++]];
@@ -295,6 +315,34 @@
         if (!(lhs && rhs))
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+    } else if (path.type == kPathOr) {
+        id<GTWQueryPlan> lhs    = [self queryPlanForPath:path.arguments[0] starting:s ending:o usingDataset:dataset withModel:model];
+        id<GTWQueryPlan> rhs    = [self queryPlanForPath:path.arguments[1] starting:s ending:o usingDataset:dataset withModel:model];
+        return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
+    } else if (path.type == kPathNegate) {
+        NSMutableSet* fwd   = [NSMutableSet set];
+        NSMutableSet* inv   = [NSMutableSet set];
+        [self negationPath:path.arguments[0] forwardPredicates:fwd inversePredicates:inv negate:NO];
+        NSLog(@"%@\n%@", fwd, inv);
+        NSMutableArray* plans   = [NSMutableArray array];
+        NSArray* graphs     = [dataset defaultGraphs];
+        id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:graphs[0] arguments:nil];
+        if ([fwd count]) {
+            id<GTWTree> set     = [[GTWTree alloc] initWithType:kTreeSet value:fwd arguments:nil];
+            id<GTWTree> plan    = [[GTWQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
+            [plans addObject:plan];
+        }
+        if ([inv count]) {
+            id<GTWTree> set     = [[GTWTree alloc] initWithType:kTreeSet value:inv arguments:nil];
+            id<GTWTree> plan    = [[GTWQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
+            [plans addObject:plan];
+        }
+        
+        if ([plans count] > 1) {
+            return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
+        } else {
+            return plans[0];
+        }
     } else if (path.type == kPathZeroOrOne) {
         GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
         GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];

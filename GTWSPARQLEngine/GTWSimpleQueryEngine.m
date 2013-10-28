@@ -13,6 +13,7 @@
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import "GTWExpression.h"
+#import <GTWSWBase/GTWQuad.h>
 
 @implementation GTWSimpleQueryEngine
 
@@ -172,7 +173,7 @@
     NSMutableDictionary* resultGroups   = [NSMutableDictionary dictionary];
     NSEnumerator* results    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     for (NSDictionary* result in results) {
-        NSMutableArray* resultGroupData = [NSMutableArray array];
+//        NSMutableArray* resultGroupData = [NSMutableArray array];
         NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
         for (id<GTWTree> g in groupList.arguments) {
             if (g.type == kAlgebraExtend) {
@@ -181,13 +182,15 @@
                 id<GTWTree> tn      = list.arguments[1];
                 id<GTWTerm> var = tn.value;
                 id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr withResult:result usingModel: model];
-                [resultGroupData addObject:t];
-                groupKeyDict[var.value]   = t;
+//                [resultGroupData addObject:t];
+                if (t)
+                    groupKeyDict[var.value]   = t;
             } else {
                 id<GTWTerm> var = g.value;
                 id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)g withResult:result usingModel: model];
-                [resultGroupData addObject:t];
-                groupKeyDict[var.value]   = t;
+//                [resultGroupData addObject:t];
+                if (t)
+                    groupKeyDict[var.value]   = t;
             }
         }
         
@@ -343,9 +346,9 @@
 }
 
 - (NSEnumerator*) evaluateExtend:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    GTWTree* list       = plan.treeValue;
-    GTWTree* expr       = list.arguments[0];
-    GTWTree* node       = list.arguments[1];
+    id<GTWTree> list    = plan.treeValue;
+    id<GTWTree> expr    = list.arguments[0];
+    id<GTWTree> node    = list.arguments[1];
     
     id<GTWVariable> v   = node.value;
     id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
@@ -353,11 +356,15 @@
     NSMutableArray* extended   = [NSMutableArray array];
     for (id result in results) {
         id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
-        NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
-        id<GTWTerm> value   = [e objectForKey:v.value];
-        if (!value || [value isEqual:f]) {
-            [e setValue:f forKey:v.value];
-            [extended addObject:e];
+        if (f) {
+            NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
+            id<GTWTerm> value   = [e objectForKey:v.value];
+            if (!value || [value isEqual:f]) {
+                [e setValue:f forKey:v.value];
+                [extended addObject:e];
+            }
+        } else {
+            [extended addObject:result];
         }
     }
     return [extended objectEnumerator];
@@ -513,6 +520,25 @@
     return [results objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateNPSPathPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    id<GTWTree> s   = plan.arguments[0];
+    id<GTWTree> set = plan.arguments[1];
+    NSSet* pset     = set.value;
+    id<GTWTree> o   = plan.arguments[2];
+    id<GTWTree> g   = plan.arguments[3];
+    id<GTWTerm> p   = [[GTWVariable alloc] initWithValue:@".nps"];
+    NSMutableSet* results = [NSMutableSet set];
+    [model enumerateBindingsMatchingSubject:s.value predicate:p object:o.value graph:g.value usingBlock:^(NSDictionary* r) {
+        id<GTWTerm> p   = r[@".nps"];
+        if (![pset containsObject:p]) {
+            NSMutableDictionary* nr    = [NSMutableDictionary dictionaryWithDictionary:r];
+            [nr removeObjectForKey:@".nps"];
+            [results addObject:[NSDictionary dictionaryWithDictionary:nr]];
+        }
+    } error:nil];
+    return [results objectEnumerator];
+}
+
 - (NSArray*) resultsForMorePathPlan: (id<GTWTree, GTWQueryPlan>)plan withResults: (NSArray*) pathResults forLength: (NSUInteger) length withModel:(id<GTWModel>)model  {
     id<GTWTree> list        = plan.treeValue;
     id<GTWTree> ts          = list.arguments[2];
@@ -633,6 +659,8 @@
         return [self evaluateMorePathPlan:plan withModel:model includeZeroLengthResults:NO];
     } else if (type == kPlanZeroOrMorePath) {
         return [self evaluateMorePathPlan:plan withModel:model includeZeroLengthResults:YES];
+    } else if (type == kPlanNPSPath) {
+        return [self evaluateNPSPathPlan:plan withModel:model];
     } else if (type == kTreeResultSet) {
         NSArray* resultsTree    = plan.arguments;
         NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];

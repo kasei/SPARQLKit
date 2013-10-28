@@ -721,33 +721,15 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprExists || expr.type == kExprNotExists) {
-        // TODO: the EXISTS pattern isn't planned at this point.
-        // needs to be planned and then have a way to call back into the query engine (not just access to the model)
-//        NSLog(@"Evaluating ExprExists expressions not implemented yet: %@", expr);
         NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
         for (NSString* varname in result) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
-//            id<GTWTree> t   = [[GTWTree alloc] initWithType:kTreeNode value:result[varname] arguments:nil];
             mapping[v]    = result[varname];
         }
-        NSLog(@"rewrite mapping: %@", mapping);
         id<GTWTree,GTWQueryPlan> plan    = expr.arguments[0];
         plan                            = [plan copyReplacingValues:mapping];
-        NSLog(@"EXISTS rewritten plan: %@", plan);
-        NSLog(@"query engine: %@", self.queryengine);
-        NSLog(@"Model: %@", model);
-        {
-            __block NSUInteger count    = 0;
-            NSLog(@"Quads:\n");
-            [model enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q){
-                count++;
-                NSLog(@"-> %@\n", q);
-            } error:nil];
-            NSLog(@"%lu total quads\n", count);
-        }
         NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
         id result           = [e nextObject];
-        NSLog(@"EXISTS result: (%@) %@", e, result);
         if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
             return [GTWLiteral trueLiteral];
         } else {
