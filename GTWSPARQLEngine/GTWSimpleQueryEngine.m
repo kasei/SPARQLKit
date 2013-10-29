@@ -582,6 +582,28 @@
     }
 }
 
+- (NSEnumerator*) evaluateConstructPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSMutableArray* triples = [NSMutableArray array];
+    NSArray* template       = plan.value;
+    for (NSDictionary* result in results) {
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (NSString* varname in result) {
+            GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
+            mapping[v]    = result[varname];
+        }
+        for (id<GTWRewriteable> pattern in template) {
+            id<GTWTriple, GTWRewriteable> triple   = [pattern copyReplacingValues:mapping];
+            if (triple) {
+                if ([triple isGround]) {
+                    [triples addObject:triple];
+                }
+            }
+        }
+    }
+    return [triples objectEnumerator];
+}
+
 - (NSEnumerator*) evaluateSlice:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSEnumerator* results   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     id<GTWTree> offsetNode  = plan.arguments[1];
@@ -661,6 +683,8 @@
         return [self evaluateMorePathPlan:plan withModel:model includeZeroLengthResults:YES];
     } else if (type == kPlanNPSPath) {
         return [self evaluateNPSPathPlan:plan withModel:model];
+    } else if (type == kPlanConstruct) {
+        return [self evaluateConstructPlan:plan withModel:model];
     } else if (type == kTreeResultSet) {
         NSArray* resultsTree    = plan.arguments;
         NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];

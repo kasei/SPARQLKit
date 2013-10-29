@@ -30,6 +30,7 @@ GTWTreeType __strong const kPlanZeroOrMorePath          = @"PlanZeroOrMorePath";
 GTWTreeType __strong const kPlanOneOrMorePath           = @"PlanOneOrMorePath";
 GTWTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
 GTWTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
+GTWTreeType __strong const kPlanConstruct               = @"PlanConstruct";
 
 // Algebras
 GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";

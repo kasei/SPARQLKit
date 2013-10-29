@@ -34,6 +34,7 @@ extern GTWTreeType __strong const kPlanZeroOrMorePath;
 extern GTWTreeType __strong const kPlanOneOrMorePath;
 extern GTWTreeType __strong const kPlanZeroOrOnePath;
 extern GTWTreeType __strong const kPlanNPSPath;
+extern GTWTreeType __strong const kPlanConstruct;
 
 // algebra tree nodes:
 extern GTWTreeType __strong const kAlgebraAsk;

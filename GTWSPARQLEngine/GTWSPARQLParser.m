@@ -280,7 +280,7 @@ cleanup:
     }
     
     if (dataset) {
-        algebra = [[GTWTree alloc] initWithType:kAlgebraDataset value: dataset arguments:@[algebra]];
+        algebra = [[GTWTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[algebra]];
     }
     
     if (star && [self currentQuerySeenAggregates]) {
@@ -346,7 +346,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         
         if (dataset) {
-            algebra = [[GTWTree alloc] initWithType:kAlgebraDataset value: dataset arguments:@[algebra]];
+            algebra = [[GTWTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[algebra]];
         }
 
         algebra     = [[GTWTree alloc] initWithType:kAlgebraConstruct arguments:@[template, algebra]];
@@ -366,7 +366,7 @@ cleanup:
      
         id<GTWTree> algebra;
         if (dataset) {
-            algebra = [[GTWTree alloc] initWithType:kAlgebraDataset value: dataset arguments:@[template]];
+            algebra = [[GTWTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[template]];
         } else {
             algebra = template;
         }
@@ -382,13 +382,15 @@ cleanup:
     [self parseExpectedTokenOfType:LBRACE withErrors:errors];
     ASSERT_EMPTY(errors);
 
-    id<GTWTree> template    = [self triplesByParsingTriplesBlockWithErrors: errors];
+    id<GTWTree> tmpl    = [self triplesByParsingTriplesBlockWithErrors: errors];
     ASSERT_EMPTY(errors);
     
     [self parseExpectedTokenOfType:RBRACE withErrors:errors];
     ASSERT_EMPTY(errors);
- 
-    return template;
+
+    id<GTWTree> triples = [self reduceTriplePaths:tmpl];
+
+    return triples;
 }
 
 - (id<GTWTree>) algebraVerifyingProjectionAndGroupingInAlgebra: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
@@ -474,7 +476,7 @@ cleanup:
     }
     
     if (dataset) {
-        ggp = [[GTWTree alloc] initWithType:kAlgebraDataset value: dataset arguments:@[ggp]];
+        ggp = [[GTWTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[ggp]];
     }
     
     //@@ SolutionModifier
@@ -486,16 +488,29 @@ cleanup:
 //[15]  	NamedGraphClause	  ::=  	'NAMED' SourceSelector
 //[16]  	SourceSelector	  ::=  	iri
 - (id<GTWTree>) parseDatasetClausesWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"FROM"];
+    GTWSPARQLToken* t       = [self parseOptionalTokenOfType:KEYWORD withValue:@"FROM"];
+    NSMutableSet* namedSet  = [NSMutableSet set];
+    NSMutableSet* defSet    = [NSMutableSet set];
     while (t) {
         GTWSPARQLToken* named   = [self parseOptionalTokenOfType:KEYWORD withValue:@"NAMED"];
         t   = [self nextNonCommentToken];
-        if (![self tokenIsTerm:t]) {
-        }
         id<GTWTerm> iri   = [self tokenAsTerm:t withErrors:errors];
+        if (named) {
+            [namedSet addObject:iri];
+        } else {
+            [defSet addObject:iri];
+        }
         t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"FROM"];
     }
-    return nil;
+    
+    NSUInteger count    = [namedSet count] + [defSet count];
+    if (count == 0)
+        return nil;
+    
+    id<GTWTree> namedTree   = [[GTWTree alloc] initWithType:kTreeSet value:namedSet arguments:nil];
+    id<GTWTree> defTree     = [[GTWTree alloc] initWithType:kTreeSet value:defSet arguments:nil];
+    id<GTWTree> pair        = [[GTWTree alloc] initWithType:kTreeList arguments:@[defTree, namedTree]];
+    return pair;
 }
 
 

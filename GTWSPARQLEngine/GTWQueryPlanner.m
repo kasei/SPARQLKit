@@ -21,6 +21,24 @@
     return plan;
 }
 
+- (NSArray*) statementsForTemplateAlgebra: (id<GTWTree>) algebra {
+    if (algebra.type == kTreeList) {
+        NSMutableArray* triples = [NSMutableArray array];
+        for (id<GTWTree> tree in algebra.arguments) {
+            NSArray* t  = [self statementsForTemplateAlgebra:tree];
+            if (t) {
+                [triples addObjectsFromArray:t];
+            }
+        }
+        return triples;
+    } else if (algebra.type == kTreeTriple) {
+        return @[ algebra.value ];
+    } else {
+        NSLog(@"don't know how to extract triples from algebra: %@", algebra);
+        return nil;
+    }
+}
+
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     if (algebra == nil) {
         NSLog(@"trying to plan nil algebra");
@@ -29,7 +47,6 @@
     id<GTWTriple> t;
     NSInteger count;
     NSArray* defaultGraphs;
-    NSArray* list;
     
     // TODO: if any of these recursive calls fails and returns nil, we need to propogate that nil up the stack instead of having it crash when an array atempts to add the nil value
     if (algebra.type == kAlgebraDistinct || algebra.type == kAlgebraReduced) {
@@ -41,6 +58,10 @@
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[plan]];
+    } else if (algebra.type == kAlgebraConstruct) {
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+        NSArray* st = [self statementsForTemplateAlgebra: algebra.arguments[0]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanConstruct value: st arguments:@[plan]];
     } else if (algebra.type == kAlgebraAsk) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"ASK must be 1-ary");
@@ -59,6 +80,14 @@
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanGroup treeValue: algebra.treeValue arguments:@[plan]];
+    } else if (algebra.type == kAlgebraDataset) {
+        id<GTWTree> pair        = algebra.treeValue;
+        id<GTWTree> defSet      = pair.arguments[0];
+        id<GTWTree> namedSet    = pair.arguments[1];
+        NSSet* defaultGraphs    = defSet.value;
+        NSSet* namedGraphs      = namedSet.value;
+        GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:[defaultGraphs allObjects] restrictedToGraphs:[namedGraphs allObjects]];
+        return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
     } else if (algebra.type == kAlgebraGraph) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");
