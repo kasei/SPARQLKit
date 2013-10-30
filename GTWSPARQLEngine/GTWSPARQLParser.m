@@ -290,27 +290,49 @@ cleanup:
     return algebra;
 }
 
+- (id<GTWTree>) rewriteTree: (id<GTWTree>) tree withAggregateMapping: (NSDictionary*) mapping withErrors: (NSMutableArray*) errors {
+    if (!tree)
+        return nil;
+//    NSLog(@"rewriting %@", tree);
+//    NSLog(@"----> %@", tree.type);
+    if (tree.type == kAlgebraExtend) {
+        id<GTWTree> tv          = tree.treeValue;
+        id<GTWTree> expr        = [self rewriteTree:tv.arguments[0] withAggregateMapping:mapping withErrors:errors];
+        GTWVariable* v          = [mapping objectForKey:expr];
+//        NSLog(@"%@ -> %@", expr, v);
+        if (v) {
+            id<GTWTree> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
+            id<GTWTree> pair    = [[GTWTree alloc] initWithType:kTreeList arguments:@[tn, tv.arguments[1]]];
+            id<GTWTree> ext = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:nil];
+//            NSLog(@"-------> %@", ext);
+            return ext;
+        }
+    } else if ([mapping objectForKey:tree]) {
+        GTWVariable* v          = [mapping objectForKey:tree];
+        id<GTWTree> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
+        return tn;
+    }
+    
+    NSMutableArray* args    = [NSMutableArray array];
+    id<GTWTree> tv          = [self rewriteTree:tree.treeValue withAggregateMapping:mapping withErrors:errors];
+    for (id t in tree.arguments) {
+        id<GTWTree> newTree = [self rewriteTree:t withAggregateMapping:mapping withErrors:errors];
+        [args addObject:newTree];
+    }
+//    NSLog(@"new tree of type %@", tree.type);
+    id<GTWTree> newt    = [[GTWTree alloc] initWithType:tree.type value:tree.value treeValue:tv arguments:args];
+    return newt;
+}
+
 - (id<GTWTree>) rewriteAlgebra: (id<GTWTree>) algebra forProjection: (NSArray*) project withAggregateMapping: (NSDictionary*) mapping withErrors: (NSMutableArray*) errors {
     GTWTree* vlist;
     if ([mapping count]) {
+//        NSLog(@"Rewrite mapping: %@", mapping);
         NSMutableArray* mappedProject  = [NSMutableArray array];
-        for (id<GTWTree> t in project) {
-            if (t.type == kAlgebraExtend) {
-                id<GTWTree> extendPair  = t.treeValue;
-                id<GTWTree> expr        = extendPair.arguments[0];
-                GTWVariable* v  = [mapping objectForKey:expr];
-                NSLog(@"%@ -> %@", expr, v);
-                if (v) {
-                    id<GTWTree> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
-                    id<GTWTree> pair    = [[GTWTree alloc] initWithType:kTreeList arguments:@[tn, extendPair.arguments[1]]];
-                    id<GTWTree> ext = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:nil];
-                    [mappedProject addObject:ext];
-                } else {
-                    [mappedProject addObject:t];
-                }
-            } else {
-                [mappedProject addObject:t];
-            }
+        for (id<GTWTree> tree in project) {
+            id<GTWTree> t   = [self rewriteTree:tree withAggregateMapping:mapping withErrors:errors];
+            ASSERT_EMPTY(errors);
+            [mappedProject addObject:t];
         }
         vlist = [[GTWTree alloc] initWithType:kTreeList arguments:mappedProject];
     } else {
@@ -626,7 +648,9 @@ cleanup:
     // TODO: use aggregate mapping
     id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp settingAggregateMapping:mapping withErrors:errors];
     
-    // TODO: Parse ValuesClause
+    // ValuesClause
+    algebra = [self parseValuesClauseForAlgebra:algebra withErrors:errors];
+    ASSERT_EMPTY(errors);
 
     
     
@@ -959,59 +983,89 @@ cleanup:
         }
     }
     
-    // TODO: this is producing incorrect algebra orderings of adjacent FILTER/BIND combinations (which should produce Filter(Extend()), not Extend(Filter()))
-    NSMutableArray* filterargs  = [NSMutableArray arrayWithCapacity:[args count]];
-    BOOL filterSeen = NO;
-    for (id<GTWTree> t in args) {
-        if (t.type == kAlgebraLeftJoin) {
-            filterSeen  = YES;
-            id<GTWTree> prev;
-            if ([filterargs count]) {
-                prev    = [filterargs lastObject];
-                [filterargs removeLastObject];
+    NSMutableArray* reordered   = [NSMutableArray array];
+    {
+        NSMutableArray* workItems   = [NSMutableArray arrayWithArray:args];
+        NSMutableArray* filters     = [NSMutableArray array];
+        NSMutableArray* bgp         = [NSMutableArray array];
+        while ([workItems count]) {
+            id<GTWTree> t   = [workItems firstObject];
+            [workItems removeObjectAtIndex:0];
+//            NSLog(@"-> %@", t.type);
+            if (t.type == kTreeTriple || t.type == kTreePath) {
+                [bgp addObject:t];
+            } else if (t.type == kAlgebraExtend) {
+                if (t.arguments && [t.arguments count]) {
+                    [bgp addObject:t];
+                } else {
+                    [filters addObject:t];
+                }
+            } else if (t.type == kAlgebraFilter) {
+                if (t.arguments && [t.arguments count]) {
+                    [bgp addObject:t];
+                } else {
+                    [filters insertObject:t atIndex:0];
+                }
+            } else if (t.type == kTreeList) {
+                NSUInteger i;
+                for (i = 0; i < [t.arguments count]; i++) {
+                    id<GTWTree> child   = t.arguments[i];
+                    [workItems insertObject:child atIndex:i];
+                }
             } else {
-                prev    = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+                if ([bgp count]) {
+                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                    bgp         = [NSMutableArray array];
+                    while ([filters count]) {
+                        id<GTWTree> filter  = [filters lastObject];
+                        [filters removeLastObject];
+                        filter.arguments = @[pattern];
+                        pattern = filter;
+                    }
+                    filters  = [NSMutableArray array];
+                    [reordered addObject:pattern];
+                }
+                
+                if (t.type == kAlgebraGraph || t.type == kAlgebraUnion || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
+                    [reordered addObject:t];
+                } else if (t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
+                    id<GTWTree> pattern;
+                    if ([reordered count]) {
+                        pattern = [reordered lastObject];
+                        [reordered removeLastObject];
+                    } else {
+                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+                    }
+                    t.arguments = @[pattern, t.arguments[0]];
+                    [reordered addObject:t];
+                } else {
+                    NSLog(@"unknown type of tree: %@", t);
+                    return nil;
+                }
             }
-            t.arguments = @[prev, t.arguments[0]];
-            [filterargs addObject:t];
-        } else if (t.type == kAlgebraExtend) {
-            filterSeen  = YES;
-            id<GTWTree> prev;
-            if ([filterargs count]) {
-                prev    = [filterargs lastObject];
-                [filterargs removeLastObject];
-            } else {
-                prev    = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
-            }
-            t.arguments = @[prev];
-            
-            // make sure the extend variable doesn't appear in prev
-            NSSet* vars = [prev inScopeVariables];
-            id<GTWTree> list    = t.treeValue;
-            id<GTWTree> node    = list.arguments[1];
-            id<GTWTerm> term    = node.value;
-            if ([vars containsObject:term]) {
-                return [self errorMessage:[NSString stringWithFormat:@"Variable %@ used in BIND when already in-scope", term] withErrors:errors];
-            }
-            
-            [filterargs addObject:t];
-        } else if (t.type == kAlgebraFilter) {
-            filterSeen  = YES;
-            id<GTWTree> prev;
-            if ([filterargs count]) {
-                prev    = [filterargs lastObject];
-                [filterargs removeLastObject];
-            } else {
-                prev    = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
-            }
-            t.arguments = @[prev];
-            [filterargs addObject:t];
-        } else {
-            [filterargs addObject:t];
         }
+        if ([bgp count]) {
+            id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+            while ([filters count]) {
+                id<GTWTree> filter  = [filters lastObject];
+                [filters removeLastObject];
+                filter.arguments = @[pattern];
+                pattern = filter;
+            }
+            [reordered addObject:pattern];
+        }
+        if ([filters count]) {
+            id<GTWTree> ggp = [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
+            while ([filters count]) {
+                id<GTWTree> filter  = [filters lastObject];
+                [filters removeLastObject];
+                filter.arguments = @[ggp];
+                ggp = filter;
+            }
+            reordered   = [NSMutableArray arrayWithObject:ggp];
+        }
+        args    = reordered;
     }
-    
-    args    = filterargs;
     return [[GTWTree alloc] initWithType:kTreeList arguments:args];
 }
 

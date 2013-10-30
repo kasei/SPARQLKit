@@ -71,6 +71,15 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return [GTWLiteral falseLiteral];
         }
+    } else if (expr.type == kExprNeq) {
+        lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+        //        NSLog(@"%@ <=> %@", lhs, rhs);
+        if ([lhs isEqual:rhs]) {
+            return [GTWLiteral falseLiteral];
+        } else {
+            return [GTWLiteral trueLiteral];
+        }
     } else if (expr.type == kExprIsURI) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         //        NSLog(@"ISIRI(%@)", lhs);
@@ -754,6 +763,26 @@ static BOOL isNumeric(id<GTWTerm> term) {
             }
         }
         return [GTWLiteral trueLiteral];
+    } else if (expr.type == kExprFunction) {
+        GTWIRI* iri = expr.value;
+        if ([iri.value hasPrefix: @"http://www.w3.org/2001/XMLSchema#"]) {
+            id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+            if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
+                id<GTWLiteral> l    = (id<GTWLiteral>) term;
+                if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"]) {
+                    double value        = [l doubleValue];
+                    return [GTWLiteral doubleLiteralWithValue:value];
+                } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
+                    NSInteger value        = [l integerValue];
+                    return [GTWLiteral integerLiteralWithValue:value];
+                } else {
+                    return nil;
+                }
+            } else {
+                return nil;
+            }
+        }
+        return nil;
     } else {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;

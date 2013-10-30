@@ -173,7 +173,6 @@
     NSMutableDictionary* resultGroups   = [NSMutableDictionary dictionary];
     NSEnumerator* results    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     for (NSDictionary* result in results) {
-//        NSMutableArray* resultGroupData = [NSMutableArray array];
         NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
         for (id<GTWTree> g in groupList.arguments) {
             if (g.type == kAlgebraExtend) {
@@ -182,29 +181,30 @@
                 id<GTWTree> tn      = list.arguments[1];
                 id<GTWTerm> var = tn.value;
                 id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr withResult:result usingModel: model];
-//                [resultGroupData addObject:t];
                 if (t)
                     groupKeyDict[var.value]   = t;
             } else {
                 id<GTWTerm> var = g.value;
                 id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)g withResult:result usingModel: model];
-//                [resultGroupData addObject:t];
                 if (t)
                     groupKeyDict[var.value]   = t;
             }
         }
         
-//        id groupKey   = [resultGroupData componentsJoinedByString:@":"];
         id groupKey = groupKeyDict;
-        
-//        resultGroupTerms[groupKey]   = resultGroupData;
         
         if (!resultGroups[groupKey]) {
             resultGroups[groupKey]   = [NSMutableArray array];
         }
         [resultGroups[groupKey] addObject:result];
     }
-//    NSLog(@"-------------\nGroups:%@", resultGroups);
+    
+    // There is always at least one group.
+    if ([resultGroups count] == 0) {
+        resultGroups[@{}]   = @[];
+    }
+    
+    NSLog(@"-------------\nGroups:%@", resultGroups);
     NSMutableArray* finalResults    = [NSMutableArray array];
     for (id groupKey in resultGroups) {
         NSArray* groupResults   = resultGroups[groupKey];
