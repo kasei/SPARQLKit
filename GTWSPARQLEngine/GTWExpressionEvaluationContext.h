@@ -16,6 +16,7 @@
 @property __weak id<GTWQueryEngine> queryengine;
 
 - (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model;
+- (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model resultIdentity: (id) rident;
 - (id<GTWTerm>) evaluateNumericExpressionOfType: (GTWTreeType) type lhs: (id<GTWLiteral,GTWTerm>) lhs rhs: (id<GTWLiteral,GTWTerm>) rhs;
 
 @end

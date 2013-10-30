@@ -31,6 +31,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
 @implementation GTWExpressionEvaluationContext
 
 - (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
+    return [self evaluateExpression:expr withResult:result usingModel:model resultIdentity:result];
+}
+
+- (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model resultIdentity: (id) rident {
     if (!expr)
         return nil;
     id<GTWTerm> lhs, rhs;
@@ -150,6 +154,12 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else {
             return nil;
         }
+    } else if (expr.type == kExprUMinus) {
+        id<GTWTerm> zero    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWTree> lhs     = [[GTWTree alloc] initWithType:kTreeNode value:zero arguments:nil];
+        id<GTWTree> rhs     = expr.arguments[0];
+        id<GTWTree> minus   = [[GTWTree alloc] initWithType:kExprMinus arguments:@[lhs, rhs]];
+        return [self evaluateNumericExpression:minus withResult:result usingModel:model];
     } else if (expr.type == kExprPlus || expr.type == kExprMinus || expr.type == kExprMul || expr.type == kExprDiv) {
         return [self evaluateNumericExpression:expr withResult:result usingModel:model];
     } else if (expr.type == kExprCeil || expr.type == kExprFloor || expr.type == kExprRound) {
@@ -197,45 +207,34 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return str;
     } else if (expr.type == kExprReplace) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if (term.datatype && !(term.language) && ![term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
+            return nil;
+        }
         NSString* string    = term.value;
         id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         id<GTWTerm> replace = [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
         id<GTWTerm> args    = ([expr.arguments count] > 3) ? [self evaluateExpression:expr.arguments[3] withResult:result usingModel: model] : nil;
-        NSInteger opt       = NSRegularExpressionSearch;
+        NSInteger reopt     = 0;
         if (args && [args.value isEqual:@"i"]) {
-            opt |= NSCaseInsensitiveSearch;
+            reopt   |= NSRegularExpressionCaseInsensitive;
         }
         NSLog(@"REPLACE string : '%@'", string);
         NSLog(@"REPLACE pattern: '%@'", pattern.value);
         NSLog(@"REPLACE value  : '%@'", replace.value);
-        NSRange searchrange = { 0, [string length] };
-        NSRange range       = [string rangeOfString:pattern.value options:opt range:searchrange];
-        NSMutableString* newValue   = [NSMutableString stringWithString:string];
-        NSMutableArray* replacements    = [NSMutableArray array];
-        while (range.location != NSNotFound) {
-            searchrange.location    = range.location + range.length;
-            searchrange.length      = string.length - searchrange.location;
-            NSLog(@"should replace '%@' => '%@'", [string substringWithRange:range], replace.value);
-            
-            
-            // TODO: need to use capturing regex here so that instead of replace.value, we can put a new string in this array with, e.g., $1 replaced by the first capture
-            [replacements addObject:@[@(range.location), @(range.length), replace.value]];
-            
-            
-            if (searchrange.location >= [string length])
-                break;
-            range       = [string rangeOfString:pattern.value options:opt range:searchrange];
+
+        NSError* error;
+        NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
+        NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
+        
+        NSLog(@"---------------> '%@'\n\n", replaced);
+        
+        if (term.language) {
+            return [[GTWLiteral alloc] initWithString:replaced language:term.language];
+        } else if (term.datatype) {
+            return [[GTWLiteral alloc] initWithString:replaced datatype:term.datatype];
+        } else {
+            return [[GTWLiteral alloc] initWithString:replaced];
         }
-        while ([replacements count]) {
-            NSArray* r  = [replacements lastObject];
-            [replacements removeLastObject];
-            NSNumber* loc   = r[0];
-            NSNumber* len   = r[1];
-            NSRange range   = { .location = loc.integerValue, .length = len.integerValue };
-            NSString* n     = r[2];
-            [newValue replaceCharactersInRange:range withString:n];
-        }
-        return [[GTWLiteral alloc] initWithString:newValue];
     } else if (expr.type == kExprRegex) {
         //        NSLog(@"REGEX arguments: %@", expr.arguments);
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -678,7 +677,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return b;
         } else {
             id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-            NSUInteger rHash    = [[result description] hash];
+            NSUInteger rHash    = [[rident description] hash];
             NSUInteger bHash    = [term.value hash];
             GTWBlank* b  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"B%lu-%lu", rHash, bHash]];
             return b;
@@ -790,6 +789,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             } else if (type == kExprMul) {
                 value   = lhsV * rhsV;
             } else if (type == kExprDiv) {
+                promotedtype    = @"http://www.w3.org/2001/XMLSchema#decimal";
                 if (rhsV == 0)
                     return nil;
                 value   = lhsV / rhsV;

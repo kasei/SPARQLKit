@@ -85,7 +85,7 @@
                 GTWTree* node       = list.arguments[1];
                 id<GTWVariable> v   = node.value;
                 NSString* name  = [v value];
-                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model];
+                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model resultIdentity:r];
                 if (f) {
                     result[name]    = f;
                     testResult[name]    = f;
