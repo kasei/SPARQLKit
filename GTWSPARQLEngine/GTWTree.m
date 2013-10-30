@@ -606,7 +606,12 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 - (NSSet*) nonAggregatedVariables {
     if (self.type == kTreeNode) {
-        return [NSSet setWithObject:self.value];
+        id<GTWTerm> t   = self.value;
+        if ([t isKindOfClass:[GTWVariable class]]) {
+            return [NSSet setWithObject:self.value];
+        } else {
+            return [NSSet set];
+        }
     } else if (self.type == kAlgebraExtend) {
         id<GTWTree> list    = self.treeValue;
         NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] nonAggregatedVariables]];
