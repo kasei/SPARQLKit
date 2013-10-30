@@ -1066,7 +1066,12 @@ cleanup:
         }
         args    = reordered;
     }
-    return [[GTWTree alloc] initWithType:kTreeList arguments:args];
+    
+    if ([args count] == 1) {
+        return args[0];
+    } else {
+        return [[GTWTree alloc] initWithType:kTreeList arguments:args];
+    }
 }
 
 
@@ -2517,7 +2522,18 @@ cleanup:
             if (!ggp)
                 return nil;
             id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
-            return [[GTWTree alloc] initWithType:kAlgebraGraph value: graph arguments:@[ggp]];
+            id<GTWTree> filter  = nil;
+            if (ggp.type == kAlgebraFilter) {
+                // TODO: Need to push all filters up, not just one
+                filter  = ggp;
+                ggp     = ggp.arguments[0];
+            }
+            id<GTWTree> graphPattern    = [[GTWTree alloc] initWithType:kAlgebraGraph value: graph arguments:@[ggp]];
+            if (filter) {
+                filter.arguments    = @[graphPattern];
+                graphPattern        = filter;
+            }
+            return graphPattern;
         } else if ([kw isEqual:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
             [self nextNonCommentToken];
@@ -2534,6 +2550,7 @@ cleanup:
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
+            // TODO change this to a proper service algebra (faked with kAlgebraGraph for now)
             return [[GTWTree alloc] initWithType:kAlgebraGraph value: graph arguments:@[ggp]];
         } else if ([kw isEqual:@"FILTER"]) {
             [self nextNonCommentToken];
