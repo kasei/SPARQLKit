@@ -2068,7 +2068,6 @@ cleanup:
 	NSRange agg_range	= [t.value rangeOfString:@"(COUNT|SUM|MIN|MAX|AVG|SAMPLE|GROUP_CONCAT)" options:NSRegularExpressionSearch];
     NSRange func_range  = [t.value rangeOfString:@"(STR|LANG|LANGMATCHES|DATATYPE|BOUND|IRI|URI|BNODE|RAND|ABS|CEIL|FLOOR|ROUND|CONCAT|STRLEN|UCASE|LCASE|ENCODE_FOR_URI|CONTAINS|STRSTARTS|STRENDS|STRBEFORE|STRAFTER|YEAR|MONTH|DAY|HOURS|MINUTES|SECONDS|TIMEZONE|TZ|NOW|UUID|STRUUID|MD5|SHA1|SHA256|SHA384|SHA512|COALESCE|IF|STRLANG|STRDT|SAMETERM|SUBSTR|REPLACE|ISIRI|ISURI|ISBLANK|ISLITERAL|ISNUMERIC|REGEX)" options:NSRegularExpressionSearch];
     if (t.type == KEYWORD && agg_range.location == 0 && ((![t.value isEqual:@"MINUTES"]))) {    // the length check is in case we've mistaken a longer token (e.g. MINUTES) for MIN here
-        NSLog(@"parsing aggregate");
         return [self parseAggregateWithErrors: errors];
     } else if (t.type == KEYWORD && [t.value isEqualToString:@"NOT"]) {
         [self parseExpectedTokenOfType:KEYWORD withValue:@"NOT" withErrors:errors];
@@ -2089,7 +2088,6 @@ cleanup:
             return nil;
         return [[GTWTree alloc] initWithType:kExprExists arguments:@[ggp]];
     } else if (t.type == KEYWORD && func_range.location == 0) {
-        NSLog(@"parsing function");
         [self nextNonCommentToken];
         NSString* funcname  = t.value;
         NSMutableArray* arguments   = [NSMutableArray array];
