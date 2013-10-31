@@ -16,7 +16,7 @@ NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
 
 + (BOOL)plugInClassIsValid:(Class)plugInClass {
     if([plugInClass conformsToProtocol:@protocol(GTWTripleStore)]) {
-        if ([plugInClass instancesRespondToSelector: @selector(interfaceVersion)] && [plugInClass instancesRespondToSelector: @selector(initWithDictionary:)]) {
+        if ([plugInClass respondsToSelector: @selector(interfaceVersion)] && [plugInClass instancesRespondToSelector: @selector(initWithDictionary:)]) {
 //            NSLog(@"is valid: %@", plugInClass);
             return YES;
         } else {
@@ -25,7 +25,7 @@ NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
     }
     return NO;
 }
-            
+
 + (NSArray*) loadAllPlugins {
     NSMutableArray *classes;
     NSMutableArray *bundlePaths;
