@@ -5,8 +5,12 @@
 
 @implementation GTWRedlandTripleStore
 
-- (unsigned)interfaceVersion {
++ (unsigned)interfaceVersion {
     return 0;
+}
+
++ (NSString*) usage {
+    return @"{}";
 }
 
 - (GTWRedlandTripleStore*) initWithName: (NSString*) name redlandPtr: (librdf_world*) librdf_world_ptr {

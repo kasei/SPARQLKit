@@ -2,8 +2,12 @@
 
 @implementation GTWMemoryQuadStore
 
-- (unsigned)interfaceVersion {
++ (unsigned)interfaceVersion {
     return 0;
+}
+
++ (NSString*) usage {
+    return @"{}";
 }
 
 - (void) _addQuad: (id<GTWQuad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
