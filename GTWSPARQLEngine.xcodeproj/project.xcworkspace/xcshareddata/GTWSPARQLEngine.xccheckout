@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>599442FA-A4BD-4BF6-96F4-C9B20CAC0DF1</string>
+	<key>IDESourceControlProjectName</key>
+	<string>GTWSPARQLEngine</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>EE41FBE1-CD48-4223-B581-A041EABE6957</key>
+		<string>ssh://github.com/kasei/GTWSPARQLEngine.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>GTWSPARQLEngine.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>EE41FBE1-CD48-4223-B581-A041EABE6957</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/kasei/GTWSPARQLEngine.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>EE41FBE1-CD48-4223-B581-A041EABE6957</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>EE41FBE1-CD48-4223-B581-A041EABE6957</string>
+			<key>IDESourceControlWCCName</key>
+			<string>roles_engine</string>
+		</dict>
+	</array>
+</dict>
+</plist>
