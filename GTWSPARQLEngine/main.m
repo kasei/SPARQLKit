@@ -10,6 +10,7 @@
 #import "GTWRedlandTripleStore.h"
 #import "GTWTurtleParser.h"
 #import "GTWRasqalSPARQLParser.h"
+#import "GTWSPARQLParser.h"
 #import "GTWQuadModel.h"
 #import "GTWTripleModel.h"
 #import "GTWQueryPlanner.h"
@@ -196,8 +197,8 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
 }
 
 int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset) {
-    id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
-    GTWTree* algebra    = [parser parseSPARQL:query withBaseURI:base];
+    id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+    id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base];
     if (YES) {
         NSLog(@"query:\n%@", algebra);
     }
