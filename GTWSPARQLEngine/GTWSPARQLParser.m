@@ -415,7 +415,25 @@ cleanup:
     return triples;
 }
 
-- (id<GTWTree>) algebraVerifyingProjectionAndGroupingInAlgebra: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
+- (id<GTWTree>) algebraVerifyingExtend: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
+    if (algebra.type == kAlgebraExtend) {
+        id<GTWTree> list    = algebra.treeValue;
+        id<GTWTree> n       = list.arguments[1];
+        id<GTWTerm> t       = n.value;
+        id<GTWTree> suba    = list.arguments[0];
+        NSSet* expScopeVars = [suba inScopeVariables];
+        NSSet* patScopeVars = [algebra.arguments[0] inScopeVariables];
+        NSMutableSet* scopeVars = [expScopeVars setByAddingObjectsFromSet: patScopeVars];
+        if ([t conformsToProtocol:@protocol(GTWVariable)]) {
+            if ([scopeVars containsObject:t]) {
+                return [self errorMessage:[NSString stringWithFormat:@"Projecting already-in-scope variable %@ not allowed", t] withErrors:errors];
+            }
+        }
+    }
+    return algebra;
+}
+
+- (id<GTWTree>) algebraVerifyingProjection: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
     id<GTWTree> projectList = algebra.treeValue;
     NSArray* plist          = projectList.arguments;
     
@@ -433,6 +451,15 @@ cleanup:
             }
         }
     }
+    return algebra;
+}
+
+- (id<GTWTree>) algebraVerifyingProjectionAndGroupingInAlgebra: (id<GTWTree>) algebra withErrors: (NSMutableArray*) errors {
+    id<GTWTree> projectList = algebra.treeValue;
+    NSArray* plist          = projectList.arguments;
+    
+    algebra = [self algebraVerifyingProjection:algebra withErrors:errors];
+    ASSERT_EMPTY(errors);
     
     if ([self currentQuerySeenAggregates]) {
 //        NSLog(@"checking aggregate projection list");
@@ -910,7 +937,6 @@ cleanup:
 }
 
 
-
 // [54]  	GroupGraphPatternSub	  ::=  	TriplesBlock? ( GraphPatternNotTriples '.'? TriplesBlock? )*
 - (id<GTWTree>) parseGroupGraphPatternSubWithError: (NSMutableArray*) errors {
     // TriplesBlock? ( GraphPatternNotTriples '.'? TriplesBlock? )*
@@ -919,8 +945,9 @@ cleanup:
     //                     '{'                        'OPTIONAL'             'MINUS'             'GRAPH'             'SERVICE'             'FILTER' 'BIND' 'VALUES'
     NSMutableArray* args    = [NSMutableArray array];
     BOOL ok = YES;
+    GTWSPARQLToken* t;
     while (ok) {
-        GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+        t   = [self peekNextNonCommentToken];
         if (!t) {
             return [self errorMessage:@"Unexpected EOF" withErrors:errors];
         }
@@ -985,6 +1012,7 @@ cleanup:
     
     NSMutableArray* reordered   = [NSMutableArray array];
     {
+//        NSLog(@"-----------------------------");
         NSMutableArray* workItems   = [NSMutableArray arrayWithArray:args];
         NSMutableArray* filters     = [NSMutableArray array];
         NSMutableArray* bgp         = [NSMutableArray array];
@@ -998,7 +1026,20 @@ cleanup:
                 if (t.arguments && [t.arguments count]) {
                     [bgp addObject:t];
                 } else {
-                    [filters addObject:t];
+                    id<GTWTree> pattern;
+                    if ([bgp count]) {
+                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                        bgp         = [NSMutableArray array];
+                    } else if ([reordered count]) {
+                        pattern = [reordered lastObject];
+                        [reordered removeLastObject];
+                    } else {
+                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+                    }
+                    t.arguments = @[pattern];
+                    t   = [self algebraVerifyingExtend:t withErrors:errors];
+                    ASSERT_EMPTY(errors);
+                    [bgp addObject:t];
                 }
             } else if (t.type == kAlgebraFilter) {
                 if (t.arguments && [t.arguments count]) {
@@ -1020,13 +1061,15 @@ cleanup:
                         id<GTWTree> filter  = [filters lastObject];
                         [filters removeLastObject];
                         filter.arguments = @[pattern];
-                        pattern = filter;
+//                        pattern = filter;
+                        pattern = [self algebraVerifyingExtend:filter withErrors:errors];
+                        ASSERT_EMPTY(errors);
                     }
                     filters  = [NSMutableArray array];
                     [reordered addObject:pattern];
                 }
                 
-                if (t.type == kAlgebraGraph || t.type == kAlgebraUnion || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
+                if (t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
                     [reordered addObject:t];
                 } else if (t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
                     id<GTWTree> pattern;
@@ -1050,7 +1093,9 @@ cleanup:
                 id<GTWTree> filter  = [filters lastObject];
                 [filters removeLastObject];
                 filter.arguments = @[pattern];
-                pattern = filter;
+//                pattern = filter;
+                pattern = [self algebraVerifyingExtend:filter withErrors:errors];
+                ASSERT_EMPTY(errors);
             }
             [reordered addObject:pattern];
         }
@@ -2494,7 +2539,7 @@ cleanup:
         if ([kw isEqual:@"OPTIONAL"]) {
             // 'OPTIONAL' GroupGraphPattern
             [self nextNonCommentToken];
-            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            id<GTWTree> ggp = [self parseGroupGraphPatternWithError:errors];
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
@@ -2502,7 +2547,7 @@ cleanup:
         } else if ([kw isEqual:@"MINUS"]) {
             // 'MINUS' GroupGraphPattern
             [self nextNonCommentToken];
-            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            id<GTWTree> ggp = [self parseGroupGraphPatternWithError:errors];
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
@@ -2517,22 +2562,22 @@ cleanup:
             id<GTWTerm> g           = varOrIRI.value;
             if (!g)
                 return nil;
-            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            id<GTWTree> ggp = [self parseGroupGraphPatternWithError:errors];
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
             id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
-            id<GTWTree> filter  = nil;
+            
+            NSMutableArray* list    = [NSMutableArray arrayWithObject:graph];
             if (ggp.type == kAlgebraFilter) {
                 // TODO: Need to push all filters up, not just one
-                filter  = ggp;
+                id<GTWTree> filterExpr  = ggp.treeValue;
+                [list addObject:filterExpr];
                 ggp     = ggp.arguments[0];
             }
-            id<GTWTree> graphPattern    = [[GTWTree alloc] initWithType:kAlgebraGraph value: graph arguments:@[ggp]];
-            if (filter) {
-                filter.arguments    = @[graphPattern];
-                graphPattern        = filter;
-            }
+            
+            id<GTWTree> graphAndFilter   = [[GTWTree alloc] initWithType:kTreeList arguments:list];
+            id<GTWTree> graphPattern    = [[GTWTree alloc] initWithType:kAlgebraGraph treeValue: graphAndFilter arguments:@[ggp]];
             return graphPattern;
         } else if ([kw isEqual:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
@@ -2545,13 +2590,15 @@ cleanup:
             id<GTWTerm> g           = varOrIRI.value;
             if (!g)
                 return nil;
+            
             id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
-            id<GTWTree> ggp = [self parseGroupGraphPatternSubWithError:errors];
+            id<GTWTree> silentFlag  = [[GTWTree alloc] initWithType:kTreeNode value:(silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral]) arguments:nil];
+            id<GTWTree> graphAndSilent   = [[GTWTree alloc] initWithType:kTreeList arguments:@[graph, silentFlag]];
+            id<GTWTree> ggp = [self parseGroupGraphPatternWithError:errors];
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
-            // TODO change this to a proper service algebra (faked with kAlgebraGraph for now)
-            return [[GTWTree alloc] initWithType:kAlgebraGraph value: graph arguments:@[ggp]];
+            return [[GTWTree alloc] initWithType:kAlgebraService treeValue: graphAndSilent arguments:@[ggp]];
         } else if ([kw isEqual:@"FILTER"]) {
             [self nextNonCommentToken];
             id<GTWTree> f   = [self parseConstraintWithErrors:errors];

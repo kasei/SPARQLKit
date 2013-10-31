@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
+#import "GTWSPARQLEngine.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWTree.h"
 #import "NSObject+NSDictionary_QueryBindings.h"
@@ -14,6 +15,13 @@
 #import <GTWSWBase/GTWLiteral.h>
 #import "GTWExpression.h"
 #import <GTWSWBase/GTWQuad.h>
+#import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
+
+static NSString* OSVersionNumber ( void ) {
+    NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+    NSString *productVersion = version[@"ProductVersion"];
+    return productVersion;
+}
 
 @implementation GTWSimpleQueryEngine
 
@@ -22,6 +30,29 @@
     NSEnumerator* lhs    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSArray* rhs    = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
     return [self joinResultsEnumerator:lhs withResults:rhs leftJoin: leftJoin];
+}
+
+- (NSEnumerator*) evaluateMinus:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSEnumerator* lhs   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSArray* rhs        = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
+    NSMutableArray* results = [NSMutableArray array];
+    for (NSDictionary* result in lhs) {
+        BOOL ok = YES;
+        NSSet* domResult    = [NSSet setWithArray:[result allKeys]];
+        for (NSDictionary* checkResult in rhs) {
+            NSSet* domCheckResult   = [NSSet setWithArray:[checkResult allKeys]];
+            if ([domResult intersectsSet: domCheckResult]) {
+                if ([result join:checkResult]) {
+                    ok  = NO;
+                    break;
+                }
+            }
+        }
+        if (ok) {
+            [results addObject:result];
+        }
+    }
+    return [results objectEnumerator];
 }
 
 - (NSEnumerator*) joinResultsEnumerator: (NSEnumerator*) lhs withResults: (NSArray*) rhs leftJoin: (BOOL) leftJoin {
@@ -277,7 +308,7 @@
         return sum;
     } else if (expr.type == kExprAvg) {
         NSInteger count = 0;
-        id<GTWTerm> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWTerm,GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         for (NSDictionary* result in results) {
             id<GTWLiteral,GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             sum = [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
@@ -306,8 +337,94 @@
     }
 }
 
+- (NSEnumerator*) evaluateServicePlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    id<GTWTree> list        = plan.treeValue;
+    id<GTWTree> eptree      = list.arguments[0];
+    id<GTWTree> silenttree  = list.arguments[1];
+    id<GTWTerm> ep          = eptree.value;
+    GTWLiteral* silentTerm  = silenttree.value;
+    BOOL silent             = [silentTerm booleanValue];
+    
+    NSString* endpoint  = ep.value;
+    id<GTWTree> stree   = plan.arguments[0];
+    id<GTWTerm> sterm   = stree.value;
+    NSString* sparql    = sterm.value;
+    //    NSLog(@">>> %@", sparql);
+    
+    CFStringRef escaped = CFURLCreateStringByAddingPercentEscapes(NULL,
+                                                                  (CFStringRef)sparql,
+                                                                  NULL,
+                                                                  CFSTR(";?#"),
+                                                                  kCFStringEncodingUTF8);
+    NSString* query     = [NSString stringWithString:(__bridge NSString*) escaped];
+    CFRelease(escaped);
+    
+	NSURL* url	= [NSURL URLWithString:[NSString stringWithFormat:@"%@?query=%@", endpoint, query]];
+	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
+	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
+	[req setTimeoutInterval:5.0];
+    
+	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
+	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
+	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
+    
+	NSData* data	= nil;
+	NSHTTPURLResponse* resp	= nil;
+	NSError* _error			= nil;
+    //	NSLog(@"request: %@", req);
+	data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&_error];
+	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
+    //	NSLog(@"got response with %lu bytes", [data length]);
+	if (data) {
+		NSInteger code	= [resp statusCode];
+        NSLog(@"SERVICE response: %3ld", code);
+        if (code >= 300) {
+            //            NSLog(@"error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
+            NSDictionary* headers	= [resp allHeaderFields];
+            NSString* type		= headers[@"Content-Type"];
+            NSError* e;
+            if ([type hasPrefix:@"text/"]) {
+                NSString* body  = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                if (!body)
+                    body    = @"(No body returned)";
+                e  = [NSError errorWithDomain:@"us.kasei.sparql.store.sparql.http" code:code userInfo:@{@"description": [NSHTTPURLResponse localizedStringForStatusCode:code], @"body": body}];
+            } else {
+                e  = [NSError errorWithDomain:@"us.kasei.sparql.store.sparql.http" code:code userInfo:@{@"description": [NSHTTPURLResponse localizedStringForStatusCode:code], @"data": data}];
+            }
+            
+            if (silent) {
+                return [@[@{}] objectEnumerator];
+            } else {
+                NSLog(@"%@", e);
+                return nil;
+            }
+        } else {
+            // TODO: parse the srx data
+            if (YES) {
+                NSString* s = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                NSLog(@"---->\n%@\n------\n", s);
+            }
+            GTWSPARQLResultsXMLParser* parser    = [[GTWSPARQLResultsXMLParser alloc] init];
+            NSMutableSet* vars  = [NSMutableSet set];
+            NSEnumerator* e = [parser parseResultsFromData:data settingVariables:vars];
+            if (!e && silent) {
+                return [@[@{}] objectEnumerator];
+            } else {
+                return e;
+            }
+        }
+	} else {
+        if (silent) {
+            return [@[@{}] objectEnumerator];
+        } else {
+            NSLog(@"SPARQL Protocol HTTP error: %@", _error);
+            return nil;
+        }
+	}
+}
+
 - (NSEnumerator*) evaluateGraphPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    id<GTWTree> graph   = plan.value;
+    id<GTWTree> graph   = plan.treeValue;
     id<GTWTerm> term    = graph.value;
     id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
     NSMutableArray* graphs  = [NSMutableArray array];
@@ -317,13 +434,17 @@
     if ([graphs count]) {
         NSMutableArray* results = [NSMutableArray array];
         for (id<GTWTerm> g in graphs) {
-            GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
-                                  [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
-                                  [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
-                              ]];
-            id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[subplan]];
-            NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
-            [results addObjectsFromArray:[rhs allObjects]];
+            if ([g isEqual:term]) {
+                return [self evaluateQueryPlan:subplan withModel:model];
+            } else if ([term isKindOfClass:[GTWVariable class]]) {
+                GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
+                                                                                      [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
+                                                                                      [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
+                                                                                      ]];
+                id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[subplan]];
+                NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
+                [results addObjectsFromArray:[rhs allObjects]];
+            }
         }
         return [results objectEnumerator];
     } else {
@@ -351,23 +472,27 @@
     id<GTWTree> node    = list.arguments[1];
     
     id<GTWVariable> v   = node.value;
-    id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
-    NSEnumerator* results    = [self _evaluateQueryPlan:subplan withModel:model];
-    NSMutableArray* extended   = [NSMutableArray array];
-    for (id result in results) {
-        id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
-        if (f) {
-            NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
-            id<GTWTerm> value   = [e objectForKey:v.value];
-            if (!value || [value isEqual:f]) {
-                [e setValue:f forKey:v.value];
-                [extended addObject:e];
+    if ([v isKindOfClass:[GTWVariable class]]) {
+        id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
+        NSEnumerator* results    = [self _evaluateQueryPlan:subplan withModel:model];
+        NSMutableArray* extended   = [NSMutableArray array];
+        for (id result in results) {
+            id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
+            if (f) {
+                NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
+                id<GTWTerm> value   = [e objectForKey:v.value];
+                if (!value || [value isEqual:f]) {
+                    [e setValue:f forKey:v.value];
+                    [extended addObject:e];
+                }
+            } else {
+                [extended addObject:result];
             }
-        } else {
-            [extended addObject:result];
         }
+        return [extended objectEnumerator];
+    } else {
+        return [@[] objectEnumerator];
     }
-    return [extended objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateZeroOrOnePathPlan:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
@@ -651,6 +776,8 @@
         return [self evaluateAsk:plan withModel:model];
     } else if (type == kPlanNLjoin) {
         return [self evaluateNLJoin:plan withModel:model];
+    } else if (type == kPlanMinus) {
+        return [self evaluateMinus:plan withModel:model];
     } else if (type == kPlanDistinct) {
         return [self evaluateDistinct:plan withModel:model];
     } else if (type == kPlanProject) {
@@ -671,6 +798,8 @@
         return [self evaluateSlice:plan withModel:model];
     } else if (type == kPlanGraph) {
         return [self evaluateGraphPlan:plan withModel:model];
+    } else if (type == kPlanService) {
+        return [self evaluateServicePlan:plan withModel:model];
     } else if (type == kPlanGroup) {
         return [self evaluateGroupPlan:plan withModel:model];
     } else if (type == kPlanEmpty) {

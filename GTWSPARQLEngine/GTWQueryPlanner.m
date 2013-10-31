@@ -2,6 +2,7 @@
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWLiteral.h>
 #import "GTWSPARQLEngine.h"
 
 @implementation GTWQueryPlanner
@@ -88,19 +89,55 @@
         NSSet* namedGraphs      = namedSet.value;
         GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:[defaultGraphs allObjects] restrictedToGraphs:[namedGraphs allObjects]];
         return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
+    } else if (algebra.type == kAlgebraService) {
+        if ([algebra.arguments count] != 1) {
+            NSLog(@"SERVICE must be 1-ary");
+            return nil;
+        }
+        id<GTWTree> list        = algebra.treeValue;
+        id<GTWTree> eptree      = list.arguments[0];
+        id<GTWTerm> ep          = eptree.value;
+        if ([ep isKindOfClass:[GTWIRI class]]) {
+            id<GTWTree> pattern             = algebra.arguments[0];
+            NSString* sparql                = [GTWTree sparqlForAlgebra: pattern];
+            if (!sparql)
+                return nil;
+            GTWLiteral* spterm  = [[GTWLiteral alloc] initWithString:sparql];
+            id<GTWTree> tn      = [[GTWTree alloc] initWithType:kTreeNode value:spterm arguments:nil];
+//            id<GTWTree> list    = [[GTWTree alloc] initWithType:kTreeList arguments:@[spterm]];
+            return [[GTWQueryPlan alloc] initWithType:kPlanService treeValue:list arguments:@[tn]];
+        } else {
+            NSLog(@"SERVICE not defined for non-IRIs");
+            return nil;
+        }
     } else if (algebra.type == kAlgebraGraph) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");
             return nil;
         }
-        id<GTWTree> graphtree   = algebra.value;
+        id<GTWTree> list        = algebra.treeValue;
+        id<GTWTree> graphtree   = list.arguments[0];
+        
+        id<GTWTree> expr        = nil;
+        if ([list.arguments count] > 1) {
+            expr    = list.arguments[1];
+        }
+        
+        
+        
         id<GTWTerm> graph       = graphtree.value;
         if ([graph isKindOfClass:[GTWIRI class]]) {
             GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
             id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
             if (!plan)
                 return nil;
-            return [[GTWQueryPlan alloc] initWithType:kPlanGraph value: algebra.value arguments:@[plan]];
+            
+            plan    = [[GTWQueryPlan alloc] initWithType:kPlanGraph treeValue: graphtree arguments:@[plan]];
+            if (expr) {
+                id<GTWTree> e    = [self treeByPlanningSubTreesOf:expr usingDataset:newDataset withModel:model];
+                plan    = [[GTWQueryPlan alloc] initWithType:kPlanFilter treeValue: e arguments:@[plan]];
+            }
+            return plan;
         } else {
             NSArray* graphs = [dataset availableGraphsFromModel:model];
             
@@ -110,12 +147,17 @@
                 id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
                 if (!plan)
                     return nil;
-                
+
                 id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
                                                                                       [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
                                                                                       graphtree,
                                                                                       ]];
                 id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[plan]];
+                if (expr) {
+                    id<GTWTree> e    = [self treeByPlanningSubTreesOf:expr usingDataset:newDataset withModel:model];
+                    extend    = [[GTWQueryPlan alloc] initWithType:kPlanFilter treeValue: e arguments:@[extend]];
+                }
+                
                 if (gplan) {
                     gplan   = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[gplan, extend]];
                 } else {
@@ -177,11 +219,12 @@
             return plan;
         }
     } else if (algebra.type == kAlgebraMinus) {
-        NSLog(@"MINUS must be 2-ary");
-        if ([algebra.arguments count] != 2)
+        if ([algebra.arguments count] != 2) {
+            NSLog(@"MINUS must be 2-ary");
             return nil;
+        }
         // should probably have a new plan type for MINUS blocks
-        return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model]]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model]]];
     } else if (algebra.type == kAlgebraLeftJoin) {
         if ([algebra.arguments count] != 2) {
             NSLog(@"LEFT JOIN must be 2-ary");

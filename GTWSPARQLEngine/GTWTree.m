@@ -1,6 +1,7 @@
 #import "GTWTree.h"
 #import "GTWSPARQLEngine.h"
 #import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWLiteral.h>
 
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
@@ -21,6 +22,7 @@ GTWTreeType __strong const kPlanMinus					= @"PlanMinus";
 GTWTreeType __strong const kPlanOrder					= @"PlanOrder";
 GTWTreeType __strong const kPlanDistinct				= @"PlanDistinct";
 GTWTreeType __strong const kPlanGraph                   = @"PlanGraph";
+GTWTreeType __strong const kPlanService                 = @"PlanService";
 GTWTreeType __strong const kPlanSlice					= @"PlanSlice";
 GTWTreeType __strong const kPlanJoinIdentity			= @"PlanJoinIdentity";
 GTWTreeType __strong const kPlanFedStub					= @"PlanFedStub";
@@ -40,6 +42,7 @@ GTWTreeType __strong const kAlgebraLeftJoin				= @"AlgebraLeftJoin";
 GTWTreeType __strong const kAlgebraFilter				= @"AlgebraFilter";
 GTWTreeType __strong const kAlgebraUnion				= @"AlgebraUnion";
 GTWTreeType __strong const kAlgebraGraph				= @"AlgebraGraph";
+GTWTreeType __strong const kAlgebraService				= @"AlgebraService";
 GTWTreeType __strong const kAlgebraExtend				= @"AlgebraExtend";
 GTWTreeType __strong const kAlgebraMinus				= @"AlgebraMinus";
 //GTWTreeType __strong const kAlgebraZeroLengthPath		= @"AlgebraZeroLengthPath";
@@ -487,7 +490,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     [self computeScopeVariables];
     [self applyPrefixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
         if (node.type == kPlanProject) {
-            GTWTree* list   = node.treeValue;
+            id<GTWTree> list    = node.treeValue;
             NSMutableArray* vars    = [NSMutableArray array];
             for (id<GTWTree> v in list.arguments) {
                 if (v.type == kTreeNode && [v.value isKindOfClass:[GTWVariable class]]) {
@@ -559,7 +562,11 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 - (NSSet*) inScopeVariables {
     if (self.type == kTreeNode) {
-        return [NSSet setWithObject:self.value];
+        if ([self.value isKindOfClass:[GTWVariable class]]) {
+            return [NSSet setWithObject:self.value];
+        } else {
+            return [NSSet set];
+        }
     } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
         NSMutableSet* set   = [NSMutableSet set];
         NSArray* nodes  = [self.value allValues];
@@ -725,6 +732,58 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 - (NSUInteger)hash {
     NSUInteger h    = [[self description] hash];
     return h;
+}
+
++ (NSString*) sparqlForAlgebra: (id<GTWTree>) algebra isProjected: (BOOL*) isProjected indentLevel: (NSUInteger) indentLevel {
+    NSMutableString* indent = [NSMutableString string];
+    NSUInteger i;
+    for (i = 0; i < indentLevel; i++) {
+        [indent appendString:@"  "];
+    }
+    if (algebra.type == kTreeTriple) {
+        id<GTWTriple> t = algebra.value;
+        return [NSString stringWithFormat:@"%@%@", indent, [t description]];
+    } else if (algebra.type == kTreeList) {
+        NSMutableArray* s   = [NSMutableArray array];
+        for (id<GTWTree> t in algebra.arguments) {
+            [s addObject:[self sparqlForAlgebra:t isProjected:isProjected indentLevel:indentLevel+1]];
+        }
+        return [NSString stringWithFormat:@"%@%@", indent, [s componentsJoinedByString:@"\n"]];
+    } else if (algebra.type == kAlgebraLeftJoin) {
+        NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
+        NSString* rhs   = [self sparqlForAlgebra:algebra.arguments[1] isProjected:isProjected indentLevel:indentLevel+1];
+        return [NSString stringWithFormat:@"%@%@\n%@OPTIONAL {\n%@\n%@}\n", indent, lhs, indent, indent, rhs];
+    } else if (algebra.type == kAlgebraService) {
+        id<GTWTree> list        = algebra.treeValue;
+        id<GTWTree> eptree      = list.arguments[0];
+        id<GTWTree> silenttree  = list.arguments[1];
+        id<GTWTerm> epterm      = eptree.value;
+        GTWLiteral* silentTerm  = silenttree.value;
+        BOOL silent             = [silentTerm booleanValue];
+
+        NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
+        NSString* sparql    = [NSString stringWithFormat:@"%@SERVICE %@%@ {\n%@\n%@}\n", indent, (silent ? @"SILENT " : @""), epterm, indent, lhs];
+        return sparql;
+    } else if (algebra.type == kAlgebraGraph) {
+        id<GTWTree> gtree   = algebra.treeValue;
+        id<GTWTerm> gterm   = gtree.value;
+        NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
+        return [NSString stringWithFormat:@"%@GRAPH %@ {\n%@\n%@}\n", indent, gterm, indent, lhs];
+    } else {
+        NSLog(@"Do not know how to serialize algebra as SPARQL: %@", algebra);
+        return nil;
+    }
+}
+
++ (NSString*) sparqlForAlgebra: (id<GTWTree>) algebra {
+    BOOL isProjected  = NO;
+    NSString* sparql    = [self sparqlForAlgebra:algebra isProjected:&isProjected indentLevel:1];
+    if (!isProjected) {
+        sparql  = [NSString stringWithFormat:@"SELECT * WHERE {\n%@\n}", sparql];
+    }
+    
+    NSLog(@"SPARQL:\n-----------\n%@\n-------\n", sparql);
+    return sparql;
 }
 
 @end

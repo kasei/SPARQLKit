@@ -25,6 +25,7 @@ extern GTWTreeType __strong const kPlanMinus;					// Minus( P, Q )
 extern GTWTreeType __strong const kPlanOrder;					// Order( P, cond )
 extern GTWTreeType __strong const kPlanDistinct;				// Distinct( P )
 extern GTWTreeType __strong const kPlanGraph;               // Graph( G, P )
+extern GTWTreeType __strong const kPlanService;               // Service( G, P )
 extern GTWTreeType __strong const kPlanSlice;					// Slice( P, start, length )
 extern GTWTreeType __strong const kPlanJoinIdentity;			// JoinIdentity()
 extern GTWTreeType __strong const kPlanFedStub;				// FedStub( P )
@@ -44,6 +45,7 @@ extern GTWTreeType __strong const kAlgebraLeftJoin;			// LeftJoin( P, Q, expr )
 extern GTWTreeType __strong const kAlgebraFilter;				// Filter( expr, P )
 extern GTWTreeType __strong const kAlgebraUnion;				// Union( P, Q )
 extern GTWTreeType __strong const kAlgebraGraph;				// Graph( IRI|var, P )
+extern GTWTreeType __strong const kAlgebraService;				// Service( IRI|var, P )
 extern GTWTreeType __strong const kAlgebraExtend;				// Extend( P, var, expr )
 extern GTWTreeType __strong const kAlgebraMinus;				// Minus( P, Q )
 //extern GTWTreeType __strong const kAlgebraZeroLengthPath;		// ZeroLengthPath( term|var, path, term|var )
@@ -207,6 +209,7 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 - (void) computeProjectVariables;
 - (NSSet*) nonAggregatedVariables;
 
++ (NSString*) sparqlForAlgebra: (id<GTWTree>) algebra;
 - (NSString*) conciseDescription;
 - (NSString*) longDescription;
 

@@ -3,6 +3,9 @@
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWBlank.h>
 
+#define SPARQLKIT_NAME  @"SPARQLKit"
+#define SPARQLKIT_VERSION @"0.0.1"
+
 @protocol GTWLogger
 - (void) logData: (id) data forKey: (NSString*) key;
 @end
