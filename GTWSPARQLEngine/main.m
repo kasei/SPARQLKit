@@ -196,22 +196,24 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
     return 0;
 }
 
-int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset) {
+int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset, NSUInteger verbose) {
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
     id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base];
-    if (YES) {
+    if (verbose) {
         NSLog(@"query:\n%@", algebra);
     }
     
     GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
     GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
-    if (YES) {
+    if (verbose) {
         NSLog(@"plan:\n%@", plan);
     }
     
     [plan computeProjectVariables];
     
-    NSLog(@"executing query...");
+    if (verbose) {
+        NSLog(@"executing query...");
+    }
     id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
     NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
     id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
@@ -263,7 +265,7 @@ int lexQuery(NSString* query, NSString* base) {
     return 0;
 }
 
-int runQuery(NSString* query, NSString* filename, NSString* base) {
+int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger verbose) {
     GTWIRI* graph = [[GTWIRI alloc] initWithIRI: base];
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
 
@@ -282,11 +284,27 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
 //    GTWAddressBookTripleStore* store    = [[GTWAddressBookTripleStore alloc] init];
 //    GTWTripleModel* model   = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName: graph];
     GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
-    return runQueryWithModelAndDataset(query, base, model, dataset);
+    return runQueryWithModelAndDataset(query, base, model, dataset, verbose);
+}
+
+int usage(int argc, const char * argv[]) {
+    fprintf(stderr, "Usage:\n");
+    fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
+    fprintf(stderr, "    %s query QUERY-STRING data.rdf\n", argv[0]);
+    fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
+    fprintf(stderr, "    %s test triple\n", argv[0]);
+    fprintf(stderr, "    %s test quad\n", argv[0]);
+    fprintf(stderr, "    %s test endpoint\n", argv[0]);
+    fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
+    fprintf(stderr, "    %s testsuite [PATTERN]\n", argv[0]);
+    fprintf(stderr, "    %s grapheq data1.rdf data2.rdf base-uri\n", argv[0]);
+    fprintf(stderr, "    %s dump SOURCE [config-json-string]\n", argv[0]);
+    fprintf(stderr, "    %s sources\n", argv[0]);
+    fprintf(stderr, "\n");
+    return 0;
 }
 
 int main(int argc, const char * argv[]) {
-    fprintf(stdout, "# %s\n", argv[0]);
     srand([[NSDate date] timeIntervalSince1970]);
 	rasqal_world_ptr	= rasqal_new_world();
 	if(!rasqal_world_ptr || rasqal_world_open(rasqal_world_ptr)) {
@@ -299,7 +317,11 @@ int main(int argc, const char * argv[]) {
     
     // ------------------------------------------------------------------------------------------------------------------------
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
-    NSArray* datasourcelist = [GTWSPARQLDataSourcePlugin loadAllPlugins];
+    NSArray* plugins    = [GTWSPARQLDataSourcePlugin loadAllPlugins];
+    NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
+    [datasourcelist addObject:[GTWRedlandTripleStore class]];
+    [datasourcelist addObject:[GTWMemoryQuadStore class]];
+    
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
 //        NSDictionary* dict = [NSDictionary dictionary];
@@ -309,43 +331,81 @@ int main(int argc, const char * argv[]) {
     
     
     if (argc == 1) {
-        fprintf(stderr, "Usage:\n");
-        fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
-        fprintf(stderr, "    %s query QUERY-STRING data.rdf\n", argv[0]);
-        fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
-        fprintf(stderr, "    %s test triple\n", argv[0]);
-        fprintf(stderr, "    %s test quad\n", argv[0]);
-        fprintf(stderr, "    %s test endpoint\n", argv[0]);
-        fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
-        fprintf(stderr, "    %s testsuite\n", argv[0]);
-        fprintf(stderr, "    %s dump SOURCE\n", argv[0]);
-        fprintf(stderr, "    %s sources\n", argv[0]);
-        fprintf(stderr, "\n");
-        exit(1);
+        return usage(argc, argv);
+    } else if (argc == 2 && !strcmp(argv[1], "--help")) {
+        return usage(argc, argv);
     }
     
-    if (!strcmp(argv[1], "query")) {
-        NSString* query     = [NSString stringWithFormat:@"%s", argv[2]];
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
-        runQuery(query, filename, kDefaultBase);
-    } else if (!strcmp(argv[1], "qparse")) {
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
+    NSUInteger verbose  = 0;
+    NSUInteger argi     = 1;
+    NSString* op        = [NSString stringWithFormat:@"%s", argv[argi++]];
+    
+    if (argc > argi && !strcmp(argv[argi], "-v")) {
+        verbose = 1;
+        argi++;
+    }
+    
+    if (verbose) {
+        fprintf(stdout, "# %s\n", argv[0]);
+    }
+    
+    if ([op isEqual: @"query"]) {
+        if (argc < (argi+2)) {
+            NSLog(@"query operation must be supplied both a query and a data filename.");
+            return 1;
+        }
+        NSString* query     = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        runQuery(query, filename, kDefaultBase, verbose);
+    } else if ([op isEqual: @"qparse"]) {
+        if (argc < (argi+2)) {
+            NSLog(@"qparse operation must be supplied both query and data filenames.");
+            return 1;
+        }
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* query     = fileContents(filename);
-        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : kDefaultBase;
+        NSString* base      = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
         parseQuery(query, base);
-    } else if (!strncmp(argv[1], "lex", 3)) {
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[2]];
+    } else if ([op isEqual: @"lex"]) {
+        if (argc < (argi+1)) {
+            NSLog(@"lex operation must be supplied a query filename.");
+            return 1;
+        }
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* query     = fileContents(filename);
-        NSString* base      = (argc > 3) ? [NSString stringWithFormat:@"%s", argv[3]] : kDefaultBase;
+        NSString* base      = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
         lexQuery(query, base);
-    } else if (!strcmp(argv[1], "queryfile")) {
-        NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[2]]);
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
-        runQuery(query, filename, kDefaultBase);
-    } else if (!strcmp(argv[1], "dump")) {
-        NSString* sourceName     = [NSString stringWithFormat:@"%s", argv[2]];
-        NSDictionary* dict       = @{};
-        id<GTWTripleStore> store        = [[[datasources objectForKey:sourceName] alloc] initWithDictionary:dict];
+    } else if ([op isEqual: @"queryfile"]) {
+        if (argc < (argi+2)) {
+            NSLog(@"queryfile operation must be supplied both query and data filenames.");
+            return 1;
+        }
+        NSString* query     = fileContents([NSString stringWithFormat:@"%s", argv[argi++]]);
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        runQuery(query, filename, kDefaultBase, verbose);
+    } else if ([op isEqual: @"dump"]) {
+        if (argc < (argi+1)) {
+            NSLog(@"dump operation must be supplied with a data source name.");
+            return 1;
+        }
+        NSString* sourceName    = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSDictionary* dict;
+        if (argc > argi) {
+            NSString* config    = [NSString stringWithFormat:@"%s", argv[argi++]];
+            NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
+            NSError* error  = nil;
+            dict       = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+            if (error) {
+                NSLog(@"Error parsing data source JSON configuration: %@", error);
+                return 1;
+            }
+        } else {
+            dict       = @{};
+        }
+        
+        // TODO: handle classes that provide quadstores, not just triplestores
+        Class c = [datasources objectForKey:sourceName];
+        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
         if (!store) {
             NSLog(@"Failed to create triple store from source '%@'", sourceName);
             return 1;
@@ -365,17 +425,28 @@ int main(int argc, const char * argv[]) {
         id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
         NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
         [ser serializeTriples:e toHandle:out];
-    } else if (!strcmp(argv[1], "sources")) {
+    } else if ([op isEqual: @"sources"]) {
         fprintf(stdout, "Available data sources:\n");
         for (id s in datasources) {
-            fprintf(stdout, "- %s\n", [[datasources[s] description] UTF8String]);
+            Class c = datasources[s];
+            fprintf(stdout, "%s\n", [[c description] UTF8String]);
+            NSString* usage = [c usage];
+            if (usage) {
+                fprintf(stdout, "  Configuration template: %s\n\n", [usage UTF8String]);
+            }
+            
         }
-    } else if (!strcmp(argv[1], "test")) {
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[3]];
-        NSString* base      = [NSString stringWithFormat:@"%s", argv[4]];
-        if (!strcmp(argv[2], "parser")) {
+    } else if ([op isEqual: @"test"]) {
+        if (argc < (argi+3)) {
+            NSLog(@"test operation must be supplied a test type, a data filename, and a base URI.");
+            return 1;
+        }
+        NSString* testtype  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* base      = [NSString stringWithFormat:@"%s", argv[argi++]];
+        if ([testtype isEqual: @"parser"]) {
             run_redland_parser_example(filename, base);
-        } else if (!strcmp(argv[2], "endpoint")) {
+        } else if ([testtype isEqual: @"endpoint"]) {
             NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
             id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
             GTWIRI* graph = [[GTWIRI alloc] initWithIRI: kDefaultBase];
@@ -388,14 +459,14 @@ int main(int argc, const char * argv[]) {
             id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
             NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
             [ser serializeTriples:e toHandle:out];
-        } else if (!strcmp(argv[2], "triple")) {
+        } else if ([testtype isEqual: @"triple"]) {
             run_redland_triple_store_example(filename, base);
         } else {
             run_memory_quad_store_example(filename, base);
         }
-    } else if (!strcmp(argv[1], "testsuite")) {
+    } else if ([op isEqual: @"testsuite"]) {
         GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
-        NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[2]] : nil;
+        NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
         harness.runEvalTests    = YES;
         harness.runSyntaxTests  = YES;
         if (pattern) {
@@ -403,10 +474,14 @@ int main(int argc, const char * argv[]) {
         } else {
             [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
         }
-    } else if (!strcmp(argv[1], "-")) {
-        NSString* filenamea  = [NSString stringWithFormat:@"%s", argv[2]];
-        NSString* filenameb  = [NSString stringWithFormat:@"%s", argv[3]];
-        NSString* base      = [NSString stringWithFormat:@"%s", argv[4]];
+    } else if ([op isEqual: @"grapheq"]) {
+        if (argc < (argi+3)) {
+            NSLog(@"grapheq operation must be supplied two data filenames and a base URI.");
+            return 1;
+        }
+        NSString* filenamea  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* filenameb  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* base      = [NSString stringWithFormat:@"%s", argv[argi++]];
         GTWMemoryQuadStore* storea   = [[GTWMemoryQuadStore alloc] init];
         GTWMemoryQuadStore* storeb   = [[GTWMemoryQuadStore alloc] init];
         loadRDFFromFileIntoStore(storea, filenamea, base);
