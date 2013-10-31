@@ -44,6 +44,13 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 @property void* ptr;
 @property NSMutableDictionary* annotations;
 
+/**
+ @param map
+ A dictionary mapping 
+ @param variables
+ A set of variable names that should be used during serialization.
+ @return The serialization of the enumerated SPARQL results.
+ */
 - (id) copyReplacingValues: (NSDictionary*) map;
 - (NSString*) treeTypeName;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;

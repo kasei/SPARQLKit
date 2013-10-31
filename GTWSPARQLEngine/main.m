@@ -286,7 +286,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base) {
 }
 
 int main(int argc, const char * argv[]) {
-    fprintf(stdout, "%% %s\n", argv[0]);
+    fprintf(stdout, "# %s\n", argv[0]);
     srand([[NSDate date] timeIntervalSince1970]);
 	rasqal_world_ptr	= rasqal_new_world();
 	if(!rasqal_world_ptr || rasqal_world_open(rasqal_world_ptr)) {

@@ -10,20 +10,29 @@
 
 @implementation GTWSPARQLResultsXMLSerializer
 
+- (NSString*) xmlSimpleEscapeString: (NSString*) string {
+    NSMutableString* value  = [NSMutableString stringWithString:string];
+    [value replaceOccurrencesOfString:@"&"  withString:@"&amp;"  options:NSLiteralSearch range:NSMakeRange(0, [value length])];
+    [value replaceOccurrencesOfString:@"\"" withString:@"&quot;" options:NSLiteralSearch range:NSMakeRange(0, [value length])];
+    [value replaceOccurrencesOfString:@"'"  withString:@"&#x27;" options:NSLiteralSearch range:NSMakeRange(0, [value length])];
+    [value replaceOccurrencesOfString:@">"  withString:@"&gt;"   options:NSLiteralSearch range:NSMakeRange(0, [value length])];
+    [value replaceOccurrencesOfString:@"<"  withString:@"&lt;"   options:NSLiteralSearch range:NSMakeRange(0, [value length])];
+    return value;
+}
 - (NSData*) dataForTerm: (id<GTWTerm>) term {
-    // TODO: need to properly escape values for XML
+    NSString* value = [self xmlSimpleEscapeString:term.value];
     switch ([term termType]) {
         case GTWTermBlank:
-            return [[NSString stringWithFormat:@"<bnode>%@</bnode>", [term value]] dataUsingEncoding:NSUTF8StringEncoding];
+            return [[NSString stringWithFormat:@"<bnode>%@</bnode>", value] dataUsingEncoding:NSUTF8StringEncoding];
         case GTWTermIRI:
-            return [[NSString stringWithFormat:@"<uri>%@</uri>", [term value]] dataUsingEncoding:NSUTF8StringEncoding];
+            return [[NSString stringWithFormat:@"<uri>%@</uri>", value] dataUsingEncoding:NSUTF8StringEncoding];
         case GTWTermLiteral:
             if ([term language]) {
-                return [[NSString stringWithFormat:@"<literal xml:lang=\"%@\">%@</literal>", [term language], [term value]] dataUsingEncoding:NSUTF8StringEncoding];
+                return [[NSString stringWithFormat:@"<literal xml:lang=\"%@\">%@</literal>", [self xmlSimpleEscapeString:[term language]], value] dataUsingEncoding:NSUTF8StringEncoding];
             } else if ([term datatype]) {
-                return [[NSString stringWithFormat:@"<literaldatatype=\"%@\">%@</literal>", [term datatype], [term value]] dataUsingEncoding:NSUTF8StringEncoding];
+                return [[NSString stringWithFormat:@"<literaldatatype=\"%@\">%@</literal>", [self xmlSimpleEscapeString:[term datatype]], value] dataUsingEncoding:NSUTF8StringEncoding];
             } else {
-                return [[NSString stringWithFormat:@"<literal>%@</literal>", [term value]] dataUsingEncoding:NSUTF8StringEncoding];
+                return [[NSString stringWithFormat:@"<literal>%@</literal>", value] dataUsingEncoding:NSUTF8StringEncoding];
             }
         default:
             return nil;

@@ -399,11 +399,6 @@ static NSString* OSVersionNumber ( void ) {
                 return nil;
             }
         } else {
-            // TODO: parse the srx data
-            if (YES) {
-                NSString* s = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-                NSLog(@"---->\n%@\n------\n", s);
-            }
             GTWSPARQLResultsXMLParser* parser    = [[GTWSPARQLResultsXMLParser alloc] init];
             NSMutableSet* vars  = [NSMutableSet set];
             NSEnumerator* e = [parser parseResultsFromData:data settingVariables:vars];
@@ -533,7 +528,7 @@ static NSString* OSVersionNumber ( void ) {
             NSDictionary* result    = @{obj.value: subj};
             [results addObject:result];
         } else {
-            // TODO: one result (the join identity)
+            // one result (the join identity)
             [results addObject:@{}];
         }
     }
@@ -605,7 +600,7 @@ static NSString* OSVersionNumber ( void ) {
             NSDictionary* result    = @{obj.value: subj};
             [results addObject:result];
         } else {
-            // TODO: one result (the join identity)
+            // one result (the join identity)
             [results addObject:@{}];
         }
     }

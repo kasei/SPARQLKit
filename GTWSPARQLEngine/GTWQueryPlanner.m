@@ -49,7 +49,6 @@
     NSInteger count;
     NSArray* defaultGraphs;
     
-    // TODO: if any of these recursive calls fails and returns nil, we need to propogate that nil up the stack instead of having it crash when an array atempts to add the nil value
     if (algebra.type == kAlgebraDistinct || algebra.type == kAlgebraReduced) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"DISTINCT/REDUCED must be 1-ary");
