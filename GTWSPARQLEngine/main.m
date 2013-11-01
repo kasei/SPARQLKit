@@ -347,7 +347,6 @@ int main(int argc, const char * argv[]) {
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
     NSArray* plugins    = [GTWSPARQLDataSourcePlugin loadAllPlugins];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
-    [datasourcelist addObject:[GTWRedlandTripleStore class]];
     [datasourcelist addObject:[GTWMemoryQuadStore class]];
     
     for (Class d in datasourcelist) {
