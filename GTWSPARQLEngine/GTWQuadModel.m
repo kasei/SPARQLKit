@@ -35,25 +35,29 @@
         g   = nil;
     }
     
-    return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
-//        NSLog(@"creating bindings for quad: %@", q);
-        NSMutableDictionary* r = [NSMutableDictionary dictionary];
-        BOOL ok = YES;
-        for (NSString* pos in vars) {
-            NSString* name   = vars[pos];
-//            NSLog(@"mapping variable %@", name);
-            id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
-            if (!(r[name]) || ([r[name] isEqual: value])) {
-                r[name] = value;
-            } else {
-                ok  = NO;
-                break;
+    BOOL ok;
+    @autoreleasepool {
+        ok = [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
+    //        NSLog(@"creating bindings for quad: %@", q);
+            NSMutableDictionary* r = [NSMutableDictionary dictionary];
+            BOOL ok = YES;
+            for (NSString* pos in vars) {
+                NSString* name   = vars[pos];
+    //            NSLog(@"mapping variable %@", name);
+                id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
+                if (!(r[name]) || ([r[name] isEqual: value])) {
+                    r[name] = value;
+                } else {
+                    ok  = NO;
+                    break;
+                }
             }
-        }
-        if (ok) {
-            block(r);
-        }
-    } error: error];
+            if (ok) {
+                block(r);
+            }
+        } error: error];
+    }
+    return ok;
 }
 
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {

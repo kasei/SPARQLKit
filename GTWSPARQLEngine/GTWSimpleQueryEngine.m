@@ -25,6 +25,65 @@ static NSString* OSVersionNumber ( void ) {
 
 @implementation GTWSimpleQueryEngine
 
+- (NSEnumerator*) evaluateHashJoin:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSMutableArray* results = [NSMutableArray array];
+
+    id<GTWTree,GTWQueryPlan> lhsPlan    = plan.arguments[0];
+    id<GTWTree,GTWQueryPlan> rhsPlan    = plan.arguments[1];
+    
+    @autoreleasepool {
+        NSMutableDictionary* hash   = [NSMutableDictionary dictionary];
+        NSSet* joinVars = plan.value;
+        @autoreleasepool {
+//            NSLog(@"constructing hash from %@", rhsPlan);
+            NSEnumerator* rhs    = [self _evaluateQueryPlan:rhsPlan withModel:model];
+            for (NSDictionary* result in rhs) {
+                NSMutableDictionary* joinKey   = [NSMutableDictionary dictionary];
+                for (id<GTWVariable> var in joinVars) {
+                    NSString* v = var.value;
+                    id<GTWTerm> term    = [result objectForKey:v];
+                    if (term) {
+                        [joinKey setObject:term forKey:v];
+                    }
+                }
+                NSNumber* hashKey   = [NSNumber numberWithInteger:[[joinKey description] hash]];
+                NSMutableArray* array   = [hash objectForKey:hashKey];
+                if (!array) {
+                    array   = [NSMutableArray array];
+                    [hash setObject:array forKey:hashKey];
+                }
+                [array addObject:result];
+            }
+        }
+//        NSLog(@"HashJoin hash has %lu buckets", [hash count]);
+
+        @autoreleasepool {
+            NSEnumerator* lhs    = [self _evaluateQueryPlan:lhsPlan withModel:model];
+            for (NSDictionary* result in lhs) {
+                NSMutableDictionary* joinKey   = [NSMutableDictionary dictionary];
+                for (id<GTWVariable> var in joinVars) {
+                    NSString* v = var.value;
+                    id<GTWTerm> term    = [result objectForKey:v];
+                    if (term) {
+                        [joinKey setObject:term forKey:v];
+                    }
+                }
+                NSNumber* hashKey   = [NSNumber numberWithInteger:[[joinKey description] hash]];
+                NSMutableArray* array   = [hash objectForKey:hashKey];
+                if (array) {
+                    for (NSDictionary* r in array) {
+                        NSDictionary* j = [result join: r];
+                        if (j) {
+                            [results addObject:j];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return [results objectEnumerator];
+}
+
 - (NSEnumerator*) evaluateNLJoin:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     BOOL leftJoin   = (plan.value && [plan.value isEqualToString:@"left"]);
     NSEnumerator* lhs    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
@@ -140,9 +199,11 @@ static NSString* OSVersionNumber ( void ) {
 - (NSEnumerator*) evaluateQuad:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     id<GTWQuad> q    = plan.value;
     NSMutableArray* results = [NSMutableArray array];
-    [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
-        [results addObject:r];
-    } error:nil];
+    @autoreleasepool {
+        [model enumerateBindingsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph usingBlock:^(NSDictionary* r) {
+            [results addObject:r];
+        } error:nil];
+    }
     return [results objectEnumerator];
 }
 
@@ -769,6 +830,8 @@ static NSString* OSVersionNumber ( void ) {
 //    }
     if (type == kPlanAsk) {
         return [self evaluateAsk:plan withModel:model];
+    } else if (type == kPlanHashJoin) {
+        return [self evaluateHashJoin:plan withModel:model];
     } else if (type == kPlanNLjoin) {
         return [self evaluateNLJoin:plan withModel:model];
     } else if (type == kPlanMinus) {

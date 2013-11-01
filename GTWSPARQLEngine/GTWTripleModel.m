@@ -18,26 +18,30 @@
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
     if (g) {
         id<GTWTripleStore> store   = (self.graphs)[g.value];
-        if (store) {
-            BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
-                id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:g];
-                block(q);
-            } error:error];
-            if (!ok) {
-                return NO;
+        @autoreleasepool {
+            if (store) {
+                BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+                    id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:g];
+                    block(q);
+                } error:error];
+                if (!ok) {
+                    return NO;
+                }
             }
         }
         return YES;
     } else {
-        for (NSString* graphName in [self.graphs allKeys]) {
-            GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
-            id<GTWTripleStore> store    = (self.graphs)[graphName];
-            BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
-                id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
-                block(q);
-            } error:error];
-            if (!ok) {
-                return NO;
+        @autoreleasepool {
+            for (NSString* graphName in [self.graphs allKeys]) {
+                GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
+                id<GTWTripleStore> store    = (self.graphs)[graphName];
+                BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
+                    id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
+                    block(q);
+                } error:error];
+                if (!ok) {
+                    return NO;
+                }
             }
         }
         return YES;
@@ -64,30 +68,36 @@
         g   = nil;
     }
     
-    return [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
-        //        NSLog(@"creating bindings for quad: %@", q);
-        NSMutableDictionary* r = [NSMutableDictionary dictionary];
-        BOOL ok = YES;
-        for (NSString* pos in vars) {
-            NSString* name   = vars[pos];
-            //            NSLog(@"mapping variable %@", name);
-            id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
-            if (r[name]) {
-                ok  = NO;
-                break;
-            } else {
-                r[name] = value;
+    BOOL ok;
+    @autoreleasepool {
+        ok  = [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
+            //        NSLog(@"creating bindings for quad: %@", q);
+            NSMutableDictionary* r = [NSMutableDictionary dictionary];
+            BOOL ok = YES;
+            for (NSString* pos in vars) {
+                NSString* name   = vars[pos];
+                //            NSLog(@"mapping variable %@", name);
+                id<GTWTerm> value        = [(NSObject*)q valueForKey: pos];
+                if (r[name]) {
+                    ok  = NO;
+                    break;
+                } else {
+                    r[name] = value;
+                }
             }
-        }
-        if (ok)
-            block(r);
-    } error: error];
+            if (ok)
+                block(r);
+        } error: error];
+    }
+    return ok;
 }
 
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
-    for (NSString* graph in [self.graphs allKeys]) {
-        GTWIRI* iri = [[GTWIRI alloc] initWithIRI:graph];
-        block(iri);
+    @autoreleasepool {
+        for (NSString* graph in [self.graphs allKeys]) {
+            GTWIRI* iri = [[GTWIRI alloc] initWithIRI:graph];
+            block(iri);
+        }
     }
     return YES;
 }

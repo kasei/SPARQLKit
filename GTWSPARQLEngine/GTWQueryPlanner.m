@@ -40,6 +40,45 @@
     }
 }
 
+- (id<GTWTree,GTWQueryPlan>) joinPlanForPlans: (id<GTWTree>) lhs and: (id<GTWTree>) rhs {
+    NSSet* lhsVars  = nil;
+    NSSet* rhsVars  = nil;
+    
+    if (lhs.type == kTreeQuad && rhs.type == kPlanHashJoin) {
+        id<GTWTree> temp    = lhs;
+        lhs                 = rhs;
+        rhs                 = temp;
+//    } else if (lhs.type == kTreeQuad && rhs.type == kTreeQuad) {
+//        if ([[lhs inScopeVariables] count] < [[rhs inScopeVariables] count]) {
+//            id<GTWTree> temp    = lhs;
+//            lhs                 = rhs;
+//            rhs                 = temp;
+//        }
+    }
+    
+    
+    if (lhs.type == kTreeQuad) {
+        lhsVars   = [lhs inScopeVariables];
+    } else if (lhs.type == kPlanHashJoin) {
+        lhsVars   = [lhs inScopeVariables];
+    }
+    if (rhs.type == kTreeQuad) {
+        rhsVars   = [rhs inScopeVariables];
+    } else if (rhs.type == kPlanHashJoin) {
+        rhsVars   = [rhs inScopeVariables];
+    }
+    if (lhsVars && rhsVars) {
+        NSMutableSet* joinVars = [NSMutableSet setWithSet:lhsVars];
+        [joinVars intersectSet:rhsVars];
+        if ([joinVars count]) {
+            return [[GTWQueryPlan alloc] initWithType:kPlanHashJoin value:joinVars arguments:@[lhs, rhs]];
+        }
+    }
+    NSLog(@"HashJoin not available for:\n%@\n%@", lhs, rhs);
+    NSLog(@"Join vars: %@ %@", lhsVars, rhsVars);
+    return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+}
+
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
     if (algebra == nil) {
         NSLog(@"trying to plan nil algebra");
@@ -198,22 +237,19 @@
                 NSLog(@"Failed to plan both sides of JOIN");
                 return nil;
             }
-            return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+            return [self joinPlanForPlans: lhs and: rhs];
         } else {
-            id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
-            id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
-            if (!lhs || !rhs) {
-                NSLog(@"Failed to plan both sides of %lu-way JOIN", [algebra.arguments count]);
-                return nil;
-            }
-            id<GTWTree, GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
-            for (NSUInteger i = 2; i < [algebra.arguments count]; i++) {
-                id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[i] usingDataset:dataset withModel:model];
-                if (!rhs) {
-                    NSLog(@"Failed to plan JOIN branch");
+            NSMutableArray* args    = [NSMutableArray arrayWithArray:algebra.arguments];
+            id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+            [args removeLastObject];
+            while ([args count] > 0) {
+                id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+                [args removeLastObject];
+                if (!lhs) {
+                    NSLog(@"Failed to plan both sides of %lu-way JOIN", [algebra.arguments count]);
                     return nil;
                 }
-                plan    = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[plan, rhs]];
+                plan   = [self joinPlanForPlans:lhs and:plan];
             }
             return plan;
         }
@@ -385,7 +421,7 @@
         id<GTWTree, GTWQueryPlan> rhs = [self queryPlanForPathAlgebra:rhsPath usingDataset:dataset withModel:model];
         if (!(lhs && rhs))
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+        return [self joinPlanForPlans:lhs and:rhs];
     } else if (path.type == kPathOr) {
         id<GTWQueryPlan> lhs    = [self queryPlanForPath:path.arguments[0] starting:s ending:o usingDataset:dataset withModel:model];
         id<GTWQueryPlan> rhs    = [self queryPlanForPath:path.arguments[1] starting:s ending:o usingDataset:dataset withModel:model];
@@ -481,6 +517,73 @@
     return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
 }
 
+- (NSArray*) reorderBGPTriples: (NSArray*) triples {
+    // TODO: re-order array so that there are joins across consecutive triples
+    NSMutableDictionary* varsToTriples  = [NSMutableDictionary dictionary];
+    for (id<GTWTree> tree in triples) {
+        id<GTWTriple> triple    = tree.value;
+        NSArray* terms          = [triple allValues];
+//        NSLog(@"terms: %@", terms);
+        for (id<GTWTerm> var in terms) {
+            if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
+//                NSLog(@"    var -> %@ (%@)", var, [var class]);
+                NSMutableSet* set   = [varsToTriples objectForKey:var];
+                if (!set) {
+                    set = [NSMutableSet set];
+                    [varsToTriples setObject:set forKey:var];
+                }
+                [set addObject:triple];
+            }
+        }
+    }
+    NSMutableDictionary* triplesToTriples  = [NSMutableDictionary dictionary];
+    for (id<GTWTree> tree in triples) {
+        id<GTWTriple> triple    = tree.value;
+        NSMutableSet* connectedTriples   = [triplesToTriples objectForKey:triple];
+        if (!connectedTriples) {
+            connectedTriples = [NSMutableSet set];
+            [triplesToTriples setObject:connectedTriples forKey:triple];
+        }
+        
+//        NSLog(@"----------> triple: %@", triple);
+        NSArray* terms          = [triple allValues];
+        for (id<GTWTerm> var in terms) {
+            if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
+//                NSLog(@"---------->     var: %@", var);
+                NSMutableSet* varConnectedTriples   = [varsToTriples objectForKey:var];
+//                NSLog(@">>>>> %@", varConnectedTriples);
+                if (varConnectedTriples) {
+                    [connectedTriples addObjectsFromArray:[varConnectedTriples allObjects]];
+                }
+            }
+        }
+    }
+    
+//    NSLog(@"triples to triples ---> %@", triplesToTriples);
+    NSMutableSet* remaining = [NSMutableSet setWithArray:triples];
+    NSMutableSet* fronteir  = [NSMutableSet set];
+    NSMutableArray* reordered   = [NSMutableArray array];
+    id<GTWTree> currentTriple  = triples[0];
+    [reordered addObject:currentTriple];
+    [fronteir addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+    [remaining removeObject:currentTriple];
+    
+    while ([remaining count]) {
+        if ([fronteir count]) {
+            currentTriple   = [fronteir anyObject];
+            [fronteir removeObject:currentTriple];
+        } else {
+            currentTriple   = [remaining anyObject];
+        }
+        [remaining removeObject:currentTriple];
+        [fronteir addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+        [reordered addObject:currentTriple];
+    }
+    
+    // use varsToTriples to join
+    return reordered;
+}
+
 - (id<GTWTree,GTWQueryPlan>) planBGP: (NSArray*) triples usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
 //    NSLog(@"planning BGP: %@\n", triples);
     NSArray* defaultGraphs   = [dataset defaultGraphs];
@@ -492,12 +595,11 @@
     } else if ([triples count] == 0) {
         return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
     } else {
-        plan   = [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model];
-        for (i = 1; i < [triples count]; i++) {
-            id<GTWTree> triple  = triples[i];
-            NSSet* projvars     = [triple annotationForKey:kProjectVariables];
-            id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:triples[i] usingDataset:dataset withModel:model];
-            plan    = [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[plan, quad]];
+        NSArray* orderedTriples = [self reorderBGPTriples:triples];
+        plan   = [self queryPlanForAlgebra:orderedTriples[0] usingDataset:dataset withModel:model];
+        for (i = 1; i < [orderedTriples count]; i++) {
+            id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:orderedTriples[i] usingDataset:dataset withModel:model];
+            plan   = [self joinPlanForPlans:plan and:quad];
         }
     }
     return plan;

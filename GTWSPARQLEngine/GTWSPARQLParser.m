@@ -1022,7 +1022,7 @@ cleanup:
                 } else {
                     id<GTWTree> pattern;
                     if ([bgp count]) {
-                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                        pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
                         bgp         = [NSMutableArray array];
                     } else if ([reordered count]) {
                         pattern = [reordered lastObject];
@@ -1049,7 +1049,7 @@ cleanup:
                 }
             } else {
                 if ([bgp count]) {
-                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
                     bgp         = [NSMutableArray array];
                     while ([filters count]) {
                         id<GTWTree> filter  = [filters lastObject];
@@ -1082,7 +1082,7 @@ cleanup:
             }
         }
         if ([bgp count]) {
-            id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+            id<GTWTree> pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
             while ([filters count]) {
                 id<GTWTree> filter  = [filters lastObject];
                 [filters removeLastObject];
