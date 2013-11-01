@@ -10,6 +10,10 @@
     return @"{}";
 }
 
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWQuadStore), @protocol(GTWMutableQuadStore), nil];
+}
+
 - (void) _addQuad: (id<GTWQuad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
     // caller is responsible for using @synchronized(idx)
     NSObject<GTWQuad>* qq  = (NSObject<GTWQuad>*) q;

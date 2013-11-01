@@ -13,6 +13,10 @@
     return @"{}";
 }
 
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWTripleStore), @protocol(GTWMutableTripleStore), nil];
+}
+
 - (GTWRedlandTripleStore*) initWithName: (NSString*) name redlandPtr: (librdf_world*) librdf_world_ptr {
     if (self = [self init]) {
         librdf_storage* storage     = librdf_new_storage(librdf_world_ptr, "trees", [name UTF8String], "new='yes'");
