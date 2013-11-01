@@ -15,14 +15,21 @@ NSString *ext = @"plugin";
 NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
 
 + (BOOL)plugInClassIsValid:(Class)plugInClass {
-    if([plugInClass conformsToProtocol:@protocol(GTWTripleStore)]) {
-        if ([plugInClass respondsToSelector: @selector(interfaceVersion)] && [plugInClass instancesRespondToSelector: @selector(initWithDictionary:)]) {
-//            NSLog(@"is valid: %@", plugInClass);
-            return YES;
-        } else {
-            NSLog(@"%@ is not a valid plugin class", plugInClass);
-        }
+    if (![plugInClass respondsToSelector: @selector(interfaceVersion)])
+        goto bad_plugin;
+    if (![plugInClass respondsToSelector: @selector(implementedProtocols)])
+        goto bad_plugin;
+    if (![plugInClass respondsToSelector: @selector(usage)])
+        goto bad_plugin;
+    if (![plugInClass instancesRespondToSelector: @selector(initWithDictionary:)])
+        goto bad_plugin;
+
+    if([plugInClass conformsToProtocol:@protocol(GTWTripleStore)] || [plugInClass conformsToProtocol:@protocol(GTWQuadStore)]) {
+//        NSLog(@"is valid: %@", plugInClass);
+        return YES;
     }
+bad_plugin:
+    NSLog(@"%@ is not a valid plugin class", plugInClass);
     return NO;
 }
 
