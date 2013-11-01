@@ -1,4 +1,7 @@
 #import "GTWMemoryQuadStore.h"
+#import "GTWTurtleParser.h"
+#import <GTWSWBase/GTWQuad.h>
+#import <GTWSWBase/GTWVariable.h>
 
 @implementation GTWMemoryQuadStore
 
@@ -7,7 +10,7 @@
 }
 
 + (NSString*) usage {
-    return @"{}";
+    return @"{ \"sources\": [ { \"file\": <path/file>, \"syntax\": \"turtle\" } ] }";
 }
 
 + (NSSet*) implementedProtocols {
@@ -64,6 +67,63 @@
         self.indexKeys  = [NSMutableDictionary dictionary];
     }
     return self;
+}
+
+- (instancetype) initWithDictionary: (NSDictionary*) dictionary {
+    if (self = [self init]) {
+        NSString* base      = dictionary[@"base_uri"];
+        if (!base)
+            base    = @"http://base.example.org/";
+        GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
+        NSArray* sources    = dictionary[@"sources"];
+        if (sources) {
+            for (NSDictionary* source in sources) {
+                NSString* file      = source[@"file"];
+                NSString* syntax    = source[@"syntax"];
+                NSString* graphName = source[@"graph"];
+                if (file && syntax) {
+                    if ([syntax isEqual: @"turtle"]) {
+                        GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:(graphName ? graphName : base)];
+                        NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:file];
+                        GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
+                        GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+                        if (p) {
+                            //    NSLog(@"parser: %p\n", p);
+                            [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+                                [self addQuad:q error:nil];
+                            } error:nil];
+                            //        NSLog(@"-- ");
+                        } else {
+                            NSLog(@"Could not construct parser");
+                        }
+                    } else {
+                        NSLog(@"Don't know how to parse file of type %@", syntax);
+                        return nil;
+                    }
+                }
+            }
+        }
+    }
+    return self;
+//    NSString* path  = dictionary[@"bundlepath"];
+//    if (!path) {
+//        NSArray *searchPaths;
+//        NSEnumerator *searchPathEnum;
+//        NSString *currPath;
+//        NSMutableArray *bundles = [NSMutableArray array];
+//        searchPaths = NSSearchPathForDirectoriesInDomains(NSPicturesDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
+//        searchPathEnum = [searchPaths objectEnumerator];
+//        while (currPath = [searchPathEnum nextObject]) {
+//            [bundles addObject: [currPath stringByAppendingPathComponent:@"Aperture Library.aplibrary"]];
+//        }
+//        if ([bundles count]) {
+//            path    = bundles[0];
+//        } else {
+//            return nil;
+//        }
+//    }
+//    return [self initWithApertureBundlePath:path];
 }
 
 - (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError**) error {
@@ -170,20 +230,25 @@
 
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
     [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
-        if (s) {
-            if (![s isEqual:q.subject])
+        if (s && ![s isKindOfClass:[GTWVariable class]]) {
+            if (![s isEqual:q.subject]) {
+                NSLog(@"subject doesn't match %@", s);
                 return;
+            }
         }
-        if (p) {
+        if (p && ![p isKindOfClass:[GTWVariable class]]) {
             if (![p isEqual:q.predicate])
+                NSLog(@"predicate doesn't match %@", p);
                 return;
         }
-        if (o) {
+        if (o && ![o isKindOfClass:[GTWVariable class]]) {
             if (![o isEqual:q.object])
+                NSLog(@"object doesn't match %@", o);
                 return;
         }
-        if (g) {
+        if (g && ![g isKindOfClass:[GTWVariable class]]) {
             if (![g isEqual:q.graph])
+                NSLog(@"graph doesn't match %@", g);
                 return;
         }
 //        NSLog(@"enumerating matching quad: %@", q);
