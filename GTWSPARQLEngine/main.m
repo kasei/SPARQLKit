@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <librdf.h>
 #include <CoreFoundation/CoreFoundation.h>
+#import <objc/runtime.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWVariable.h>
@@ -25,6 +26,7 @@
 #import "GTWSPARQLResultsXMLSerializer.h"
 #import "GTWSPARQLParser.h"
 #import "GTWNTriplesSerializer.h"
+#import "GTWNQuadsSerializer.h"
 
 rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
@@ -304,6 +306,32 @@ int usage(int argc, const char * argv[]) {
     return 0;
 }
 
+id<GTWModel> modelFromSourceWithConfigurationString(Class c, NSString* config, GTWIRI* defaultGraph) {
+    NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
+    NSError* error      = nil;
+    NSDictionary* dict  = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    if (error) {
+        NSLog(@"Error parsing data source JSON configuration: %@", error);
+        return nil;
+    }
+    NSSet* protocols    = [c implementedProtocols];
+    if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
+        if (!store) {
+            NSLog(@"Failed to create triple store from source '%@'", c);
+            return nil;
+        }
+        return [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:defaultGraph];
+    } else {
+        id<GTWQuadStore> store = [[c alloc] initWithDictionary:dict];
+        if (!store) {
+            NSLog(@"Failed to create triple store from source '%@'", c);
+            return nil;
+        }
+        return [[GTWQuadModel alloc] initWithQuadStore:store];
+    }
+}
+
 int main(int argc, const char * argv[]) {
     srand([[NSDate date] timeIntervalSince1970]);
 	rasqal_world_ptr	= rasqal_new_world();
@@ -389,47 +417,59 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         NSString* sourceName    = [NSString stringWithFormat:@"%s", argv[argi++]];
-        NSDictionary* dict;
+        NSString* config;
         if (argc > argi) {
-            NSString* config    = [NSString stringWithFormat:@"%s", argv[argi++]];
-            NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
-            NSError* error  = nil;
-            dict       = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-            if (error) {
-                NSLog(@"Error parsing data source JSON configuration: %@", error);
-                return 1;
-            }
+            config    = [NSString stringWithFormat:@"%s", argv[argi++]];
         } else {
-            dict       = @{};
+            config      = @"{}";
         }
         
         // TODO: handle classes that provide quadstores, not just triplestores
         Class c = [datasources objectForKey:sourceName];
-        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
-        if (!store) {
-            NSLog(@"Failed to create triple store from source '%@'", sourceName);
-            return 1;
-        }
-        GTWIRI* graph = [[GTWIRI alloc] initWithIRI: kDefaultBase];
-        GTWTripleModel* model           = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
-        
+        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+        id<GTWModel> model  = modelFromSourceWithConfigurationString(c, config, defaultGraph);
+
         GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
         GTWVariable* p  = [[GTWVariable alloc] initWithName:@"p"];
         GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
+        GTWVariable* g  = [[GTWVariable alloc] initWithName:@"g"];
         NSError* error  = nil;
-        NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:graph error:&error];
-        if (error) {
-            NSLog(@"*** %@", error);
-            return 1;
+
+        NSSet* protocols    = [c implementedProtocols];
+        if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+            NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:defaultGraph error:&error];
+            if (error) {
+                NSLog(@"*** %@", error);
+                return 1;
+            }
+            id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
+            NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+            [ser serializeTriples:e toHandle:out];
+        } else {
+            NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:g error:&error];
+            if (error) {
+                NSLog(@"*** %@", error);
+                return 1;
+            }
+            id<GTWQuadsSerializer> ser    = [[GTWNQuadsSerializer alloc] init];
+            NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+            [ser serializeQuads:e toHandle:out];
         }
-        id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
-        NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
-        [ser serializeTriples:e toHandle:out];
     } else if ([op isEqual: @"sources"]) {
         fprintf(stdout, "Available data sources:\n");
         for (id s in datasources) {
             Class c = datasources[s];
             fprintf(stdout, "%s\n", [[c description] UTF8String]);
+            NSSet* protocols    = [c implementedProtocols];
+            if ([protocols count]) {
+                NSMutableArray* array   = [NSMutableArray array];
+                for (Protocol* p in protocols) {
+                    const char* name = protocol_getName(p);
+                    [array addObject:[NSString stringWithFormat:@"%s", name]];
+                }
+                NSString* str   = [array componentsJoinedByString:@", "];
+                fprintf(stdout, "  Protocols: %s\n", [str UTF8String]);
+            }
             NSString* usage = [c usage];
             if (usage) {
                 fprintf(stdout, "  Configuration template: %s\n\n", [usage UTF8String]);
@@ -491,4 +531,3 @@ int main(int argc, const char * argv[]) {
         [modela isEqual:modelb];
     }
 }
-
