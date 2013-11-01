@@ -28,6 +28,7 @@
 		37A91BFB17F4DB4B00AE6848 /* GTWSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A91BFA17F4DB4B00AE6848 /* GTWSPARQLParser.m */; };
 		37A91BFE17F4DB9B00AE6848 /* GTWSPARQLLexer.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A91BFD17F4DB9B00AE6848 /* GTWSPARQLLexer.m */; };
 		37A91C0117F4DBFF00AE6848 /* GTWSPARQLToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A91C0017F4DBFF00AE6848 /* GTWSPARQLToken.m */; };
+		37ADB281182326DF00351D59 /* GTWNQuadsSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 37ADB280182326DF00351D59 /* GTWNQuadsSerializer.m */; };
 		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
 		37C37A511738ED320078C98F /* GTWTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A501738ED320078C98F /* GTWTree.m */; };
 		37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
@@ -96,6 +97,8 @@
 		37A91BFD17F4DB9B00AE6848 /* GTWSPARQLLexer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLLexer.m; sourceTree = "<group>"; };
 		37A91BFF17F4DBFF00AE6848 /* GTWSPARQLToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLToken.h; sourceTree = "<group>"; };
 		37A91C0017F4DBFF00AE6848 /* GTWSPARQLToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLToken.m; sourceTree = "<group>"; };
+		37ADB27F182326DF00351D59 /* GTWNQuadsSerializer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWNQuadsSerializer.h; sourceTree = "<group>"; };
+		37ADB280182326DF00351D59 /* GTWNQuadsSerializer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWNQuadsSerializer.m; sourceTree = "<group>"; };
 		37BF086E176718A2008B11F8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = ../../../../../../../System/Library/Frameworks/System.framework; sourceTree = "<group>"; };
 		37C37A4D1738089E0078C98F /* libraptor2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libraptor2.0.dylib; path = ../../../../../../../../usr/local/Cellar/raptor/2.0.9/lib/libraptor2.0.dylib; sourceTree = "<group>"; };
 		37C37A4F1738ED320078C98F /* GTWTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTree.h; sourceTree = "<group>"; };
@@ -355,6 +358,8 @@
 				37E85A5617EA9C1100C06F10 /* GTWSPARQLResultsXMLSerializer.m */,
 				37A261B21809E7C5008AFED4 /* GTWNTriplesSerializer.h */,
 				37A261B31809E7C5008AFED4 /* GTWNTriplesSerializer.m */,
+				37ADB27F182326DF00351D59 /* GTWNQuadsSerializer.h */,
+				37ADB280182326DF00351D59 /* GTWNQuadsSerializer.m */,
 			);
 			name = Serializers;
 			sourceTree = "<group>";
@@ -416,6 +421,7 @@
 				37E85A5317EA7E2A00C06F10 /* GTWSimpleQueryEngine.m in Sources */,
 				370C9A5C172E2F2A00575D09 /* GTWErrorLogger.m in Sources */,
 				370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */,
+				37ADB281182326DF00351D59 /* GTWNQuadsSerializer.m in Sources */,
 				370C9A66172E336C00575D09 /* GTWTurtleLexer.m in Sources */,
 				370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */,
 				37C37A511738ED320078C98F /* GTWTree.m in Sources */,
