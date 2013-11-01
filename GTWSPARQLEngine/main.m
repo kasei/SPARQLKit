@@ -237,7 +237,7 @@ int parseQuery(NSString* query, NSString* base) {
     //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
-    GTWTree* algebra            = [parser parseSPARQL:query withBaseURI:base];
+    id<GTWTree> algebra            = [parser parseSPARQL:query withBaseURI:base];
     NSLog(@"Query algebra:\n%@\n\n", algebra);
     
     id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
@@ -253,10 +253,10 @@ int parseQuery(NSString* query, NSString* base) {
 int lexQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
     
-    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
-    //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-    //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
-    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+//    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
+//    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+//    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+//    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     GTWSPARQLLexer* l           = [[GTWSPARQLLexer alloc] initWithString:query];
     
     NSLog(@"Query tokens:\n-----------------------\n");
@@ -292,7 +292,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
 int usage(int argc, const char * argv[]) {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
-    fprintf(stderr, "    %s query QUERY-STRING data.rdf\n", argv[0]);
+    fprintf(stderr, "    %s query config-json-string QUERY-STRING\n", argv[0]);
     fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
     fprintf(stderr, "    %s test triple\n", argv[0]);
     fprintf(stderr, "    %s test quad\n", argv[0]);
@@ -300,20 +300,39 @@ int usage(int argc, const char * argv[]) {
     fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
     fprintf(stderr, "    %s testsuite [PATTERN]\n", argv[0]);
     fprintf(stderr, "    %s grapheq data1.rdf data2.rdf base-uri\n", argv[0]);
-    fprintf(stderr, "    %s dump SOURCE [config-json-string]\n", argv[0]);
+    fprintf(stderr, "    %s dump [config-json-string]\n", argv[0]);
     fprintf(stderr, "    %s sources\n", argv[0]);
     fprintf(stderr, "\n");
     return 0;
 }
 
-id<GTWModel> modelFromSourceWithConfigurationString(Class c, NSString* config, GTWIRI* defaultGraph) {
+id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, NSString* config, GTWIRI* defaultGraph, Class* class) {
     NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
     NSError* error      = nil;
+    
+    NSString* sourceName;
     NSDictionary* dict  = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
     if (error) {
-        NSLog(@"Error parsing data source JSON configuration: %@", error);
+        NSRange range       = [config rangeOfString:@"^\\s*[A-Za-z0-9]+$" options:NSRegularExpressionSearch];
+        if (range.location == 0 && range.length == [config length]) {
+            sourceName  = config;
+            dict        = @{};
+        } else {
+            NSLog(@"Error parsing data source configuration string: %@", error);
+            return nil;
+        }
+    }
+    
+    if (!sourceName)
+        sourceName  = dict[@"storetype"];
+    
+    Class c = [datasources objectForKey:sourceName];
+    *class  = c;
+    if (!c) {
+        NSLog(@"No data source class found with ID '%@'", sourceName);
         return nil;
     }
+    
     NSSet* protocols    = [c implementedProtocols];
     if ([protocols containsObject:@protocol(GTWTripleStore)]) {
         id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
@@ -378,12 +397,18 @@ int main(int argc, const char * argv[]) {
     
     if ([op isEqual: @"query"]) {
         if (argc < (argi+2)) {
-            NSLog(@"query operation must be supplied both a query and a data filename.");
+            NSLog(@"query operation must be supplied with both a data source configuration string and a query.");
             return 1;
         }
+        NSString* config    = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* query     = [NSString stringWithFormat:@"%s", argv[argi++]];
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
-        runQuery(query, filename, kDefaultBase, verbose);
+//        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+
+        Class c;
+        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+        id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
+        return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"qparse"]) {
         if (argc < (argi+2)) {
             NSLog(@"qparse operation must be supplied both query and data filenames.");
@@ -412,10 +437,10 @@ int main(int argc, const char * argv[]) {
         runQuery(query, filename, kDefaultBase, verbose);
     } else if ([op isEqual: @"dump"]) {
         if (argc < (argi+1)) {
-            NSLog(@"dump operation must be supplied with a data source name.");
+            NSLog(@"dump operation must be supplied with a data source configuration string.");
             return 1;
         }
-        NSString* sourceName    = [NSString stringWithFormat:@"%s", argv[argi++]];
+//        NSString* sourceName    = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* config;
         if (argc > argi) {
             config    = [NSString stringWithFormat:@"%s", argv[argi++]];
@@ -423,10 +448,9 @@ int main(int argc, const char * argv[]) {
             config      = @"{}";
         }
         
-        // TODO: handle classes that provide quadstores, not just triplestores
-        Class c = [datasources objectForKey:sourceName];
+        Class c;
         GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithIRI: kDefaultBase];
-        id<GTWModel> model  = modelFromSourceWithConfigurationString(c, config, defaultGraph);
+        id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
 
         GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
         GTWVariable* p  = [[GTWVariable alloc] initWithName:@"p"];
