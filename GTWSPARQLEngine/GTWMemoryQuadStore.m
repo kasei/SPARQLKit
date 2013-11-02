@@ -230,26 +230,30 @@
 
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
     [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
+//        NSLog(@"checking quad: %@", q);
         if (s && ![s isKindOfClass:[GTWVariable class]]) {
             if (![s isEqual:q.subject]) {
-                NSLog(@"subject doesn't match %@", s);
+//                NSLog(@"subject doesn't match %@", s);
                 return;
             }
         }
         if (p && ![p isKindOfClass:[GTWVariable class]]) {
-            if (![p isEqual:q.predicate])
-                NSLog(@"predicate doesn't match %@", p);
+            if (![p isEqual:q.predicate]) {
+//                NSLog(@"predicate doesn't match %@", p);
                 return;
+            }
         }
         if (o && ![o isKindOfClass:[GTWVariable class]]) {
-            if (![o isEqual:q.object])
-                NSLog(@"object doesn't match %@", o);
+            if (![o isEqual:q.object]) {
+//                NSLog(@"object doesn't match %@", o);
                 return;
+            }
         }
         if (g && ![g isKindOfClass:[GTWVariable class]]) {
-            if (![g isEqual:q.graph])
-                NSLog(@"graph doesn't match %@", g);
+            if (![g isEqual:q.graph]) {
+//                NSLog(@"graph doesn't match %@", g);
                 return;
+            }
         }
 //        NSLog(@"enumerating matching quad: %@", q);
         block(q);
