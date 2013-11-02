@@ -227,15 +227,15 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (args && [args.value isEqual:@"i"]) {
             reopt   |= NSRegularExpressionCaseInsensitive;
         }
-        NSLog(@"REPLACE string : '%@'", string);
-        NSLog(@"REPLACE pattern: '%@'", pattern.value);
-        NSLog(@"REPLACE value  : '%@'", replace.value);
+//        NSLog(@"REPLACE string : '%@'", string);
+//        NSLog(@"REPLACE pattern: '%@'", pattern.value);
+//        NSLog(@"REPLACE value  : '%@'", replace.value);
 
         NSError* error;
         NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
         NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
         
-        NSLog(@"---------------> '%@'\n\n", replaced);
+//        NSLog(@"---------------> '%@'\n\n", replaced);
         
         if (term.language) {
             return [[GTWLiteral alloc] initWithString:replaced language:term.language];
@@ -734,11 +734,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
             mapping[v]    = result[varname];
         }
-        NSLog(@"EXISTS mapping: %@", mapping);
+//        NSLog(@"EXISTS mapping: %@", mapping);
         id<GTWTree,GTWQueryPlan> plan    = expr.arguments[0];
-        NSLog(@"EXISTS pattern: %@", plan);
+//        NSLog(@"EXISTS pattern: %@", plan);
         plan                            = [plan copyReplacingValues:mapping];
-        NSLog(@"EXISTS plan   : %@", plan);
+//        NSLog(@"EXISTS plan   : %@", plan);
         NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
         id result           = [e nextObject];
         if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
