@@ -298,7 +298,7 @@
             id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
         } else {
-            id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanEmpty value:nil pointer:NULL];
+            id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanEmpty value:nil];
             id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[empty]];
         }
@@ -339,12 +339,12 @@
         if (count == 0) {
             return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
         } else if (count == 1) {
-            return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]] pointer:NULL];
+            return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]]];
         } else {
-            id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]] pointer:NULL];
+            id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]]];
             NSInteger i;
             for (i = 1; i < count; i++) {
-                plan    = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[i]] pointer:NULL]]];
+                plan    = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[i]]]]];
             }
             return plan;
         }
@@ -519,41 +519,66 @@
 
 - (NSArray*) reorderBGPTriples: (NSArray*) triples {
     // TODO: re-order array so that there are joins across consecutive triples
+    NSMutableArray* reordered   = [NSMutableArray array];
     NSMutableDictionary* varsToTriples  = [NSMutableDictionary dictionary];
-    for (id<GTWTree> tree in triples) {
-        id<GTWTriple> triple    = tree.value;
-        NSArray* terms          = [triple allValues];
-//        NSLog(@"terms: %@", terms);
-        for (id<GTWTerm> var in terms) {
-            if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
-//                NSLog(@"    var -> %@ (%@)", var, [var class]);
-                NSMutableSet* set   = [varsToTriples objectForKey:var];
-                if (!set) {
-                    set = [NSMutableSet set];
-                    [varsToTriples setObject:set forKey:var];
+    for (id<GTWTree> triple in triples) {
+        if (triple.type == kAlgebraExtend) {
+            [reordered addObject:triple];
+        } else {
+            NSArray* terms;
+            if (triple.type == kTreeTriple) {
+                terms   = [triple.value allValues];
+            } else if (triple.type == kTreePath) {
+                // kTreePath
+                id<GTWTree> s   = triple.arguments[0];
+                id<GTWTree> o   = triple.arguments[2];
+                terms   = @[s.value, o.value];
+            } else {
+                NSLog(@"Unexpected tree type %@", triple);
+            }
+    //        NSLog(@"terms: %@", terms);
+            for (id<GTWTerm> var in terms) {
+                if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
+    //                NSLog(@"    var -> %@ (%@)", var, [var class]);
+                    NSMutableSet* set   = [varsToTriples objectForKey:var];
+                    if (!set) {
+                        set = [NSMutableSet set];
+                        [varsToTriples setObject:set forKey:var];
+                    }
+                    [set addObject:triple];
                 }
-                [set addObject:triple];
             }
         }
     }
     NSMutableDictionary* triplesToTriples  = [NSMutableDictionary dictionary];
-    for (id<GTWTree> tree in triples) {
-        id<GTWTriple> triple    = tree.value;
-        NSMutableSet* connectedTriples   = [triplesToTriples objectForKey:triple];
-        if (!connectedTriples) {
-            connectedTriples = [NSMutableSet set];
-            [triplesToTriples setObject:connectedTriples forKey:triple];
-        }
-        
-//        NSLog(@"----------> triple: %@", triple);
-        NSArray* terms          = [triple allValues];
-        for (id<GTWTerm> var in terms) {
-            if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
-//                NSLog(@"---------->     var: %@", var);
-                NSMutableSet* varConnectedTriples   = [varsToTriples objectForKey:var];
-//                NSLog(@">>>>> %@", varConnectedTriples);
-                if (varConnectedTriples) {
-                    [connectedTriples addObjectsFromArray:[varConnectedTriples allObjects]];
+    for (id<GTWTree,NSCopying> triple in triples) {
+        if (triple.type == kTreeTriple || triple.type == kTreePath) {
+            NSMutableSet* connectedTriples   = [triplesToTriples objectForKey:triple];
+            if (!connectedTriples) {
+                connectedTriples = [NSMutableSet set];
+                [triplesToTriples setObject:connectedTriples forKey:triple];
+            }
+            
+    //        NSLog(@"----------> triple: %@", triple);
+            NSArray* terms;
+            if (triple.type == kTreeTriple) {
+                terms   = [triple.value allValues];
+            } else if (triple.type == kTreePath) {
+                // kTreePath
+                id<GTWTree> s   = triple.arguments[0];
+                id<GTWTree> o   = triple.arguments[2];
+                terms   = @[s.value, o.value];
+            } else {
+                NSLog(@"Unexpected tree type %@", triple);
+            }
+            for (id<GTWTerm> var in terms) {
+                if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
+    //                NSLog(@"---------->     var: %@", var);
+                    NSMutableSet* varConnectedTriples   = [varsToTriples objectForKey:var];
+    //                NSLog(@">>>>> %@", varConnectedTriples);
+                    if (varConnectedTriples) {
+                        [connectedTriples addObjectsFromArray:[varConnectedTriples allObjects]];
+                    }
                 }
             }
         }
@@ -561,26 +586,33 @@
     
 //    NSLog(@"triples to triples ---> %@", triplesToTriples);
     NSMutableSet* remaining = [NSMutableSet setWithArray:triples];
-    NSMutableSet* fronteir  = [NSMutableSet set];
-    NSMutableArray* reordered   = [NSMutableArray array];
+    for (id t in reordered) {
+        [remaining removeObject:t];
+    }
+    NSMutableSet* frontier  = [NSMutableSet set];
     id<GTWTree> currentTriple  = triples[0];
     [reordered addObject:currentTriple];
-    [fronteir addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+    [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+    [frontier removeObject:currentTriple];
     [remaining removeObject:currentTriple];
     
     while ([remaining count]) {
-        if ([fronteir count]) {
-            currentTriple   = [fronteir anyObject];
-            [fronteir removeObject:currentTriple];
+        if ([frontier count]) {
+            currentTriple   = [frontier anyObject];
         } else {
+            NSLog(@"Cartesian join in BGP re-ordering");
             currentTriple   = [remaining anyObject];
         }
         [remaining removeObject:currentTriple];
-        [fronteir addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+        [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
         [reordered addObject:currentTriple];
+        for (id t in reordered) {
+            [frontier removeObject:t];
+        }
     }
     
     // use varsToTriples to join
+    
     return reordered;
 }
 

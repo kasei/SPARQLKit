@@ -256,24 +256,10 @@ cleanup:
     if (!ggp)
         return nil;
     
+    id<GTWTree> algebra = ggp;
     // SolutionModifier
-    NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
-    id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp settingAggregateMapping:mapping withErrors:errors];
+    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: project withErrors:errors];
     ASSERT_EMPTY(errors);
-    
-//    NSLog(@"aggregate mapping: %@", mapping);
-    if (project) {
-        algebra = [self rewriteAlgebra: algebra forProjection: project withAggregateMapping: mapping withErrors:errors];
-        ASSERT_EMPTY(errors);
-    } else {
-        NSSet* vars = [algebra inScopeVariables];
-        NSMutableArray* project   = [NSMutableArray array];
-        for (id<GTWTerm> v in vars) {
-            [project addObject:[[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil]];
-        }
-        GTWTree* vlist  = [[GTWTree alloc] initWithType:kTreeList arguments:project];
-        algebra = [[GTWTree alloc] initWithType:kAlgebraProject treeValue:vlist arguments:@[algebra]];
-    }
     
     if (distinct) {
         algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
@@ -362,8 +348,10 @@ cleanup:
         ASSERT_EMPTY(errors);
         id<GTWTree> ggp     = [self parseGroupGraphPatternWithError:errors];
         ASSERT_EMPTY(errors);
-        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
-        id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp settingAggregateMapping:mapping withErrors:errors];
+        if (!ggp) {
+            NSLog(@"-------------------");
+        }
+        id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil withErrors:errors];
         ASSERT_EMPTY(errors);
         
         if (dataset) {
@@ -380,8 +368,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         id<GTWTree> ggp         = [self parseConstructTemplateWithErrors: errors];
         ASSERT_EMPTY(errors);
-        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
-        id<GTWTree> template = [self parseSolutionModifierForAlgebra:ggp settingAggregateMapping:mapping withErrors:errors];
+        id<GTWTree> template = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil withErrors:errors];
         ASSERT_EMPTY(errors);
      
         id<GTWTree> algebra;
@@ -460,34 +447,19 @@ cleanup:
     ASSERT_EMPTY(errors);
     
     if ([self currentQuerySeenAggregates]) {
-//        NSLog(@"checking aggregate projection list");
-        __block id<GTWTree> grouping;
-        [algebra applyPrefixBlock:nil postfixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
-            if (node.type == kAlgebraGroup) {
-                grouping    = [node.treeValue arguments][0];
-            }
-            return nil;
-        }];
-        NSArray* groups     = grouping.arguments;
-        NSMutableSet* groupVars = [NSMutableSet set];
-        for (id<GTWTree> g in groups) {
-            if (g.type == kAlgebraExtend) {
-                id<GTWTree> list    = g.treeValue;
-                id<GTWTree> var = list.arguments[1];
-                [groupVars addObject:var.value];
-            } else if (g.type == kTreeNode) {
-                [groupVars addObject:g.value];
-            }
-        }
+        NSSet* groupVars    = [(GTWTree*)algebra projectableAggregateVariables];
 //        NSLog(@"grouping vars: %@", groupVars);
         
+        NSMutableSet* newProjection = [NSMutableSet set];
         for (id<GTWTree> v in plist) {
 //            NSLog(@"project -> %@", v);
             if (v.type == kTreeNode) {
                 id<GTWTerm> t   = v.value;
                 if (![groupVars containsObject:t]) {
                     if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
-                        return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                        if (![newProjection containsObject:t]) {
+                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                        }
                     }
                 }
             } else {
@@ -496,9 +468,17 @@ cleanup:
                 for (id<GTWTerm> t in vars) {
                     if (![groupVars containsObject:t]) {
                         if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
-                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                            if (![newProjection containsObject:t]) {
+                                return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                            }
                         }
                     }
+                }
+                if (v.type == kAlgebraExtend) {
+                    id<GTWTree> list    = v.treeValue;
+                    id<GTWTree> nt      = list.arguments[1];
+                    id<GTWTerm> var     = nt.value;
+                    [newProjection addObject:var];
                 }
             }
         }
@@ -669,27 +649,13 @@ cleanup:
     }
     
     // SolutionModifier
-    NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
-    id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp settingAggregateMapping:mapping withErrors:errors];
+    id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: project withErrors:errors];
     
     // ValuesClause
     algebra = [self parseValuesClauseForAlgebra:algebra withErrors:errors];
     ASSERT_EMPTY(errors);
 
     
-    
-    if (project) {
-        algebra = [self rewriteAlgebra: algebra forProjection: project withAggregateMapping: mapping withErrors:errors];
-        ASSERT_EMPTY(errors);
-    } else {
-        NSSet* vars = [algebra inScopeVariables];
-        NSMutableArray* project   = [NSMutableArray array];
-        for (id<GTWTerm> v in vars) {
-            [project addObject:[[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil]];
-        }
-        GTWTree* vlist  = [[GTWTree alloc] initWithType:kTreeList arguments:project];
-        algebra = [[GTWTree alloc] initWithType:kAlgebraProject treeValue:vlist arguments:@[algebra]];
-    }
     
     if (distinct) {
         algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
@@ -745,8 +711,6 @@ cleanup:
     GTWSPARQLToken* asc = [self parseOptionalTokenOfType:KEYWORD withValue:@"ASC"];
     GTWSPARQLToken* desc = [self parseOptionalTokenOfType:KEYWORD withValue:@"DESC"];
     if (t.type == LPAREN) {
-        [self parseExpectedTokenOfType:LPAREN withErrors:errors];
-        ASSERT_EMPTY(errors);
         id<GTWTree> expr    = [self parseBrackettedExpressionWithErrors:errors];
         ASSERT_EMPTY(errors);
         return expr;
@@ -775,7 +739,8 @@ cleanup:
 //[25]  	LimitOffsetClauses	  ::=  	LimitClause OffsetClause? | OffsetClause LimitClause?
 //[26]  	LimitClause	  ::=  	'LIMIT' INTEGER
 //[27]  	OffsetClause	  ::=  	'OFFSET' INTEGER
-- (id<GTWTree>) parseSolutionModifierForAlgebra: (id<GTWTree>) algebra settingAggregateMapping: (NSMutableDictionary*) mapping withErrors: (NSMutableArray*) errors {
+- (id<GTWTree>) parseSolutionModifierForAlgebra: (id<GTWTree>) algebra withProjectionArray: (NSArray*) project withErrors: (NSMutableArray*) errors {
+    NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
     GTWSPARQLToken* t;
     t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"GROUP"];
     
@@ -814,14 +779,14 @@ cleanup:
         while ((cond = [self parseOrderConditionWithErrors:errors])) {
             ASSERT_EMPTY(errors);
             [conds addObject:cond];
-            [conds addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:1] pointer:NULL]];  // XXX this is the order (ASC=1 or DESC=-1 that should be coming from the parseOrderConditionWithErrors call)
+            [conds addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:1]]];  // XXX this is the order (ASC=1 or DESC=-1 that should be coming from the parseOrderConditionWithErrors call)
         }
         ASSERT_EMPTY(errors);
         orderList  = [[GTWTree alloc] initWithType:kTreeList arguments:conds];
     }
 
     
-    
+    id<GTWTree> groupingTree;
     if (needGrouping || [groupConditions count]) {
         NSSet* aggregates  = [self aggregatesForCurrentQuery];
         NSUInteger i    = 0;
@@ -835,22 +800,43 @@ cleanup:
         id<GTWTree> groupList   = [[GTWTree alloc] initWithType:kTreeList arguments:groupConditions];
         id<GTWTree> aggregateTree   = [[GTWTree alloc] initWithType:kTreeList arguments:aggregateList];
 //        NSLog(@"aggregateList: %@", aggregateList);
-        id<GTWTree> groupingTree    = [[GTWTree alloc] initWithType:kTreeList arguments:@[groupList, aggregateTree]];
+        groupingTree    = [[GTWTree alloc] initWithType:kTreeList arguments:@[groupList, aggregateTree]];
+    }
+
+    if (groupingTree) {
         algebra = [[GTWTree alloc] initWithType:kAlgebraGroup treeValue: groupingTree arguments:@[algebra]];
     }
 
+    if (project) {
+        NSMutableArray* nonExtends  = [NSMutableArray array];
+        for (id<GTWTree> proj in project) {
+            if (proj.type == kAlgebraExtend) {
+                proj.arguments  = @[algebra];
+                algebra         = proj;
+                id<GTWTree> var = proj.treeValue.arguments[1];
+                proj.treeValue.arguments    = @[[self rewriteTree:proj.treeValue.arguments[0] withAggregateMapping:mapping withErrors:errors], var];
+                ASSERT_EMPTY(errors);
+                [nonExtends addObject:var];
+            } else {
+                [nonExtends addObject:proj];
+            }
+            project = nonExtends;
+        }
+    }
+ 
     if (havingConstraint) {
-//        NSLog(@"HAVING: %@", havingConstraint);
+        //        NSLog(@"HAVING: %@", havingConstraint);
         NSMutableDictionary* treeMap    = [NSMutableDictionary dictionary];
         for (id<GTWTree> k in mapping) {
             id<GTWTerm> v   = mapping[k];
-            id<GTWTree> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
+            id<GTWTree,NSCopying> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
             treeMap[k]      = tn;
         }
-        id<GTWTree> constraint  = [havingConstraint copyReplacingValues:treeMap];
+        id<GTWTree> constraint  = [self rewriteTree:[havingConstraint copyReplacingValues:treeMap] withAggregateMapping:mapping withErrors:errors];
+        ASSERT_EMPTY(errors);
         algebra = [[GTWTree alloc] initWithType:kAlgebraFilter treeValue: constraint arguments:@[algebra]];
     }
-
+    
     if (orderList) {
         NSArray* list    = orderList.arguments;
         NSMutableArray* mappedList  = [NSMutableArray array];
@@ -867,6 +853,18 @@ cleanup:
         algebra = [[GTWTree alloc] initWithType:kAlgebraOrderBy treeValue: mappedOrderList arguments:@[algebra]];
     }
     
+    if (project) {
+        algebra = [self rewriteAlgebra: algebra forProjection: project withAggregateMapping: mapping withErrors:errors];
+        ASSERT_EMPTY(errors);
+    } else {
+        NSSet* vars = [algebra inScopeVariables];
+        NSMutableArray* project   = [NSMutableArray array];
+        for (id<GTWTerm> v in vars) {
+            [project addObject:[[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil]];
+        }
+        GTWTree* vlist  = [[GTWTree alloc] initWithType:kTreeList arguments:project];
+        algebra = [[GTWTree alloc] initWithType:kAlgebraProject treeValue:vlist arguments:@[algebra]];
+    }
     
     t   = [self peekNextNonCommentToken];
     if (t && t.type == KEYWORD) {
@@ -903,8 +901,8 @@ cleanup:
                 offset   = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
             algebra   = [[GTWTree alloc] initWithType:kAlgebraSlice arguments:@[
                           algebra,
-                          [[GTWTree alloc] initLeafWithType:kTreeNode value: offset pointer:NULL],
-                          [[GTWTree alloc] initLeafWithType:kTreeNode value: limit pointer:NULL],
+                          [[GTWTree alloc] initLeafWithType:kTreeNode value: offset],
+                          [[GTWTree alloc] initLeafWithType:kTreeNode value: limit],
                       ]];
         }
     }
@@ -979,7 +977,7 @@ cleanup:
                     algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
                     ASSERT_EMPTY(errors);
                     if (!algebra)
-                        return nil;
+                        return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (1)" withErrors:errors];
                     [args addObject:algebra];
                     [self parseOptionalTokenOfType:DOT];
                     break;
@@ -988,13 +986,13 @@ cleanup:
                         algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
                         ASSERT_EMPTY(errors);
                         if (!algebra)
-                            return nil;
+                            return [self errorMessage:@"Could not parse TriplesBlock in GroupGraphPatternSub" withErrors:errors];
                         [args addObject:[self reduceTriplePaths: algebra]];
                     } else {
                         algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
                         ASSERT_EMPTY(errors);
                         if (!algebra)
-                            return nil;
+                            return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (2)" withErrors:errors];
                         [args addObject:algebra];
                     }
                     break;
@@ -1063,7 +1061,7 @@ cleanup:
                     [reordered addObject:pattern];
                 }
                 
-                if (t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
+                if (t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraSlice || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
                     [reordered addObject:t];
                 } else if (t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
                     id<GTWTree> pattern;
@@ -1076,8 +1074,7 @@ cleanup:
                     t.arguments = @[pattern, t.arguments[0]];
                     [reordered addObject:t];
                 } else {
-                    NSLog(@"unknown type of tree: %@", t);
-                    return nil;
+                    return [self errorMessage:[NSString stringWithFormat:@"unknown type of tree in GroupGraphPatternSub: %@", t] withErrors:errors];
                 }
             }
         }

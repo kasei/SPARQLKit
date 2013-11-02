@@ -257,7 +257,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         case RASQAL_EXPR_RAND:
         case RASQAL_EXPR_UUID:
         case RASQAL_EXPR_STRUUID:
-            return [[GTWTree alloc] initLeafWithType:ttype value:nil pointer:NULL];
+            return [[GTWTree alloc] initLeafWithType:ttype value:nil];
         // 1-ary
         case RASQAL_EXPR_UMINUS:
         case RASQAL_EXPR_BANG:
@@ -320,7 +320,7 @@ static GTWTree* rasqal_expression_to_tree ( rasqal_expression* expr ) {
         // other
         case RASQAL_EXPR_LITERAL:
             term    = rasqal_literal_to_object(expr->literal);
-            return [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL];
+            return [[GTWTree alloc] initLeafWithType:kTreeNode value:term];
         case RASQAL_EXPR_REGEX:
             array   = [NSMutableArray arrayWithCapacity:3];
             lhs = rasqal_expression_to_tree(expr->arg1);
@@ -393,7 +393,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
             }
 //            NSLog(@"BIND expression: %@", expression);
             GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
-                               [[GTWTree alloc] initLeafWithType:kTreeNode value:v pointer:NULL],
+                               [[GTWTree alloc] initLeafWithType:kTreeNode value:v],
                                expression
                                ]];
             return [[GTWTree alloc] initLeafWithType:kAlgebraExtend treeValue:list];
@@ -434,7 +434,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //            NSLog(@"triple: %@ %@ %@", s, p, o);
             
             id<GTWTriple> triple   = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
-			triples[i]          = [[GTWTree alloc] initLeafWithType:kTreeTriple value: triple pointer:NULL];
+			triples[i]          = [[GTWTree alloc] initLeafWithType:kTreeTriple value: triple];
 		}
 		//		fprintf(fh, "bgp\t%d\n", triple_index);
         a   = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:triples];
@@ -587,7 +587,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //		gtw_term* t	= rasqal_literal_to_term(literal);
 //		gtw_node* n	= gtw_new_node(NODE_NULL, t);
 //		gtw_free_term(t);
-        GTWTree* g  = [[GTWTree alloc] initLeafWithType:kTreeNode value: t pointer:NULL];
+        GTWTree* g  = [[GTWTree alloc] initLeafWithType:kTreeNode value: t];
 //		gtw_tree_node* g	= gtw_new_tree_va(TREE_NODE, n, 0);
         a   = [[GTWTree alloc] initWithType:kAlgebraGraph value: g arguments:@[a]];
 //		a	= gtw_new_tree_va(ALGEBRA_GRAPH, NULL, 2, g, a);
@@ -677,8 +677,8 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				if (e->op == RASQAL_EXPR_LITERAL) {
 					rasqal_literal* l		= e->literal;
                     id<GTWTerm> t   = rasqal_literal_to_object(l);
-                    [vars addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: t pointer:NULL]];
-                    [vars addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:order] pointer:NULL]];
+                    [vars addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: t]];
+                    [vars addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:order]]];
 				} else {
                     NSLog(@"ORDERing by non-literal not implemented yet");
                     NSLog(@"order expression = %s\n", rasqal_expression_op_label(e->op));
@@ -707,7 +707,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				if(!v)
 					break;
                 id<GTWTerm> t   = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
-                GTWTree* var = [[GTWTree alloc] initLeafWithType:kTreeNode value: t pointer:NULL];
+                GTWTree* var = [[GTWTree alloc] initLeafWithType:kTreeNode value: t];
                 vars[i]         = var;
 //				gtw_term* t	= gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL);
 //				vars[i]	= gtw_new_tree_va(kTreeNode, gtw_new_node(NODE_NULL, t), 0);
@@ -758,8 +758,8 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 //			gtw_node* offset	= gtw_new_node(sid, start);
             a   = [[GTWTree alloc] initWithType:kAlgebraSlice arguments:@[
                    a,
-                   [[GTWTree alloc] initLeafWithType:kTreeNode value: offset pointer:NULL],
-                   [[GTWTree alloc] initLeafWithType:kTreeNode value: limit pointer:NULL],
+                   [[GTWTree alloc] initLeafWithType:kTreeNode value: offset],
+                   [[GTWTree alloc] initLeafWithType:kTreeNode value: limit],
                    ]];
 //			a	= gtw_new_tree_va(
 //                                  ALGEBRA_SLICE, NULL, 3,
@@ -785,7 +785,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 					rasqal_literal* l	= raptor_sequence_get_at(seq, i);
                     id<GTWTerm> t   = rasqal_literal_to_object(l);
 //					gtw_term* t	= rasqal_literal_to_term(l);
-                    vars[i] = [[GTWTree alloc] initLeafWithType:kTreeNode value: t pointer:NULL];
+                    vars[i] = [[GTWTree alloc] initLeafWithType:kTreeNode value: t];
 //					vars[i]	= gtw_new_tree_va(kTreeNode, gtw_new_node(NODE_NULL, t), 0);
 //					gtw_free_term(t);
 				}

@@ -197,7 +197,7 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
 - (GTWTree*) initLeafWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue;
-- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr;
+- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value;
 - (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args;
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args;
 - (GTWTree*) initWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
@@ -208,6 +208,7 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 - (void) computeScopeVariables;
 - (void) computeProjectVariables;
 - (NSSet*) nonAggregatedVariables;
+- (NSSet*) projectableAggregateVariables;
 
 + (NSString*) sparqlForAlgebra: (id<GTWTree>) algebra;
 - (NSString*) conciseDescription;

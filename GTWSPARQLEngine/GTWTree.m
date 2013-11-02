@@ -186,23 +186,15 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (GTWTree*) initLeafWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue {
-    return [self initLeafWithType:type value:nil treeValue:treeValue pointer:NULL];
-}
-
-- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr {
-    return [self initLeafWithType:type value:value treeValue:nil pointer:NULL];
-}
-
-- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue pointer: (void*) ptr {
-    if (self = [self init]) {
+    if (self = [self initWithType:type value:nil treeValue:treeValue arguments:nil]) {
         self.leaf   = YES;
-        self.type   = type;
-        self.ptr	= ptr;
-        self.value  = value;
-        self.treeValue  = treeValue;
-        if (!type) {
-            NSLog(@"no type specified for GTWTree leaf");
-        }
+    }
+    return self;
+}
+
+- (GTWTree*) initLeafWithType: (GTWTreeType) type value: (id) value {
+    if (self = [self initWithType:type value:value treeValue:nil arguments:nil]) {
+        self.leaf   = YES;
     }
     return self;
 }
@@ -222,6 +214,13 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         NSUInteger location	= 0;
         //	fprintf(stderr, "constructing %s with locations:\n", gtw_tree_type_name(type));
         NSUInteger locsize	= size;
+        
+        if (type == kAlgebraExtend) {
+            NSString* str   = [treeValue conciseDescription];
+            if ([str hasPrefix:@"TreeList(ExprGroupConcat"]) {
+                NSLog(@">>> kAlgebraExtend %@ %@", str, [treeValue conciseDescription]);
+            }
+        }
         
         if (type == kPlanHashJoin) {
             // PLAN_HASHJOIN's 3rd child is the list of join vars, not a subplan, so it shouldn't participate in invocation counting
@@ -609,6 +608,45 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
         return set;
     }
+}
+
+- (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended {
+    if (self.type == kAlgebraGroup) {
+        id<GTWTree> grouping    = [self.treeValue arguments][0];
+        NSArray* groups     = grouping.arguments;
+        NSMutableSet* groupVars = [NSMutableSet set];
+        for (GTWTree<GTWTree>* g in groups) {
+            NSSet* subVars  = [g projectableAggregateVariableswithExtendedVariables:NO];
+            [groupVars addObjectsFromArray:[subVars allObjects]];
+        }
+        return groupVars;
+    } else if (withExtended && self.type == kAlgebraExtend) {
+        id<GTWTree> list    = self.treeValue;
+        id<GTWTree> var = list.arguments[1];
+        NSMutableSet* groupVars = [NSMutableSet setWithObject:var.value];
+        for (GTWTree<GTWTree>* t in self.arguments) {
+            NSSet* subVars  = [t projectableAggregateVariableswithExtendedVariables:withExtended];
+            [groupVars addObjectsFromArray:[subVars allObjects]];
+        }
+        return groupVars;
+    } else if (self.type == kTreeNode) {
+        NSMutableSet* groupVars = [NSMutableSet set];
+        [groupVars addObject:self.value];
+        return groupVars;
+    } else {
+        NSMutableSet* groupVars = [NSMutableSet set];
+        if (self.arguments) {
+            for (GTWTree<GTWTree>* t in self.arguments) {
+                NSSet* subVars  = [t projectableAggregateVariableswithExtendedVariables:withExtended];
+                [groupVars addObjectsFromArray:[subVars allObjects]];
+            }
+        }
+        return groupVars;
+    }
+}
+
+- (NSSet*) projectableAggregateVariables {
+    return [self projectableAggregateVariableswithExtendedVariables:YES];
 }
 
 - (NSSet*) nonAggregatedVariables {

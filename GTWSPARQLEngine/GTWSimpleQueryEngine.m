@@ -229,6 +229,7 @@ static NSString* OSVersionNumber ( void ) {
 //            id<GTWTerm> aterm       = a[variable.value];
 //            id<GTWTerm> bterm       = b[variable.value];
             NSComparisonResult cmp  = [aterm compare: bterm];
+//            NSLog(@"%@ <=> %@ ======> %d\n", aterm, bterm, (int) cmp);
             if ([direction integerValue] < 0) {
                 cmp = -1 * cmp;
             }
@@ -259,8 +260,8 @@ static NSString* OSVersionNumber ( void ) {
         id<GTWTree, NSCopying> expr    = list.arguments[0];
         aggregates[expr]    = v;
     }
-    NSLog(@"grouping trees: %@", groupList.arguments);
-    NSLog(@"aggregates: %@", aggregates);
+//    NSLog(@"grouping trees: %@", groupList.arguments);
+//    NSLog(@"aggregates: %@", aggregates);
 
     NSMutableDictionary* resultGroups   = [NSMutableDictionary dictionary];
     NSEnumerator* results    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
@@ -296,7 +297,7 @@ static NSString* OSVersionNumber ( void ) {
         resultGroups[@{}]   = @[];
     }
     
-    NSLog(@"-------------\nGroups:%@", resultGroups);
+//    NSLog(@"-------------\nGroups:%@", resultGroups);
     NSMutableArray* finalResults    = [NSMutableArray array];
     for (id groupKey in resultGroups) {
         NSArray* groupResults   = resultGroups[groupKey];
@@ -495,7 +496,7 @@ static NSString* OSVersionNumber ( void ) {
             } else if ([term isKindOfClass:[GTWVariable class]]) {
                 GTWTree* list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
                                                                                       [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
-                                                                                      [[GTWTree alloc] initLeafWithType:kTreeNode value:term pointer:NULL],
+                                                                                      [[GTWTree alloc] initLeafWithType:kTreeNode value:term],
                                                                                       ]];
                 id<GTWTree, GTWQueryPlan> extend    = (id<GTWTree, GTWQueryPlan>) [[GTWTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[subplan]];
                 NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
@@ -816,18 +817,6 @@ static NSString* OSVersionNumber ( void ) {
 
 - (NSEnumerator*) _evaluateQueryPlan: (id<GTWTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
     GTWTreeType type    = plan.type;
-//    switch (type) {
-//        case kPlanNLjoin:
-//        case kPlanDistinct:
-//        case kPlanProject:
-//        case kTreeTriple:
-//        case kTreeQuad:
-//        case kPlanOrder:
-//        case kPlanUnion:
-//        case kPlanFilter:
-//        case kPlanExtend:
-//        case kPlanSlice:
-//    }
     if (type == kPlanAsk) {
         return [self evaluateAsk:plan withModel:model];
     } else if (type == kPlanHashJoin) {
