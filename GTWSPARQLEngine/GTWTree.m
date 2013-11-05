@@ -610,14 +610,24 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }
 }
 
+/**
+ Returns a set of variable objects that may be included in projection.
+ If @c withExtended is true, the set includes variables that are created
+ in an extend operation in this or sub- algebra trees.
+ */
 - (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended {
     if (self.type == kAlgebraGroup) {
         id<GTWTree> grouping    = [self.treeValue arguments][0];
-        NSArray* groups     = grouping.arguments;
+        NSArray* groups         = grouping.arguments;
         NSMutableSet* groupVars = [NSMutableSet set];
         for (GTWTree<GTWTree>* g in groups) {
-            NSSet* subVars  = [g projectableAggregateVariableswithExtendedVariables:NO];
-            [groupVars addObjectsFromArray:[subVars allObjects]];
+            if (g.type == kTreeNode) {
+                [groupVars addObject:g.value];
+            } else if (g.type == kAlgebraExtend) {
+                id<GTWTree> list    = g.treeValue;
+                id<GTWTree> var     = list.arguments[1];
+                [groupVars addObject:var.value];
+            }
         }
         return groupVars;
     } else if (withExtended && self.type == kAlgebraExtend) {
@@ -645,6 +655,9 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }
 }
 
+/**
+ Returns a set of variable objects that may be included in projection.
+ */
 - (NSSet*) projectableAggregateVariables {
     return [self projectableAggregateVariableswithExtendedVariables:YES];
 }

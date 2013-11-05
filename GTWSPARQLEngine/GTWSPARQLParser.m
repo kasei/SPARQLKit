@@ -811,6 +811,15 @@ cleanup:
         NSMutableArray* nonExtends  = [NSMutableArray array];
         for (id<GTWTree> proj in project) {
             if (proj.type == kAlgebraExtend) {
+                if ([self currentQuerySeenAggregates]) {
+                    NSSet* nonAggVars   = [proj nonAggregatedVariables];
+                    NSSet* groupVars    = [(GTWTree*)algebra projectableAggregateVariables];
+                    for (id<GTWTerm> var in nonAggVars) {
+                        if (![groupVars containsObject:nonAggVars]) {
+                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", var] withErrors:errors];
+                        }
+                    }
+                }
                 proj.arguments  = @[algebra];
                 algebra         = proj;
                 id<GTWTree> var = proj.treeValue.arguments[1];
@@ -1061,7 +1070,7 @@ cleanup:
                     [reordered addObject:pattern];
                 }
                 
-                if (t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraSlice || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
+                if (t.type == kAlgebraJoin || t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraSlice || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
                     [reordered addObject:t];
                 } else if (t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
                     id<GTWTree> pattern;
