@@ -410,8 +410,8 @@ int main(int argc, const char * argv[]) {
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"qparse"]) {
-        if (argc < (argi+2)) {
-            NSLog(@"qparse operation must be supplied both query and data filenames.");
+        if (argc < (argi+1)) {
+            NSLog(@"qparse operation must be supplied with a query filename.");
             return 1;
         }
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
