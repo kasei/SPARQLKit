@@ -34,6 +34,9 @@
         return triples;
     } else if (algebra.type == kTreeTriple) {
         return @[ algebra.value ];
+    } else if (algebra.type == kAlgebraProject) {
+        id<GTWTree> tree    = algebra.arguments[0];
+        return [self statementsForTemplateAlgebra:tree];
     } else {
         NSLog(@"don't know how to extract triples from algebra: %@", algebra);
         return nil;
