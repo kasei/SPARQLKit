@@ -83,51 +83,53 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     [self beginQueryScope];
     NSMutableArray* errors  = [NSMutableArray array];
     
-    [self parsePrologueWithErrors: errors];
-    if ([errors count])
-        goto cleanup;
-    
-    t   = [self peekNextNonCommentToken];
-    if (t.type != KEYWORD) {
-        [self errorMessage:[NSString stringWithFormat:@"expected query method not found: %@", t] withErrors:errors];
-        goto cleanup;
-    }
-    
-    if ([t.value isEqual: @"SELECT"]) {
-        algebra = [self parseSelectQueryWithError:errors];
+    @autoreleasepool {
+        [self parsePrologueWithErrors: errors];
         if ([errors count])
             goto cleanup;
-    } else if ([t.value isEqual: @"CONSTRUCT"]) {
-        algebra = [self parseConstructQueryWithErrors:errors];
-        if ([errors count])
+        
+        t   = [self peekNextNonCommentToken];
+        if (t.type != KEYWORD) {
+            [self errorMessage:[NSString stringWithFormat:@"expected query method not found: %@", t] withErrors:errors];
             goto cleanup;
-    } else if ([t.value isEqual: @"DESCRIBE"]) {
-        NSLog(@"*** DESCRIBE not implemented");
+        }
+        
+        if ([t.value isEqual: @"SELECT"]) {
+            algebra = [self parseSelectQueryWithError:errors];
+            if ([errors count])
+                goto cleanup;
+        } else if ([t.value isEqual: @"CONSTRUCT"]) {
+            algebra = [self parseConstructQueryWithErrors:errors];
+            if ([errors count])
+                goto cleanup;
+        } else if ([t.value isEqual: @"DESCRIBE"]) {
+            NSLog(@"*** DESCRIBE not implemented");
+            [self endQueryScope];
+            return nil;
+        } else if ([t.value isEqual: @"ASK"]) {
+            algebra = [self parseAskQueryWithError:errors];
+            if ([errors count])
+                goto cleanup;
+        } else {
+            [self errorMessage:[NSString stringWithFormat:@"expected query method not found: %@", t] withErrors:errors];
+            goto cleanup;
+        }
+        
+        algebra = [self parseValuesClauseForAlgebra:algebra withErrors:errors];
+        ASSERT_EMPTY(errors);
+        
+        if ([errors count]) {
+            goto cleanup;
+        }
+        
+        t   = [self peekNextNonCommentToken];
+        if (t) {
+            [self errorMessage:[NSString stringWithFormat: @"Found extra content after parsed query: %@", t] withErrors:errors];
+            goto cleanup;
+        }
+        
         [self endQueryScope];
-        return nil;
-    } else if ([t.value isEqual: @"ASK"]) {
-        algebra = [self parseAskQueryWithError:errors];
-        if ([errors count])
-            goto cleanup;
-    } else {
-        [self errorMessage:[NSString stringWithFormat:@"expected query method not found: %@", t] withErrors:errors];
-        goto cleanup;
     }
-    
-    algebra = [self parseValuesClauseForAlgebra:algebra withErrors:errors];
-    ASSERT_EMPTY(errors);
-    
-    if ([errors count]) {
-        goto cleanup;
-    }
-    
-    t   = [self peekNextNonCommentToken];
-    if (t) {
-        [self errorMessage:[NSString stringWithFormat: @"Found extra content after parsed query: %@", t] withErrors:errors];
-        goto cleanup;
-    }
-    
-    [self endQueryScope];
     return algebra;
     
 cleanup:
