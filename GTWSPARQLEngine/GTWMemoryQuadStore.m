@@ -302,7 +302,10 @@
 }
 
 - (void) dealloc {
-    dispatch_suspend(self.queue);
+    dispatch_queue_t queue  = self.queue;
+    self.queue  = NULL;
+    dispatch_suspend(queue);
+    dispatch_resume(queue);
 }
 
 - (NSString*) description {
