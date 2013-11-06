@@ -382,12 +382,25 @@ int main(int argc, const char * argv[]) {
         return usage(argc, argv);
     }
     
+    NSUInteger stress   = 0;
+    NSUInteger concurrent   = 0;
     NSUInteger verbose  = 0;
     NSUInteger argi     = 1;
     NSString* op        = [NSString stringWithFormat:@"%s", argv[argi++]];
     
     if (argc > argi && !strcmp(argv[argi], "-v")) {
-        verbose = 1;
+        verbose     = 1;
+        argi++;
+    }
+    
+    if (argc > argi && !strcmp(argv[argi], "-j")) {
+        concurrent  = 1;
+        argi++;
+    }
+    
+    if (argc > argi && !strcmp(argv[argi], "-J")) {
+        concurrent  = 1;
+        stress      = 1;
         argi++;
     }
     
@@ -528,14 +541,18 @@ int main(int argc, const char * argv[]) {
             run_memory_quad_store_example(filename, base);
         }
     } else if ([op isEqual: @"testsuite"]) {
-        GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] init];
-        NSString* pattern   = (argc > 2) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
-        harness.runEvalTests    = YES;
-        harness.runSyntaxTests  = YES;
-        if (pattern) {
-            [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];
-        } else {
-            [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+        NSString* pattern   = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
+        while (YES) {
+            GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] initWithConcurrency:(concurrent ? YES : NO)];
+            harness.runEvalTests    = YES;
+            harness.runSyntaxTests  = YES;
+            if (pattern) {
+                [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];
+            } else {
+                [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+            }
+            if (!stress)
+                break;
         }
     } else if ([op isEqual: @"grapheq"]) {
         if (argc < (argi+3)) {

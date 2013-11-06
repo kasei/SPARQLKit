@@ -17,7 +17,7 @@
 #import "GTWMemoryQuadStore.h"
 #import "GTWQuadModel.h"
 #import "GTWRedlandParser.h"
-#import "GTWRasqalSPARQLParser.h"
+//#import "GTWRasqalSPARQLParser.h"
 #import "GTWQueryPlanner.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
@@ -27,7 +27,7 @@
 #import <GTWSWBase/GTWSPARQLResultsJSONParser.h>
 
 extern raptor_world* raptor_world_ptr;
-extern rasqal_world* rasqal_world_ptr;
+//extern rasqal_world* rasqal_world_ptr;
 static const NSString* kFailingSyntaxTests  = @"Failing Syntax Tests";
 static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
@@ -38,7 +38,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     [NSURLProtocol registerClass:[GTWSPARQLTestHarnessURLProtocol class]];
 }
 
-- (GTWSPARQLTestHarness*) init {
+- (GTWSPARQLTestHarness*) initWithConcurrency: (BOOL) concurrent {
     if (self = [super init]) {
         self.runEvalTests   = YES;
         self.runSyntaxTests = YES;
@@ -46,8 +46,21 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         self.testData[kFailingEvalTests]     = [NSMutableSet set];
         self.testData[kFailingSyntaxTests]   = [NSMutableSet set];
         self.failingTests   = [NSMutableArray array];
+        dispatch_queue_attr_t attr;
+        if (concurrent) {
+            attr    = DISPATCH_QUEUE_CONCURRENT;
+        } else {
+            attr    = DISPATCH_QUEUE_SERIAL;
+        }
+        self.jobs_queue     = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.tests", attr);
+        self.results_queue  = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.results", DISPATCH_QUEUE_SERIAL);
+        self.raptor_queue   = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.raptor", DISPATCH_QUEUE_SERIAL);
     }
     return self;
+}
+
+- (GTWSPARQLTestHarness*) init {
+    return [self initWithConcurrency:NO];
 }
 
 - (NSArray*) arrayFromModel: (id<GTWModel>) model withList: (id<GTWTerm>) list {
@@ -77,11 +90,13 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     
     NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
     NSData* data                = [fh readDataToEndOfFile];
-    id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
-    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-        GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-        [store addQuad:q error:&error];
-    } error:&error];
+    dispatch_sync(self.raptor_queue, ^{
+        id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
+            [store addQuad:q error:&error];
+        } error:&error];
+    });
     
     GTWVariable* v  = [[GTWVariable alloc] initWithName:@"o"];
     GTWIRI* include = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
@@ -137,18 +152,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     for (id<GTWIRI> file in manifests) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
         NSData* data                = [fh readDataToEndOfFile];
-        id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
-        __block NSUInteger count    = 0;
-        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-            [store addQuad:q error:&error];
-            count++;
-        } error:&error];
+        dispatch_sync(self.raptor_queue, ^{
+            id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
+            __block NSUInteger count    = 0;
+            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
+                [store addQuad:q error:&error];
+                count++;
+            } error:&error];
+        });
     }
     
     GTWIRI* type = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     GTWIRI* mantype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"];
-    __block BOOL ok = YES;
     
     NSMutableArray* manifestTerms   = [NSMutableArray array];
     [model enumerateQuadsMatchingSubject:nil predicate:type object:mantype graph:nil usingBlock:^(id<GTWQuad> q) {
@@ -156,7 +172,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     } error:nil];
     
     for (id<GTWTerm> t in manifestTerms) {
-        ok &= [self runTestsMatchingPattern: pattern fromManifest:t withModel: model];
+        [self runTestsMatchingPattern: pattern fromManifest:t withModel: model];
     }
     
     NSLog(@"Failing tests: %@", self.failingTests);
@@ -197,11 +213,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         }
     } error:nil];
     
-    __block BOOL ok = YES;
     for (id<GTWTerm> test in tests) {
-        ok &= [self runTest: test withModel: model];
+        void (*dispatch_async_func)(dispatch_queue_t queue, dispatch_block_t block) = dispatch_async;
+        NSRange range   = [test.value rangeOfString:@"/service/"];
+        if (range.location != NSNotFound) {
+            dispatch_async_func = dispatch_barrier_async;
+        }
+        
+        dispatch_async_func(self.jobs_queue, ^{
+            [self runTest: test withModel: model];
+        });
     }
-    return ok;
+    dispatch_barrier_sync(self.jobs_queue, ^{});
+    return YES;
 }
 
 - (BOOL) runTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
@@ -245,18 +269,11 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     if (!fh) {
         NSLog(@"no file handle for string: %@", filename);
     }
-    id<GTWRDFParser> parser;
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
-//        GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
+//      GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
         GTWTurtleLexer* lexer   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
-        parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
-    } else {
-        NSData* data            = [fh readDataToEndOfFile];
-        parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
-    }
-    
-//    NSLog(@"parsing data with %@", parser);
-    {
+        id<GTWRDFParser> parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
+        //  NSLog(@"parsing data with %@", parser);
         __block NSUInteger count    = 0;
         NSError* error  = nil;
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
@@ -267,7 +284,24 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         if (error) {
             NSLog(@"parser error: %@", error);
         }
-//        NSLog(@"%lu total quads\n", count);
+        //  NSLog(@"%lu total quads\n", count);
+    } else {
+        NSData* data            = [fh readDataToEndOfFile];
+        dispatch_sync(self.raptor_queue, ^{
+            NSError* error  = nil;
+            id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
+            //  NSLog(@"parsing data with %@", parser);
+            __block NSUInteger count    = 0;
+            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
+                count++;
+                GTWQuad* q   = [GTWQuad quadFromTriple:t withGraph:graph];
+                [store addQuad:q error:nil];
+            } error:&error];
+            //  NSLog(@"%lu total quads\n", count);
+            if (error) {
+                NSLog(@"parser error: %@", error);
+            }
+        });
     }
 }
 
@@ -433,17 +467,21 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     
     if (ok) {
 //        NSLog(@"%@", algebra);
-        NSLog(@"ok %lu # %@\n", self.testsCount, test);
-        self.testsPassing++;
-        self.passingSyntaxTests++;
+        dispatch_sync(self.results_queue, ^{
+            NSLog(@"ok %lu # %@\n", self.testsCount, test);
+            self.testsPassing++;
+            self.passingSyntaxTests++;
+        });
         return YES;
     } else {
 //        NSLog(@"%@", sparql);
 //        NSLog(@"algebra: %@", algebra);
-        [self.failingTests addObject:test];
-        NSLog(@"not ok %lu # %@\n", self.testsCount, test);
-        self.testsFailing++;
-        [self.testData[kFailingSyntaxTests] addObject:test];
+        dispatch_sync(self.results_queue, ^{
+            [self.failingTests addObject:test];
+            NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+            self.testsFailing++;
+            [self.testData[kFailingSyntaxTests] addObject:test];
+        });
         return NO;
     }
 }
@@ -501,56 +539,66 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsJSONParser alloc] init];
             expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
         } else {
-            NSLog(@"*** Don't know how to parse expected results from file %@", resultsFilename);
-            [self.failingTests addObject:test];
+            dispatch_sync(self.results_queue, ^{
+                NSLog(@"*** Don't know how to parse expected results from file %@", resultsFilename);
+                [self.failingTests addObject:test];
+            });
             return NO;
         }
         
         if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator]]) {
 //            NSLog(@"eval query plan: %@", plan);
-            self.testsPassing++;
-            self.passingEvalTests++;
-            NSLog(@"ok %lu # %@\n", self.testsCount, test);
+            dispatch_sync(self.results_queue, ^{
+                self.testsPassing++;
+                self.passingEvalTests++;
+                NSLog(@"ok %lu # %@\n", self.testsCount, test);
+            });
             return YES;
         } else {
 //            NSLog(@"eval query plan: %@", plan);
-            [self.failingTests addObject:test];
-            NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+            dispatch_sync(self.results_queue, ^{
+                [self.failingTests addObject:test];
+                NSLog(@"not ok %lu # %@\n", self.testsCount, test);
 
-            {
-                NSSet* variables    = [plan annotationForKey:kProjectVariables];
-                NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
-                fprintf(stdout, "got:\n");
-                fwrite([data bytes], [data length], 1, stdout);
-                
-            }
-            
-            {
-                NSMutableSet* variables = [NSMutableSet set];
-                for (NSString* v in vars) {
-                    [variables addObject:[[GTWVariable alloc] initWithValue:v]];
+                {
+                    NSSet* variables    = [plan annotationForKey:kProjectVariables];
+                    NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
+                    fprintf(stdout, "got:\n");
+                    fwrite([data bytes], [data length], 1, stdout);
+                    
                 }
-                NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
-                fprintf(stdout, "expected:\n");
-                fwrite([data bytes], [data length], 1, stdout);
-            }
+                
+                {
+                    NSMutableSet* variables = [NSMutableSet set];
+                    for (NSString* v in vars) {
+                        [variables addObject:[[GTWVariable alloc] initWithValue:v]];
+                    }
+                    NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
+                    fprintf(stdout, "expected:\n");
+                    fwrite([data bytes], [data length], 1, stdout);
+                }
 
-            
-            self.testsFailing++;
+                
+                self.testsFailing++;
+            });
             return NO;
         }
 
         
     } else {
-        [self.failingTests addObject:test];
-        NSLog(@"failed to produce query plan");
-        NSLog(@"not ok %lu # %@\n", self.testsCount, test);
-        self.testsFailing++;
-        [self.testData[kFailingEvalTests] addObject:test];
+        dispatch_sync(self.results_queue, ^{
+            [self.failingTests addObject:test];
+            NSLog(@"failed to produce query plan");
+            NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+            self.testsFailing++;
+            [self.testData[kFailingEvalTests] addObject:test];
+        });
         return NO;
     }
     
-    self.testsPassing++;
+    dispatch_sync(self.results_queue, ^{
+        self.testsPassing++;
+    });
     return YES;
 }
 

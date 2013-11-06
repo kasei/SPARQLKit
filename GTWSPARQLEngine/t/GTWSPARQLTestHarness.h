@@ -15,7 +15,11 @@
 @property BOOL runEvalTests;
 @property BOOL runSyntaxTests;
 @property NSMutableArray* failingTests;
+@property dispatch_queue_t jobs_queue;
+@property dispatch_queue_t results_queue;
+@property dispatch_queue_t raptor_queue;
 
+- (GTWSPARQLTestHarness*) initWithConcurrency: (BOOL) concurrent;
 - (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifest: (NSString*) manifest;
 - (BOOL) runTestsFromManifest: (NSString*) manifest;
 
