@@ -108,7 +108,7 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 #pragma mark -
 
 @protocol GTWSPARQLParser
-- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
+- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
 @end
 
 #pragma mark -

@@ -50,10 +50,10 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     return self;
 }
 
-- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base {
+- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error {
     self.lexer      = [[GTWSPARQLLexer alloc] initWithString:queryString];
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
-    return [self parse];
+    return [self parseWithError:error];
 }
 
 - (GTWSPARQLToken*) peekNextNonCommentToken {
@@ -77,7 +77,7 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     return t;
 }
 
-- (id<GTWTree>) parse {
+- (id<GTWTree>) parseWithError: (NSError**) error {
     GTWSPARQLToken* t;
     id<GTWTree> algebra;
     [self beginQueryScope];
@@ -133,8 +133,9 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     return algebra;
     
 cleanup:
-    NSLog(@"*** Parse error: %@", errors);
-    ASSERT_EMPTY(errors);
+    if (error) {
+        *error  = [NSError errorWithDomain:@"us.kasei.sparql.query-parser" code:1 userInfo:@{@"description": [NSString stringWithFormat: @"Parse error: %@", errors]}];
+    }
     return nil;
 }
 
@@ -588,7 +589,7 @@ cleanup:
             [triples addObject:t];
         }
     }
-    return [[GTWTree alloc] initWithType:kTreeList arguments:triples];
+    return [[GTWTree alloc] initWithType:kAlgebraBGP arguments:triples];
 }
 
 //[8]  	SubSelect	  ::=  	SelectClause WhereClause SolutionModifier ValuesClause
@@ -1043,7 +1044,7 @@ cleanup:
                 } else {
                     id<GTWTree> pattern;
                     if ([bgp count]) {
-                        pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
+                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
                         bgp         = [NSMutableArray array];
                     } else if ([reordered count]) {
                         pattern = [reordered lastObject];
@@ -1070,7 +1071,7 @@ cleanup:
                 }
             } else {
                 if ([bgp count]) {
-                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
+                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
                     bgp         = [NSMutableArray array];
                     while ([filters count]) {
                         id<GTWTree> filter  = [filters lastObject];

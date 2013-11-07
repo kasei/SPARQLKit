@@ -817,7 +817,7 @@ void rasqal_message_handler(void *user_data, raptor_log_message* message) {
     return self;
 }
 
-- (GTWTree*) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base {
+- (GTWTree*) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error {
 	raptor_world* raptor_world_ptr = rasqal_world_get_raptor(self.rasqal_world_ptr);
 	//	fprintf(stderr, "Running query '%s'\n", query_string);
 	raptor_uri *base_uri	= raptor_new_uri(raptor_world_ptr, (const unsigned char*) [base UTF8String]);
@@ -825,8 +825,10 @@ void rasqal_message_handler(void *user_data, raptor_log_message* message) {
 	const char* ql_name	= "sparql11";
 	rasqal_query* rq	= rasqal_new_query(self.rasqal_world_ptr, ql_name, NULL);
 	if(!rq) {
-		fprintf(stderr, "Failed to create %s query\n", ql_name);
-		return NULL;
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.rasqal.query-parser" code:1 userInfo:@{@"description": [NSString stringWithFormat: @"Failed to create %s query\n", ql_name]}];
+        }
+		return nil;
 	}
 	
     __block NSError* _error = nil;

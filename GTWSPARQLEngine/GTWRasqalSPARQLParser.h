@@ -9,6 +9,6 @@
 @property rasqal_world* rasqal_world_ptr;
 
 - (GTWRasqalSPARQLParser*) initWithRasqalWorld: (rasqal_world*) rasqal_world_ptr;
-- (GTWTree*) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base;
+- (GTWTree*) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
 
 @end
