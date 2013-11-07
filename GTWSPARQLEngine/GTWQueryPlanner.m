@@ -23,7 +23,7 @@
 }
 
 - (NSArray*) statementsForTemplateAlgebra: (id<GTWTree>) algebra {
-    if (algebra.type == kTreeList) {
+    if (algebra.type == kTreeList || algebra.type == kAlgebraBGP) {
         NSMutableArray* triples = [NSMutableArray array];
         for (id<GTWTree> tree in algebra.arguments) {
             NSArray* t  = [self statementsForTemplateAlgebra:tree];
@@ -77,8 +77,8 @@
             return [[GTWQueryPlan alloc] initWithType:kPlanHashJoin value:joinVars arguments:@[lhs, rhs]];
         }
     }
-    NSLog(@"HashJoin not available for:\n%@\n%@", lhs, rhs);
-    NSLog(@"Join vars: %@ %@", lhsVars, rhsVars);
+//    NSLog(@"HashJoin not available for:\n%@\n%@", lhs, rhs);
+//    NSLog(@"Join vars: %@ %@", lhsVars, rhsVars);
     return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
 }
 
@@ -433,7 +433,6 @@
         NSMutableSet* fwd   = [NSMutableSet set];
         NSMutableSet* inv   = [NSMutableSet set];
         [self negationPath:path.arguments[0] forwardPredicates:fwd inversePredicates:inv negate:NO];
-        NSLog(@"%@\n%@", fwd, inv);
         NSMutableArray* plans   = [NSMutableArray array];
         NSArray* graphs     = [dataset defaultGraphs];
         id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:graphs[0] arguments:nil];
@@ -524,7 +523,7 @@
     NSMutableArray* reordered   = [NSMutableArray array];
     NSMutableDictionary* varsToTriples  = [NSMutableDictionary dictionary];
     for (id<GTWTree> triple in triples) {
-        if (triple.type == kAlgebraExtend) {
+        if (triple.type == kAlgebraExtend || triple.type == kAlgebraFilter) {
             [reordered addObject:triple];
         } else {
             NSArray* terms;
@@ -536,7 +535,8 @@
                 id<GTWTree> o   = triple.arguments[2];
                 terms   = @[s.value, o.value];
             } else {
-                NSLog(@"Unexpected tree type %@", triple);
+                NSLog(@"(1) Unexpected tree type %@", triple);
+                NSLog(@"%@", triples);
             }
     //        NSLog(@"terms: %@", terms);
             for (id<GTWTerm> var in terms) {
@@ -561,7 +561,7 @@
                 [triplesToTriples setObject:connectedTriples forKey:triple];
             }
             
-    //        NSLog(@"----------> triple: %@", triple);
+//        NSLog(@"----------> triple: %@", triple);
             NSArray* terms;
             if (triple.type == kTreeTriple) {
                 terms   = [triple.value allValues];
@@ -571,7 +571,7 @@
                 id<GTWTree> o   = triple.arguments[2];
                 terms   = @[s.value, o.value];
             } else {
-                NSLog(@"Unexpected tree type %@", triple);
+                NSLog(@"(2) Unexpected tree type %@", triple);
             }
             for (id<GTWTerm> var in terms) {
                 if ([var isKindOfClass:[GTWVariable class]] || [var isKindOfClass:[GTWBlank class]]) {
@@ -592,24 +592,26 @@
         [remaining removeObject:t];
     }
     NSMutableSet* frontier  = [NSMutableSet set];
-    id<GTWTree> currentTriple  = triples[0];
-    [reordered addObject:currentTriple];
-    [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
-    [frontier removeObject:currentTriple];
-    [remaining removeObject:currentTriple];
-    
-    while ([remaining count]) {
-        if ([frontier count]) {
-            currentTriple   = [frontier anyObject];
-        } else {
-            NSLog(@"Cartesian join in BGP re-ordering");
-            currentTriple   = [remaining anyObject];
-        }
-        [remaining removeObject:currentTriple];
-        [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+    if ([remaining count]) {
+        id<GTWTree> currentTriple  = [remaining anyObject];
         [reordered addObject:currentTriple];
-        for (id t in reordered) {
-            [frontier removeObject:t];
+        [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+        [frontier removeObject:currentTriple];
+        [remaining removeObject:currentTriple];
+        
+        while ([remaining count]) {
+            if ([frontier count]) {
+                currentTriple   = [frontier anyObject];
+            } else {
+    //            NSLog(@"Cartesian join in BGP re-ordering");
+                currentTriple   = [remaining anyObject];
+            }
+            [remaining removeObject:currentTriple];
+            [frontier addObjectsFromArray:[[triplesToTriples objectForKey:currentTriple] allObjects]];
+            [reordered addObject:currentTriple];
+            for (id t in reordered) {
+                [frontier removeObject:t];
+            }
         }
     }
     
