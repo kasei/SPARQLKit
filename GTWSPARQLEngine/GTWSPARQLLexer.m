@@ -5,7 +5,7 @@ static NSArray* SPARQLKeywords() {
     static NSArray *_SPARQLKeywords = nil;
     static dispatch_once_t keywordsOnceToken;
     dispatch_once(&keywordsOnceToken, ^{
-        _SPARQLKeywords = [NSArray arrayWithObjects:@"ABS", @"ADD", @"ALL", @"ASC", @"ASK", @"AS", @"AVG", @"BASE", @"BIND", @"BNODE", @"BOUND", @"BY", @"CEIL", @"CLEAR", @"COALESCE", @"CONCAT", @"CONSTRUCT", @"CONTAINS", @"COPY", @"COUNT", @"CREATE", @"DATATYPE", @"DAY", @"DEFAULT", @"DELETE", @"DELETE WHERE", @"DESC", @"DESCRIBE", @"DISTINCT", @"DISTINCT", @"DROP", @"ENCODE_FOR_URI", @"EXISTS", @"FILTER", @"FLOOR", @"FROM", @"GRAPH", @"GROUP_CONCAT", @"GROUP", @"HAVING", @"HOURS", @"IF", @"IN", @"INSERT", @"INSERT", @"DATA", @"INTO", @"IRI", @"ISBLANK", @"ISIRI", @"ISLITERAL", @"ISNUMERIC", @"ISURI", @"LANGMATCHES", @"LANG", @"LCASE", @"LIMIT", @"LOAD", @"MAX", @"MD5", @"MINUS", @"MINUTES", @"MIN", @"MONTH", @"MOVE", @"NAMED", @"NOT", @"NOW", @"OFFSET", @"OPTIONAL", @"ORDER", @"PREFIX", @"RAND", @"REDUCED", @"REGEX", @"REPLACE", @"ROUND", @"SAMETERM", @"SAMPLE", @"SECONDS", @"SELECT", @"SEPARATOR", @"SERVICE", @"SHA1", @"SHA256", @"SHA384", @"SHA512", @"SILENT", @"STRAFTER", @"STRBEFORE", @"STRDT", @"STRENDS", @"STRLANG", @"STRLEN", @"STRSTARTS", @"STRUUID", @"STR", @"SUBSTR", @"SUM", @"TIMEZONE", @"TO", @"TZ", @"UCASE", @"UNDEF", @"UNION", @"URI", @"USING", @"UUID", @"VALUES", @"WHERE", @"WITH", @"YEAR", nil];
+        _SPARQLKeywords = [NSArray arrayWithObjects:@"ABS", @"ADD", @"ALL", @"ASC", @"ASK", @"AS", @"AVG", @"BASE", @"BIND", @"BNODE", @"BOUND", @"BY", @"CEIL", @"CLEAR", @"COALESCE", @"CONCAT", @"CONSTRUCT", @"CONTAINS", @"COPY", @"COUNT", @"CREATE", @"DATATYPE", @"DAY", @"DEFAULT", @"DELETE", @"DELETE WHERE", @"DESCRIBE", @"DESC", @"DISTINCT", @"DISTINCT", @"DROP", @"ENCODE_FOR_URI", @"EXISTS", @"FILTER", @"FLOOR", @"FROM", @"GRAPH", @"GROUP_CONCAT", @"GROUP", @"HAVING", @"HOURS", @"IF", @"IN", @"INSERT", @"INSERT", @"DATA", @"INTO", @"IRI", @"ISBLANK", @"ISIRI", @"ISLITERAL", @"ISNUMERIC", @"ISURI", @"LANGMATCHES", @"LANG", @"LCASE", @"LIMIT", @"LOAD", @"MAX", @"MD5", @"MINUS", @"MINUTES", @"MIN", @"MONTH", @"MOVE", @"NAMED", @"NOT", @"NOW", @"OFFSET", @"OPTIONAL", @"ORDER", @"PREFIX", @"RAND", @"REDUCED", @"REGEX", @"REPLACE", @"ROUND", @"SAMETERM", @"SAMPLE", @"SECONDS", @"SELECT", @"SEPARATOR", @"SERVICE", @"SHA1", @"SHA256", @"SHA384", @"SHA512", @"SILENT", @"STRAFTER", @"STRBEFORE", @"STRDT", @"STRENDS", @"STRLANG", @"STRLEN", @"STRSTARTS", @"STRUUID", @"STR", @"SUBSTR", @"SUM", @"TIMEZONE", @"TO", @"TZ", @"UCASE", @"UNDEF", @"UNION", @"URI", @"USING", @"UUID", @"VALUES", @"WHERE", @"WITH", @"YEAR", nil];
     });
     
     return _SPARQLKeywords;
@@ -152,6 +152,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSMutableData* linebuffer	= [[NSMutableData alloc] init];
     //	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
 	if ([self.buffer length] == 0) {
+    FILL_LOOP:
 		while (1) {
 			if (self.file) {
 				NSData* data	= [self.file readDataOfLength:1];
@@ -176,6 +177,13 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 		}
 		NSString* line	= [[NSString alloc] initWithData:linebuffer encoding:NSUTF8StringEncoding];
+        NSRegularExpression* re = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
+        NSRange range   = [re rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
+//        NSLog(@">>> '%@'", line);
+//        NSLog(@"{ %lu, %lu } (%lu)", range.location, range.length, [line length]);
+        if ((range.location + range.length) == [line length]) {
+            goto FILL_LOOP;
+        }
         //			$line		=~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/ge;	 // TODO
         //			$line		=~ s/\\U([0-9A-Fa-f]{8})/chr(hex($1))/ge;	 // TODO
 		[self.buffer appendString:line];
@@ -948,11 +956,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		self.startLine		= self.line;
 		self.startCharacter	= self.character;
 		
-		NSRange bnode_range		= [self.buffer rangeOfString:@"[(][ \r\n\t]*[)]" options:NSRegularExpressionSearch];
+		NSRange nil_range		= [self.buffer rangeOfString:@"[(][ \r\n\t]*[)]" options:NSRegularExpressionSearch];
 		NSRange double_range	= [self.buffer rangeOfString:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
         NSRange decimal_range   = [self.buffer rangeOfString:@"[0-9]*[.][0-9]+" options:NSRegularExpressionSearch];
 		NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
-//		NSRange anon_range		= [self.buffer rangeOfString:@"\\[\\]" options:NSRegularExpressionSearch];
+        NSRange anon_range      = [self.buffer rangeOfString:@"\\[[ \x0a\x0d\x09]*\\]" options:NSRegularExpressionSearch];
 		
 		// WS
 		if ([c isEqualToString:@" "] || [c isEqualToString:@"\r"] || [c isEqualToString:@"\n"] || [c isEqualToString:@"\t"]) {
@@ -979,14 +987,14 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		}
 		
 		// NIL
-		if (bnode_range.location == 0) {
-			[self _readLength:bnode_range.length];
+		if (nil_range.location == 0) {
+			[self _readLength:nil_range.length];
 			return [self newTokenOfType:NIL withArgs:@[]];
 		}
 		
         // ANON
-        if ([self.buffer hasPrefix:@"[]"]) {
-			[self _readLength:2];
+        if (anon_range.location == 0) {
+			[self _readLength:anon_range.length];
 			return [self newTokenOfType:ANON withArgs:@[]];
         }
         // DOUBLE
