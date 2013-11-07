@@ -303,7 +303,7 @@ int usage(int argc, const char * argv[]) {
     fprintf(stderr, "    %s test quad\n", argv[0]);
     fprintf(stderr, "    %s test endpoint\n", argv[0]);
     fprintf(stderr, "    %s test parser data.rdf base-uri\n", argv[0]);
-    fprintf(stderr, "    %s testsuite [PATTERN]\n", argv[0]);
+    fprintf(stderr, "    %s testsuite [-m path/to/manifest.ttl] [PATTERN]\n", argv[0]);
     fprintf(stderr, "    %s grapheq data1.rdf data2.rdf base-uri\n", argv[0]);
     fprintf(stderr, "    %s dump [config-json-string]\n", argv[0]);
     fprintf(stderr, "    %s sources\n", argv[0]);
@@ -393,20 +393,21 @@ int main(int argc, const char * argv[]) {
     NSUInteger argi     = 1;
     NSString* op        = [NSString stringWithFormat:@"%s", argv[argi++]];
     
-    if (argc > argi && !strcmp(argv[argi], "-v")) {
-        verbose     = 1;
-        argi++;
-    }
-    
-    if (argc > argi && !strcmp(argv[argi], "-j")) {
-        concurrent  = 1;
-        argi++;
-    }
-    
-    if (argc > argi && !strcmp(argv[argi], "-J")) {
-        concurrent  = 1;
-        stress      = 1;
-        argi++;
+    while (argc > argi && argv[argi][0] == '-') {
+        NSLog(@"option: %s", argv[argi]);
+        if (!strcmp(argv[argi], "-v")) {
+            verbose     = 1;
+            argi++;
+        } else if (!strcmp(argv[argi], "-j")) {
+            concurrent  = 1;
+            argi++;
+        } else if (!strcmp(argv[argi], "-J")) {
+            concurrent  = 1;
+            stress      = 1;
+            argi++;
+        } else {
+            break;
+        }
     }
     
     if (verbose) {
@@ -546,6 +547,11 @@ int main(int argc, const char * argv[]) {
             run_memory_quad_store_example(filename, base);
         }
     } else if ([op isEqual: @"testsuite"]) {
+        NSString* manifest  = @"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl";
+        if (argc > (argi+1) && !strcmp(argv[argi], "-m")) {
+            ++argi;
+            manifest    = [NSString stringWithFormat:@"%s", argv[argi++]];
+        }
         NSString* pattern   = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
         while (YES) {
             GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] initWithConcurrency:(concurrent ? YES : NO)];
@@ -553,9 +559,9 @@ int main(int argc, const char * argv[]) {
             harness.runEvalTests    = YES;
             harness.runSyntaxTests  = YES;
             if (pattern) {
-                [harness runTestsMatchingPattern: pattern fromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl" ];
+                [harness runTestsMatchingPattern:pattern fromManifest:manifest ];
             } else {
-                [harness runTestsFromManifest:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+                [harness runTestsFromManifest:manifest];
             }
             if (!stress)
                 break;
