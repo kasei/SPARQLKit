@@ -369,15 +369,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:query.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-        NSLog(@"query file: %@", query.value);
+        if (self.verbose)
+            NSLog(@"query file: %@", query.value);
 
         
         
 //        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
         id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
         
-        NSLog(@"SPARQL:\n%@", sparql);
-        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value];
+        if (self.verbose)
+            NSLog(@"SPARQL:\n%@", sparql);
+        
+        NSError* error;
+        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value error:&error];
         if (!algebra) {
             NSLog(@"failed to parse eval query: %@", query.value);
             return nil;
@@ -397,7 +401,9 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         id<GTWModel> testModel  = [[GTWQuadModel alloc] initWithQuadStore:testStore];
         
-        NSLog(@"query:\n%@", algebra);
+        if (self.verbose)
+            NSLog(@"query:\n%@", algebra);
+        
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel optimize: YES];
@@ -405,7 +411,9 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 //            NSLog(@"failed to plan query: %@", query.value);
             return nil;
         }
-        NSLog(@"plan:\n%@", plan);
+        
+        if (self.verbose)
+            NSLog(@"plan:\n%@", plan);
         
         return plan;
     } else {
@@ -422,7 +430,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:action.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-        NSLog(@"query file: %@", action.value);
+        if (self.verbose)
+            NSLog(@"query file: %@", action.value);
 
         
         
@@ -431,8 +440,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        
-        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value];
+        NSError* error;
+        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:&error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
@@ -574,25 +583,26 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             dispatch_sync(self.results_queue, ^{
                 [self.failingTests addObject:test];
                 [self printResultForTest:test.value passing:NO];
-
-                {
-                    NSSet* variables    = [plan inScopeVariables];
-                    NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
-                    fprintf(stderr, "got:\n");
-                    fwrite([data bytes], [data length], 1, stderr);
-                    
-                }
                 
-                {
-                    NSMutableSet* variables = [NSMutableSet set];
-                    for (NSString* v in vars) {
-                        [variables addObject:[[GTWVariable alloc] initWithValue:v]];
+                if (self.verbose) {
+                    {
+                        NSSet* variables    = [plan inScopeVariables];
+                        NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
+                        fprintf(stderr, "got:\n");
+                        fwrite([data bytes], [data length], 1, stderr);
+                        
                     }
-                    NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
-                    fprintf(stderr, "expected:\n");
-                    fwrite([data bytes], [data length], 1, stderr);
+                    
+                    {
+                        NSMutableSet* variables = [NSMutableSet set];
+                        for (NSString* v in vars) {
+                            [variables addObject:[[GTWVariable alloc] initWithValue:v]];
+                        }
+                        NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
+                        fprintf(stderr, "expected:\n");
+                        fwrite([data bytes], [data length], 1, stderr);
+                    }
                 }
-
                 
                 self.testsFailing++;
             });

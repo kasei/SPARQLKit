@@ -90,7 +90,8 @@ static dispatch_once_t mockToken;
         
         NSString* sparql = vars[@"query"];
         id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
-        id<GTWTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value];
+        NSError* error;
+        id<GTWTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];

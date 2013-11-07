@@ -200,7 +200,8 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
 
 int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset, NSUInteger verbose) {
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
-    id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base];
+    NSError* error;
+    id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base error:&error];
     if (verbose) {
         NSLog(@"query:\n%@", algebra);
     }
@@ -236,7 +237,12 @@ int parseQuery(NSString* query, NSString* base) {
     //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
-    id<GTWTree> algebra            = [parser parseSPARQL:query withBaseURI:base];
+    NSError* error;
+    id<GTWTree> algebra            = [parser parseSPARQL:query withBaseURI:base error:&error];
+    if (error) {
+        NSLog(@"Parse error: %@", error);
+        return 1;
+    }
     NSLog(@"Query algebra:\n%@\n\n", algebra);
     
     id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
@@ -543,6 +549,7 @@ int main(int argc, const char * argv[]) {
         NSString* pattern   = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
         while (YES) {
             GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] initWithConcurrency:(concurrent ? YES : NO)];
+            harness.verbose         = verbose;
             harness.runEvalTests    = YES;
             harness.runSyntaxTests  = YES;
             if (pattern) {

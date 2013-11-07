@@ -333,13 +333,14 @@ static NSString* OSVersionNumber ( void ) {
     } else if (expr.type == kExprGroupConcat) {
         NSArray* a  = expr.value;
         NSNumber* distinct  = a[0];
+        id container  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
         NSString* separator = a[1];
-        NSMutableArray* array   = [NSMutableArray array];
         for (NSDictionary* result in results) {
             id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             if (t)
-                [array addObject:t.value];
+                [container addObject:t.value];
         }
+        NSArray* array  = [container allObjects];
         return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:separator]];
     } else if (expr.type == kExprMax) {
         id<GTWTerm> max = nil;
@@ -360,20 +361,20 @@ static NSString* OSVersionNumber ( void ) {
         }
         return min;
     } else if (expr.type == kExprSum) {
-        id<GTWTerm> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         for (NSDictionary* result in results) {
-            id<GTWLiteral,GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
-            sum = [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
+            id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            sum = (id<GTWLiteral>) [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
             if (!sum)
                 break;
         }
         return sum;
     } else if (expr.type == kExprAvg) {
         NSInteger count = 0;
-        id<GTWTerm,GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         for (NSDictionary* result in results) {
-            id<GTWLiteral,GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
-            sum = [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
+            id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            sum = (id<GTWLiteral>) [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
             if (!sum)
                 break;
             count++;
@@ -533,8 +534,15 @@ static NSString* OSVersionNumber ( void ) {
         id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
         NSEnumerator* results       = [self _evaluateQueryPlan:subplan withModel:model];
         NSMutableArray* extended    = [NSMutableArray array];
+        NSInteger counter  = 0;
         for (NSDictionary* result in results) {
-            id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
+            // This NSNumber counter is used so that adjacent Extend operations, as would be present from
+            // multiple select expressions, will use the same count value. As a result of using this count
+            // value as the resultIdentity while evaluating expressions, a single result should produce
+            // the same value across multiple calls to BNODE(?var) (since the count value will be the same
+            // in all extend evaluations for any given result)
+            NSNumber* c     = [NSNumber numberWithInteger:counter++];
+            id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model resultIdentity:c];
             if (f) {
                 NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];
                 id<GTWTerm> value   = [e objectForKey:v.value];
@@ -874,7 +882,7 @@ static NSString* OSVersionNumber ( void ) {
             }
             [results addObject:result];
         }
-        NSLog(@"DATA results: %@", results);
+//        NSLog(@"DATA results: %@", results);
         return [results objectEnumerator];
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);

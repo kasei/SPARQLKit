@@ -14,6 +14,7 @@
 @property NSMutableDictionary* testData;
 @property BOOL runEvalTests;
 @property BOOL runSyntaxTests;
+@property BOOL verbose;
 @property NSMutableArray* failingTests;
 @property dispatch_queue_t jobs_queue;
 @property dispatch_queue_t results_queue;
