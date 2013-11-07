@@ -424,7 +424,7 @@ static NSString* OSVersionNumber ( void ) {
 	NSURL* url	= [NSURL URLWithString:[NSString stringWithFormat:@"%@?query=%@", endpoint, query]];
 	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
 	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
-	[req setTimeoutInterval:5.0];
+//	[req setTimeoutInterval:5.0];
     
 	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
 	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
