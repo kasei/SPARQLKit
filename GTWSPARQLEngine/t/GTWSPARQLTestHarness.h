@@ -10,7 +10,7 @@
 
 @interface GTWSPARQLTestHarness : NSObject
 
-@property NSUInteger testsCount, testsPassing, testsFailing, evalTests, passingEvalTests, syntaxTests, passingSyntaxTests;
+@property NSUInteger testsCount, testsPassing, testsFailing, evalTests, passingEvalTests, syntaxTests, passingSyntaxTests, testResultCounter;
 @property NSMutableDictionary* testData;
 @property BOOL runEvalTests;
 @property BOOL runSyntaxTests;

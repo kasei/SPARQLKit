@@ -34,10 +34,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 @implementation GTWSPARQLTestHarness
 
 
-+ (void)load {
-    [NSURLProtocol registerClass:[GTWSPARQLTestHarnessURLProtocol class]];
-}
-
 - (GTWSPARQLTestHarness*) initWithConcurrency: (BOOL) concurrent {
     if (self = [super init]) {
         self.runEvalTests   = YES;
@@ -143,7 +139,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 continue;
             if ([f.value rangeOfString:@"syntax-fed"].location != NSNotFound)
                 continue;
-            NSLog(@"Manifest --> %@", f);
+//            NSLog(@"Manifest --> %@", f);
             [matchingFiles addObject:f];
         }
         [manifests addObjectsFromArray:matchingFiles];
@@ -217,6 +213,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         void (*dispatch_async_func)(dispatch_queue_t queue, dispatch_block_t block) = dispatch_async;
         NSRange range   = [test.value rangeOfString:@"/service/"];
         if (range.location != NSNotFound) {
+            // since service tests use the global GTWSPARQLTestHarnessURLProtocol object, they need to run by themselves
             dispatch_async_func = dispatch_barrier_async;
         }
         
@@ -249,7 +246,9 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             }
         } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
             if (self.runEvalTests) {
-                return [self runQueryEvalTest: test withModel: model];
+                BOOL ok     = [self runQueryEvalTest: test withModel: model];
+                [NSURLProtocol unregisterClass:[GTWSPARQLTestHarnessURLProtocol class]];
+                return ok;
             } else {
                 return YES;
             }
@@ -330,7 +329,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     }
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: (GTWIRI*) defaultGraph {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: (GTWIRI*) defaultGraph hasService: (BOOL*) serviceFlag {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     //    GTWIRI* mfresult = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
     
@@ -353,8 +352,10 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         for (id<GTWIRI> datafile in graphData) {
             [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:datafile base: datafile];
         }
-        [GTWSPARQLTestHarnessURLProtocol mockBadEndpoint:[NSURL URLWithString:@"http://invalid.endpoint.org/sparql"]];
         for (id<GTWTerm> data in serviceData) {
+            [NSURLProtocol registerClass:[GTWSPARQLTestHarnessURLProtocol class]];
+            [GTWSPARQLTestHarnessURLProtocol mockBadEndpoint:[NSURL URLWithString:@"http://invalid.endpoint.org/sparql"]];
+            *serviceFlag        = YES;
             id<GTWTerm> ep      = [model anyObjectForSubject:data predicate:qtendpoint graph:nil];
             NSArray* dataFiles  = [model objectsForSubject:data predicate:qtdata graph:nil];
             id<GTWQuadStore, GTWMutableQuadStore>   epstore   = [[GTWMemoryQuadStore alloc] init];
@@ -456,6 +457,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return nil;
 }
 
+- (void) printResultForTest: (NSString*) test passing: (BOOL) passing {
+    NSMutableString* s  = [NSMutableString string];
+    NSUInteger number   = ++self.testResultCounter;
+    if (passing) {
+        [s appendFormat:@"ok %lu # %@\n", number, test];
+    } else {
+        [s appendFormat:@"not ok %lu # %@\n", number, test];
+    }
+    NSData* data    = [s dataUsingEncoding:NSUTF8StringEncoding];
+    fwrite([data bytes], [data length], 1, stdout);
+}
+
+
 - (BOOL) runQuerySyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model expectSuccess: (BOOL) expect {
 //    NSLog(@"--> %@", test);
     self.testsCount++;
@@ -468,7 +482,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     if (ok) {
 //        NSLog(@"%@", algebra);
         dispatch_sync(self.results_queue, ^{
-            NSLog(@"ok %lu # %@\n", self.testsCount, test);
+            [self printResultForTest:test.value passing:YES];
             self.testsPassing++;
             self.passingSyntaxTests++;
         });
@@ -478,7 +492,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 //        NSLog(@"algebra: %@", algebra);
         dispatch_sync(self.results_queue, ^{
             [self.failingTests addObject:test];
-            NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+            [self printResultForTest:test.value passing:NO];
             self.testsFailing++;
             [self.testData[kFailingSyntaxTests] addObject:test];
         });
@@ -493,7 +507,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     self.evalTests++;
     GTWMemoryQuadStore* testStore   = [[GTWMemoryQuadStore alloc] init];
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithIRI:@"tag:kasei.us,2013;default-graph"];
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph];
+    BOOL hasService = NO;
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
         [plan computeProjectVariables];
@@ -551,20 +566,20 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             dispatch_sync(self.results_queue, ^{
                 self.testsPassing++;
                 self.passingEvalTests++;
-                NSLog(@"ok %lu # %@\n", self.testsCount, test);
+                [self printResultForTest:test.value passing:YES];
             });
             return YES;
         } else {
 //            NSLog(@"eval query plan: %@", plan);
             dispatch_sync(self.results_queue, ^{
                 [self.failingTests addObject:test];
-                NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+                [self printResultForTest:test.value passing:NO];
 
                 {
                     NSSet* variables    = [plan annotationForKey:kProjectVariables];
                     NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
-                    fprintf(stdout, "got:\n");
-                    fwrite([data bytes], [data length], 1, stdout);
+                    fprintf(stderr, "got:\n");
+                    fwrite([data bytes], [data length], 1, stderr);
                     
                 }
                 
@@ -574,8 +589,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                         [variables addObject:[[GTWVariable alloc] initWithValue:v]];
                     }
                     NSData* data        = [s dataFromResults:[expected objectEnumerator] withVariables:variables];
-                    fprintf(stdout, "expected:\n");
-                    fwrite([data bytes], [data length], 1, stdout);
+                    fprintf(stderr, "expected:\n");
+                    fwrite([data bytes], [data length], 1, stderr);
                 }
 
                 
@@ -589,7 +604,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         dispatch_sync(self.results_queue, ^{
             [self.failingTests addObject:test];
             NSLog(@"failed to produce query plan");
-            NSLog(@"not ok %lu # %@\n", self.testsCount, test);
+            [self printResultForTest:test.value passing:NO];
             self.testsFailing++;
             [self.testData[kFailingEvalTests] addObject:test];
         });
