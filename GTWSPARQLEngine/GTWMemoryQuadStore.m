@@ -106,24 +106,6 @@
         }
     }
     return self;
-//    NSString* path  = dictionary[@"bundlepath"];
-//    if (!path) {
-//        NSArray *searchPaths;
-//        NSEnumerator *searchPathEnum;
-//        NSString *currPath;
-//        NSMutableArray *bundles = [NSMutableArray array];
-//        searchPaths = NSSearchPathForDirectoriesInDomains(NSPicturesDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
-//        searchPathEnum = [searchPaths objectEnumerator];
-//        while (currPath = [searchPathEnum nextObject]) {
-//            [bundles addObject: [currPath stringByAppendingPathComponent:@"Aperture Library.aplibrary"]];
-//        }
-//        if ([bundles count]) {
-//            path    = bundles[0];
-//        } else {
-//            return nil;
-//        }
-//    }
-//    return [self initWithApertureBundlePath:path];
 }
 
 - (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError**) error {

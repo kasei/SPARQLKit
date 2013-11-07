@@ -91,6 +91,7 @@
     NSInteger count;
     NSArray* defaultGraphs;
     
+//    NSLog(@"-------> %@", algebra);
     if (algebra.type == kAlgebraDistinct || algebra.type == kAlgebraReduced) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"DISTINCT/REDUCED must be 1-ary");
@@ -225,7 +226,6 @@
             NSLog(@"Failed to plan PROJECT sub-plan");
             return nil;
         }
-        // TODO: need to convert kAlgebraExtend in algebra.treeValue[] to kPlanExtend
         id<GTWTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
         return [[GTWQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
@@ -521,7 +521,6 @@
 }
 
 - (NSArray*) reorderBGPTriples: (NSArray*) triples {
-    // TODO: re-order array so that there are joins across consecutive triples
     NSMutableArray* reordered   = [NSMutableArray array];
     NSMutableDictionary* varsToTriples  = [NSMutableDictionary dictionary];
     for (id<GTWTree> triple in triples) {
@@ -629,6 +628,8 @@
         return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
     } else if ([triples count] == 0) {
         return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+    } else if ([triples count] == 1) {
+        return [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model];
     } else {
         NSArray* orderedTriples = [self reorderBGPTriples:triples];
         plan   = [self queryPlanForAlgebra:orderedTriples[0] usingDataset:dataset withModel:model];

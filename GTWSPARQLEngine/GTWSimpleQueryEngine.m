@@ -156,33 +156,33 @@ static NSString* OSVersionNumber ( void ) {
 - (NSEnumerator*) evaluateProject:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSArray* results   = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
     NSMutableArray* projected   = [NSMutableArray arrayWithCapacity:[results count]];
-    GTWTree* listtree   = plan.treeValue;
+    id<GTWTree> listtree   = plan.treeValue;
     NSArray* list       = listtree.arguments;
-    for (id r in results) {
-        NSMutableDictionary* testResult = [NSMutableDictionary dictionaryWithDictionary:r];
-        NSMutableDictionary* result = [NSMutableDictionary dictionary];
+    for (NSDictionary* result in results) {
+        NSMutableDictionary* testResult = [NSMutableDictionary dictionaryWithDictionary:result];
+        NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
         for (GTWTree* treenode in list) {
             if (treenode.type == kTreeNode) {
                 GTWVariable* v  = treenode.value;
                 NSString* name  = [v value];
-                if (r[name]) {
-                    result[name]    = r[name];
-                    testResult[name]    = r[name];
+                if (result[name]) {
+                    newResult[name]     = result[name];
+                    testResult[name]    = result[name];
                 }
             } else if (treenode.type == kAlgebraExtend) {
                 id<GTWTree> list    = treenode.treeValue;
                 GTWTree* expr       = list.arguments[0];
                 GTWTree* node       = list.arguments[1];
                 id<GTWVariable> v   = node.value;
-                NSString* name  = [v value];
-                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model resultIdentity:r];
+                NSString* name      = v.value;
+                id<GTWTerm> f       = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model resultIdentity:result];
                 if (f) {
-                    result[name]    = f;
+                    newResult[name]     = f;
                     testResult[name]    = f;
                 }
             }
         }
-        [projected addObject:result];
+        [projected addObject:newResult];
     }
     return [projected objectEnumerator];
 }
@@ -531,9 +531,9 @@ static NSString* OSVersionNumber ( void ) {
     id<GTWVariable> v   = node.value;
     if ([v isKindOfClass:[GTWVariable class]]) {
         id<GTWTree,GTWQueryPlan> subplan    = plan.arguments[0];
-        NSEnumerator* results    = [self _evaluateQueryPlan:subplan withModel:model];
-        NSMutableArray* extended   = [NSMutableArray array];
-        for (id result in results) {
+        NSEnumerator* results       = [self _evaluateQueryPlan:subplan withModel:model];
+        NSMutableArray* extended    = [NSMutableArray array];
+        for (NSDictionary* result in results) {
             id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
             if (f) {
                 NSDictionary* e = [NSMutableDictionary dictionaryWithDictionary:result];

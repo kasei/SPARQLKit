@@ -419,7 +419,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         if (node.leaf) {
             if (node.type == kTreeNode) {
                 id<GTWTerm> term    = node.value;
-                // TODO: This should be using a protocol to check if the term is a variable
                 if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                     NSSet* set          = [NSSet setWithObject:term];
                     //                NSLog(@"variables: %@ for plan: %@", set, node);
@@ -450,7 +449,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             NSMutableSet* set   = [NSMutableSet set];
             if (node.value && [node.value conformsToProtocol:@protocol(GTWTerm)]) {
                 id<GTWTerm> term    = node.value;
-                // TODO: This should be using a protocol to check if the term is a variable
                 if ([term conformsToProtocol:@protocol(GTWVariable)]) {
                     [set unionSet: [NSSet setWithObject:term]];
                 }
