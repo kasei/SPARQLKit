@@ -230,14 +230,16 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     NSArray* testtypes  = [model objectsForSubject:test predicate:type graph:nil];
     if (testtypes && [testtypes count]) {
         id<GTWTerm> testtype    = testtypes[0];
-//        NSLog(@"%@\t%@", testtype.value, test.value);
-        if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"]) {
+        if (self.verbose) {
+            NSLog(@"%@ - %@", testtype.value, test.value);
+        }
+        if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest"]) {
             if (self.runSyntaxTests) {
                 return [self runQuerySyntaxTest: test withModel: model expectSuccess: YES];
             } else {
                 return YES;
             }
-        } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"]) {
+        } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest"]) {
 //            return YES; // XXXXXXXXXXXXX
             if (self.runSyntaxTests) {
                 return [self runQuerySyntaxTest: test withModel: model expectSuccess: NO];
@@ -253,7 +255,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 return YES;
             }
         } else {
-//            NSLog(@"can't handle tests of type %@", testtype.value);
+            NSLog(@"can't handle tests of type %@", testtype.value);
             return NO;
         }
     } else {
@@ -423,15 +425,17 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return nil;
 }
 
-- (id<GTWTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
+- (id<GTWTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError**) error {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     id<GTWTerm> action  = [model anyObjectForSubject:test predicate:mfaction graph:nil];
     if (action) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:action.value] error:nil];
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
-        if (self.verbose)
+        if (self.verbose) {
             NSLog(@"query file: %@", action.value);
+            NSLog(@"SPARQL:\n%@", sparql);
+        }
 
         
         
@@ -440,8 +444,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        NSError* error;
-        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:&error];
+        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
@@ -483,8 +486,9 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 //    NSLog(@"--> %@", test);
     self.testsCount++;
     self.syntaxTests++;
-    id<GTWTree> algebra   = [self queryAlgebraForSyntaxTest: test withModel: model];
-    BOOL ok = (algebra == nil) ? NO : YES;
+    NSError* error  = nil;
+    id<GTWTree> algebra = [self queryAlgebraForSyntaxTest: test withModel: model error:&error];
+    BOOL ok = (error || algebra == nil) ? NO : YES;
     if (!expect)
         ok  = !ok;
     
@@ -499,6 +503,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     } else {
 //        NSLog(@"%@", sparql);
 //        NSLog(@"algebra: %@", algebra);
+        NSLog(@"Parsing error: %@", error);
         dispatch_sync(self.results_queue, ^{
             [self.failingTests addObject:test];
             [self printResultForTest:test.value passing:NO];
