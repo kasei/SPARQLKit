@@ -423,7 +423,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprNow) {
         NSDate* date    = [[NSDate alloc] init];
         id<GTWTerm> now = [[GTWLiteral alloc] initWithString:[date getW3CDTFString] datatype:@"http://www.w3.org/2001/XMLSchema#dateTime"];
-        NSLog(@"%@", now);
         return now;
     } else if (expr.type == kExprYear || expr.type == kExprMonth || expr.type == kExprDay || expr.type == kExprHours || expr.type == kExprMinutes || expr.type == kExprSeconds || expr.type == kExprTZ || expr.type == kExprTimeZone) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
