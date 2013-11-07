@@ -215,13 +215,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         //	fprintf(stderr, "constructing %s with locations:\n", gtw_tree_type_name(type));
         NSUInteger locsize	= size;
         
-        if (type == kAlgebraExtend) {
-            NSString* str   = [treeValue conciseDescription];
-            if ([str hasPrefix:@"TreeList(ExprGroupConcat"]) {
-                NSLog(@">>> kAlgebraExtend %@ %@", str, [treeValue conciseDescription]);
-            }
-        }
-        
         if (type == kPlanHashJoin) {
             // PLAN_HASHJOIN's 3rd child is the list of join vars, not a subplan, so it shouldn't participate in invocation counting
             locsize--;
