@@ -212,7 +212,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     }
     
     [plan computeProjectVariables];
-    
+    NSSet* variables    = [plan inScopeVariables];
     if (verbose) {
         NSLog(@"executing query...");
     }
@@ -220,7 +220,6 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
     id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
 //    id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
-    NSSet* variables    = [plan annotationForKey:kProjectVariables];
     
     NSData* data        = [s dataFromResults:e withVariables:variables];
     fwrite([data bytes], [data length], 1, stdout);

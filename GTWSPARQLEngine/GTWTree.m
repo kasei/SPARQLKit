@@ -573,7 +573,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             }
         }
         return set;
-    } else if (self.type == kAlgebraProject) {
+    } else if (self.type == kAlgebraProject || self.type == kPlanProject) {
 //        NSLog(@"computing in-scope variables for projection: %@", self);
         id<GTWTree> project = self.treeValue;
         NSMutableSet* set   = [NSMutableSet set];
@@ -592,7 +592,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
 //        NSLog(@"---> %@", set);
         return set;
-    } else if (self.type == kAlgebraExtend) {
+    } else if (self.type == kAlgebraExtend || self.type == kPlanExtend) {
         id<GTWTree> list    = self.treeValue;
         NSMutableSet* set   = [NSMutableSet setWithSet:[self.arguments[0] inScopeVariables]];
         id<GTWTree> node    = list.arguments[1];
@@ -792,7 +792,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     if (algebra.type == kTreeTriple) {
         id<GTWTriple> t = algebra.value;
         return [NSString stringWithFormat:@"%@%@", indent, [t description]];
-    } else if (algebra.type == kTreeList) {
+    } else if (algebra.type == kTreeList || algebra.type == kAlgebraBGP) {
         NSMutableArray* s   = [NSMutableArray array];
         for (id<GTWTree> t in algebra.arguments) {
             [s addObject:[self sparqlForAlgebra:t isProjected:isProjected indentLevel:indentLevel+1]];

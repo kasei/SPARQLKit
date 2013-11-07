@@ -2558,7 +2558,6 @@ cleanup:
             
             NSMutableArray* list    = [NSMutableArray arrayWithObject:graph];
             if (ggp.type == kAlgebraFilter) {
-                // TODO: Need to push all filters up, not just one; made irrelevant if we turn all adjacent filters into one logical-and filter
                 id<GTWTree> filterExpr  = ggp.treeValue;
                 [list addObject:filterExpr];
                 ggp     = ggp.arguments[0];

@@ -114,7 +114,7 @@ static dispatch_once_t mockToken;
         NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
 //        NSLog(@"got resutls");
         id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
-        NSSet* variables    = [plan annotationForKey:kProjectVariables];
+        NSSet* variables    = [plan inScopeVariables];
         NSData* data        = [s dataFromResults:e withVariables:variables];
 //        NSLog(@"serialized %lu bytes in SRX format", [data length]);
         

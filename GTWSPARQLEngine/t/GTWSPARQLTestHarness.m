@@ -576,7 +576,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 [self printResultForTest:test.value passing:NO];
 
                 {
-                    NSSet* variables    = [plan annotationForKey:kProjectVariables];
+                    NSSet* variables    = [plan inScopeVariables];
                     NSData* data        = [s dataFromResults:[got objectEnumerator] withVariables:variables];
                     fprintf(stderr, "got:\n");
                     fwrite([data bytes], [data length], 1, stderr);
