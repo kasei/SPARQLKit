@@ -98,6 +98,10 @@
     }
 }
 
+- (NSData*) dataFromEnumerator: (NSEnumerator*) triples {
+    return [self dataFromTriples:triples];
+}
+
 - (NSData*) dataFromTriples: (NSEnumerator*) triples {
     NSMutableData* data = [NSMutableData data];
     for (id<GTWTriple> t in triples) {

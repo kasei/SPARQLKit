@@ -57,7 +57,9 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 - (id) annotationForKey: (NSString*) key;
 - (void) computeScopeVariables;
 - (NSSet*) nonAggregatedVariables;
+- (NSSet*) referencedBlanks;
 - (NSSet*) inScopeVariables;
+- (NSSet*) inScopeNodesOfClass: (NSSet*) types;
 - (NSString*) conciseDescription;
 - (NSString*) longDescription;
 @end

@@ -65,6 +65,13 @@
         self.queue      = dispatch_queue_create("us.kasei.sparql.quadstore", DISPATCH_QUEUE_CONCURRENT);
         self.indexes    = [NSMutableDictionary dictionary];
         self.indexKeys  = [NSMutableDictionary dictionary];
+        NSError* error;
+        [self addIndexType:@"term" value:@[@"predicate", @"object"] synchronous:YES error:&error];
+        if (error)
+            NSLog(@"%@", error);
+        [self addIndexType:@"term" value:@[@"subject", @"predicate"] synchronous:YES error:&error];
+        if (error)
+            NSLog(@"%@", error);
     }
     return self;
 }

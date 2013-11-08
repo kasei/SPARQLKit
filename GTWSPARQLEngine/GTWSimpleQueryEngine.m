@@ -517,7 +517,7 @@ static NSString* OSVersionNumber ( void ) {
     NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
     for (id result in results) {
         id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
-        if ([f respondsToSelector:@selector(booleanValue)] && [(id<GTWLiteral>)f booleanValue]) {
+        if ([f effectiveBooleanValueWithError:nil]) {
             [filtered addObject:result];
         }
     }
@@ -776,13 +776,33 @@ static NSString* OSVersionNumber ( void ) {
     NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSMutableArray* triples = [NSMutableArray array];
     NSArray* template       = plan.value;
+
+    NSUInteger counter = 0;
+    NSMutableSet* blanks    = [NSMutableSet set];
+    for (id<GTWTriple> t in template) {
+//        NSLog(@"triple ---> %@", t);
+        for (id<GTWTerm> term in [t allValues]) {
+//            NSLog(@"triple term ---> %@", term);
+            if ([term isKindOfClass:[GTWBlank class]]) {
+                [blanks addObject:term];
+            }
+        }
+    }
+//    NSLog(@"pattern blanks: %@", blanks);
     for (NSDictionary* result in results) {
+        NSUInteger loopCount    = counter++;
         NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (id<GTWTerm> b in blanks) {
+            id<GTWTerm> nb  = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"b%lu-%@", loopCount, b.value]];
+            mapping[b]      = nb;
+        }
         for (NSString* varname in result) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
             mapping[v]    = result[varname];
         }
+//        NSLog(@"mapping: %@", mapping);
         for (id<GTWRewriteable> pattern in template) {
+//            NSLog(@"-> %@", pattern);
             id<GTWTriple, GTWRewriteable> triple   = [pattern copyReplacingValues:mapping];
             if (triple) {
                 if ([triple isGround]) {
@@ -857,8 +877,10 @@ static NSString* OSVersionNumber ( void ) {
         return [self evaluateServicePlan:plan withModel:model];
     } else if (type == kPlanGroup) {
         return [self evaluateGroupPlan:plan withModel:model];
-    } else if (type == kPlanEmpty) {
+    } else if (type == kPlanJoinIdentity) {
         return [@[ @{} ] objectEnumerator];
+    } else if (type == kPlanEmpty) {
+        return [@[] objectEnumerator];
     } else if (type == kPlanZeroOrOnePath) {
         return [self evaluateZeroOrOnePathPlan:plan withModel:model];
     } else if (type == kPlanOneOrMorePath) {

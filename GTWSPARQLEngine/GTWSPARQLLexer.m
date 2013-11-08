@@ -484,7 +484,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) getLanguage {
 	[self _getCharSafe:@"@"];
 	NSRange kwrange	= [self.buffer rangeOfString:@"(prefix|base)\\b" options:NSRegularExpressionSearch];
-    NSRange range	= [self.buffer rangeOfString:@"[a-z]+(-[a-zA-Z0-9]+)*\\b" options:NSRegularExpressionSearch];
+    NSRange range	= [self.buffer rangeOfString:@"[a-zA-Z]+(-[a-zA-Z0-9]+)*\\b" options:NSRegularExpressionSearch];
 	if (kwrange.location == 0) {
 		NSString* keyword	= [self _readLength:range.length];
 		return [self newTokenOfType:KEYWORD withArgs:@[keyword]];

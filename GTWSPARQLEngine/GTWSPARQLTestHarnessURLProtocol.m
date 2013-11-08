@@ -95,7 +95,6 @@ static dispatch_once_t mockToken;
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
-        [plan computeProjectVariables];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
         
         if (NO) {

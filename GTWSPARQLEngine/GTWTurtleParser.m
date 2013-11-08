@@ -111,6 +111,10 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
                 return st;
             } else if ([self haveSubject]) {
                 //                NSLog(@"--> got predicate");
+                if (!term) {
+                    NSLog(@"unexpected nil term as predicate");
+                    return nil;
+                }
                 [self pushNewPredicate:term];
             } else {
                 //                NSLog(@"--> got subject");

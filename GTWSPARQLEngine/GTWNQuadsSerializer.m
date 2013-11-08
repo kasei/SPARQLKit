@@ -98,6 +98,10 @@
     }
 }
 
+- (NSData*) dataFromEnumerator: (NSEnumerator*) quads {
+    return [self dataFromQuads:quads];
+}
+
 - (NSData*) dataFromQuads: (NSEnumerator*) quads {
     NSMutableData* data = [NSMutableData data];
     for (id<GTWQuad> q in quads) {

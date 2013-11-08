@@ -165,14 +165,14 @@
             expr    = list.arguments[1];
         }
         
-        
-        
         id<GTWTerm> graph       = graphtree.value;
         if ([graph isKindOfClass:[GTWIRI class]]) {
             GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
             id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
-            if (!plan)
+            if (!plan) {
+                NSLog(@"Failed to plan child of GRAPH <iri> pattern");
                 return nil;
+            }
             
             plan    = [[GTWQueryPlan alloc] initWithType:kPlanGraph treeValue: graphtree arguments:@[plan]];
             if (expr) {
@@ -187,9 +187,11 @@
             for (id<GTWTerm> g in graphs) {
                 GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[g]];
                 id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
-                if (!plan)
+                if (!plan) {
+                    NSLog(@"Failed to plan child of GRAPH ?var pattern");
                     return nil;
-
+                }
+                
                 id<GTWTree> list   = [[GTWTree alloc] initWithType:kTreeList arguments:@[
                                                                                       [[GTWTree alloc] initWithType:kTreeNode value:g arguments:@[]],
                                                                                       graphtree,
@@ -206,6 +208,9 @@
                     gplan   = extend;
                 }
             }
+            if (!gplan)
+                gplan   = [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+
             return gplan;
         }
     } else if (algebra.type == kAlgebraUnion) {
@@ -230,7 +235,7 @@
         return [[GTWQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
         if ([algebra.arguments count] == 0) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+            return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if ([algebra.arguments count] == 1) {
             return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         } else if ([algebra.arguments count] == 2) {
@@ -301,7 +306,7 @@
             id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
         } else {
-            id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanEmpty value:nil];
+            id<GTWQueryPlan> empty    = [[GTWQueryPlan alloc] initLeafWithType:kPlanJoinIdentity value:nil];
             id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
             return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[empty]];
         }
@@ -340,7 +345,7 @@
             }
         };
         if (count == 0) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+            return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if (count == 1) {
             return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]]];
         } else {
@@ -627,9 +632,9 @@
     NSInteger i;
     id<GTWTree,GTWQueryPlan> plan;
     if (graphCount == 0) {
-        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
     } else if ([triples count] == 0) {
-        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
     } else if ([triples count] == 1) {
         return [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model];
     } else {

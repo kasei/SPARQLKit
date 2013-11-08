@@ -50,8 +50,14 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSArray* exprs  = expr.arguments;
         for (id<GTWTree> expr in exprs) {
             lhs = [self evaluateExpression:expr withResult:result usingModel: model];
-            if (lhs && [((GTWLiteral*) lhs) booleanValue]) {
-                return [GTWLiteral trueLiteral];
+            NSError* error;
+            if (lhs) {
+                BOOL ebv    = [((GTWLiteral*) lhs) effectiveBooleanValueWithError:&error];
+                if (error)
+                    return nil;
+                if (ebv) {
+                    return [GTWLiteral trueLiteral];
+                }
             }
         }
         return [GTWLiteral falseLiteral];
@@ -59,7 +65,14 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSArray* exprs  = expr.arguments;
         for (id<GTWTree> expr in exprs) {
             lhs = [self evaluateExpression:expr withResult:result usingModel: model];
-            if (!lhs || ![((GTWLiteral*) lhs) booleanValue]) {
+            if (!lhs) {
+                return [GTWLiteral falseLiteral];
+            }
+            NSError* error;
+            BOOL ebv    = [((GTWLiteral*) lhs) effectiveBooleanValueWithError:&error];
+            if (error)
+                return nil;
+            if (!ebv) {
                 return [GTWLiteral falseLiteral];
             }
         }
@@ -67,7 +80,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprEq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        //        NSLog(@"%@ <=> %@", lhs, rhs);
+//        NSLog(@"kExprEq: %@ <=> %@", lhs, rhs);
+        if (!lhs || !rhs) {
+            return nil;
+        }
         if ([lhs isEqual:rhs]) {
             return [GTWLiteral trueLiteral];
         } else {
@@ -76,7 +92,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprNeq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        //        NSLog(@"%@ <=> %@", lhs, rhs);
+//        NSLog(@"%@ <=> %@", lhs, rhs);
+        if (!lhs || !rhs) {
+            return nil;
+        }
         if ([lhs isEqual:rhs]) {
             return [GTWLiteral falseLiteral];
         } else {
@@ -218,34 +237,37 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return str;
     } else if (expr.type == kExprReplace) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        if (term.datatype && !(term.language) && ![term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
-            return nil;
-        }
-        NSString* string    = term.value;
-        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        id<GTWTerm> replace = [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
-        id<GTWTerm> args    = ([expr.arguments count] > 3) ? [self evaluateExpression:expr.arguments[3] withResult:result usingModel: model] : nil;
-        NSInteger reopt     = 0;
-        if (args && [args.value isEqual:@"i"]) {
-            reopt   |= NSRegularExpressionCaseInsensitive;
-        }
-//        NSLog(@"REPLACE string : '%@'", string);
-//        NSLog(@"REPLACE pattern: '%@'", pattern.value);
-//        NSLog(@"REPLACE value  : '%@'", replace.value);
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            if (term.datatype && !(term.language) && ![term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
+                return nil;
+            }
+            NSString* string    = term.value;
+            id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+            id<GTWTerm> replace = [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
+            id<GTWTerm> args    = ([expr.arguments count] > 3) ? [self evaluateExpression:expr.arguments[3] withResult:result usingModel: model] : nil;
+            NSInteger reopt     = 0;
+            if (args && [args.value isEqual:@"i"]) {
+                reopt   |= NSRegularExpressionCaseInsensitive;
+            }
+    //        NSLog(@"REPLACE string : '%@'", string);
+    //        NSLog(@"REPLACE pattern: '%@'", pattern.value);
+    //        NSLog(@"REPLACE value  : '%@'", replace.value);
 
-        NSError* error;
-        NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
-        NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
-        
-//        NSLog(@"---------------> '%@'\n\n", replaced);
-        
-        if (term.language) {
-            return [[GTWLiteral alloc] initWithString:replaced language:term.language];
-        } else if (term.datatype) {
-            return [[GTWLiteral alloc] initWithString:replaced datatype:term.datatype];
-        } else {
-            return [[GTWLiteral alloc] initWithString:replaced];
+            NSError* error;
+            NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
+            NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
+            
+    //        NSLog(@"---------------> '%@'\n\n", replaced);
+            
+            if (term.language) {
+                return [[GTWLiteral alloc] initWithString:replaced language:term.language];
+            } else if (term.datatype) {
+                return [[GTWLiteral alloc] initWithString:replaced datatype:term.datatype];
+            } else {
+                return [[GTWLiteral alloc] initWithString:replaced];
+            }
         }
+        return nil;
     } else if (expr.type == kExprRegex) {
         //        NSLog(@"REGEX arguments: %@", expr.arguments);
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -267,20 +289,33 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprLang) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        NSString* lang  = [term language];
-        if (lang) {
-            return [[GTWLiteral alloc] initWithValue:lang];
-        } else {
-            return nil;
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            NSString* lang  = [term language];
+            if (lang) {
+                return [[GTWLiteral alloc] initWithValue:lang];
+            } else {
+                return [[GTWLiteral alloc] initWithValue:@""];
+            }
         }
+        return nil;
     } else if (expr.type == kExprLangMatches) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        NSString* lang      = term.value;
-        if (lang && [lang hasPrefix:pattern.value]) {
-            return [GTWLiteral trueLiteral];
-        } else {
-            return [GTWLiteral falseLiteral];
+        if (term && [term isKindOfClass:[GTWLiteral class]]) {
+            NSString* lang      = [term.value lowercaseString];
+            if ([pattern.value isEqualToString:@"*"]) {
+                if (lang && [lang length]) {
+                    return [GTWLiteral trueLiteral];
+                } else {
+                    return [GTWLiteral falseLiteral];
+                }
+            } else {
+                if (lang && [lang hasPrefix:[pattern.value lowercaseString]]) {
+                    return [GTWLiteral trueLiteral];
+                } else {
+                    return [GTWLiteral falseLiteral];
+                }
+            }
         }
         return nil;
     } else if (expr.type == kExprStrLen) {
@@ -523,25 +558,28 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return nil;
     } else if (expr.type == kExprSubStr) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        NSUInteger startloc = [start integerValue];
-        NSString* substr;
-        if ([expr.arguments count] > 2) {
-            GTWLiteral* l = (GTWLiteral*) [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
-            NSUInteger length = [l integerValue];
-            NSRange range       = { .location = (startloc-1), .length = (length) };
-            substr    = [term.value substringWithRange: range];
-        } else {
-            substr    = [term.value substringFromIndex:(startloc-1)];
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            GTWLiteral* start = (GTWLiteral*) [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+            NSUInteger startloc = [start integerValue];
+            NSString* substr;
+            if ([expr.arguments count] > 2) {
+                GTWLiteral* l = (GTWLiteral*) [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
+                NSUInteger length = [l integerValue];
+                NSRange range       = { .location = (startloc-1), .length = (length) };
+                substr    = [term.value substringWithRange: range];
+            } else {
+                substr    = [term.value substringFromIndex:(startloc-1)];
+            }
+            
+            if (term.language) {
+                return [[GTWLiteral alloc] initWithString:substr language:term.language];
+            } else if (term.datatype) {
+                return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+            } else {
+                return [[GTWLiteral alloc] initWithString:substr];
+            }
         }
-        
-        if (term.language) {
-            return [[GTWLiteral alloc] initWithString:substr language:term.language];
-        } else if (term.datatype) {
-            return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
-        } else {
-            return [[GTWLiteral alloc] initWithString:substr];
-        }
+        return nil;
     } else if (expr.type == kExprIf) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (!term)
@@ -565,24 +603,28 @@ static BOOL isNumeric(id<GTWTerm> term) {
         NSString* language      = nil;
         for (id<GTWTree> t in expr.arguments) {
             id<GTWTerm> term  = [self evaluateExpression:t withResult:result usingModel: model];
-            if (term.datatype) {
-                if (!([term.datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"] || [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"])) {
-                    return nil;
+            if ([term isKindOfClass:[GTWLiteral class]]) {
+                if (term.datatype) {
+                    if (!([term.datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"] || [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#string"])) {
+                        return nil;
+                    }
                 }
-            }
-            if (!seen) {
-                language    = term.language;
-                datatype    = term.datatype;
+                if (!seen) {
+                    language    = term.language;
+                    datatype    = term.datatype;
+                } else {
+                    if (![language isEqual: term.language]) {
+                        language    = nil;
+                    }
+                    if (![datatype isEqual: term.datatype]) {
+                        datatype    = nil;
+                    }
+                }
+                seen    = YES;
+                [array addObject:term.value];
             } else {
-                if (![language isEqual: term.language]) {
-                    language    = nil;
-                }
-                if (![datatype isEqual: term.datatype]) {
-                    datatype    = nil;
-                }
+                return nil;
             }
-            seen    = YES;
-            [array addObject:term.value];
         }
         
         if (language) {
@@ -759,22 +801,91 @@ static BOOL isNumeric(id<GTWTerm> term) {
         GTWIRI* iri = expr.value;
         if ([iri.value hasPrefix: @"http://www.w3.org/2001/XMLSchema#"]) {
             id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-            if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
+            if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
+                return [[GTWLiteral alloc] initWithString:term.value datatype:iri.value];
+            } else if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
                 id<GTWLiteral> l    = (id<GTWLiteral>) term;
-                if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"]) {
-                    double value        = [l doubleValue];
-                    return [GTWLiteral doubleLiteralWithValue:value];
+                if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"] || [iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
+                    NSString* lex   = l.value;
+                    NSRange range   = [lex rangeOfString:@"(INF|-INF|NaN|[-+]?\\d+([.]\\d*)?([Ee][-+]?\\d+)?)" options:NSRegularExpressionSearch];
+                    if (range.location == 0 && range.length == lex.length) {
+                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
+                    } else {
+                        return nil;
+                    }
+                } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
+                    NSString* lex   = l.value;
+                    NSRange range   = [lex rangeOfString:@"[-+]?\\d+([.]\\d*)?" options:NSRegularExpressionSearch];
+                    if (range.location == 0 && range.length == lex.length) {
+                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
+                    } else {
+                        NSLog(@"not a decimal lexical form: %@", lex);
+                        return nil;
+                    }
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
-                    NSInteger value        = [l integerValue];
-                    return [GTWLiteral integerLiteralWithValue:value];
-                } else {
-                    return nil;
+                    NSString* lex   = l.value;
+                    NSRange range   = [lex rangeOfString:@"(-|[+])?\\d+" options:NSRegularExpressionSearch];
+                    if (range.location == 0 && range.length == lex.length) {
+                        NSInteger value        = [l integerValue];
+                        return [GTWLiteral integerLiteralWithValue:value];
+                    } else {
+                        return nil;
+                    }
+                } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#dateTime"]) {
+                    NSString* lex   = l.value;
+                    NSRange range   = [lex rangeOfString:@"-?\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d([.]\\d+)?((([+]|-)\\d\\d:\\d\\d)|Z)?" options:NSRegularExpressionSearch];
+                    if (range.location == 0 && range.length == lex.length) {
+                        return [[GTWLiteral alloc] initWithString:l.value datatype:iri.value];
+                    } else {
+                        return nil;
+                    }
+                } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#boolean"]) {
+                    NSString* lex   = l.value;
+                    NSRange range   = [lex rangeOfString:@"(true|false|0|1)" options:NSRegularExpressionSearch];
+                    if (range.location == 0 && range.length == lex.length) {
+                        if ([lex isEqualToString:@"0"])
+                            lex = @"false";
+                        if ([lex isEqualToString:@"1"])
+                            lex = @"true";
+                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
+                    } else {
+                        return nil;
+                    }
                 }
-            } else {
-                return nil;
             }
         }
+        NSLog(@"No implementation for function %@", iri.value);
         return nil;
+    } else if (expr.type == kExprSameTerm) {
+        id<GTWTerm> lhs     = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        id<GTWTerm> rhs     = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+        if ([lhs isEqual:rhs] && [lhs.value isEqual:rhs.value]) {
+            return [GTWLiteral trueLiteral];
+        } else {
+            return [GTWLiteral falseLiteral];
+        }
+    } else if (expr.type == kExprBound) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if (term) {
+            return [GTWLiteral trueLiteral];
+        } else {
+            return [GTWLiteral falseLiteral];
+        }
+    } else if (expr.type == kExprBang) {
+        id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
+        if (!term)
+            return nil;
+        
+        NSError* error  = nil;
+        BOOL ebv            = [term effectiveBooleanValueWithError: &error];
+        if (error) {
+            return nil;
+        }
+        if (ebv) {
+            return [GTWLiteral falseLiteral];
+        } else {
+            return [GTWLiteral trueLiteral];
+        }
     } else {
         NSLog(@"Cannot evaluate expression %@", expr);
         return nil;
@@ -797,7 +908,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return nil;
         }
         NSString* promotedtype  = [GTWLiteral promtedTypeForNumericTypes:lhs.datatype and:rhs.datatype];
-//        NSLog(@"promoted type: %@ (%d)", promotedtype, useDouble);
+//        NSLog(@"promoted type: %@", promotedtype);
         
         if ([promotedtype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
             NSInteger lhsV  = [lhs integerValue];

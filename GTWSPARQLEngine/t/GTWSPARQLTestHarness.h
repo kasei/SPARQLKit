@@ -7,10 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "GTWBlankNodeRenamer.h"
 
 @interface GTWSPARQLTestHarness : NSObject
 
 @property NSUInteger testsCount, testsPassing, testsFailing, evalTests, passingEvalTests, syntaxTests, passingSyntaxTests, testResultCounter;
+@property NSUInteger RDFLoadCount;
 @property NSMutableDictionary* testData;
 @property BOOL runEvalTests;
 @property BOOL runSyntaxTests;

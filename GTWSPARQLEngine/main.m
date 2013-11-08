@@ -212,7 +212,6 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
         NSLog(@"plan:\n%@", plan);
     }
     
-    [plan computeProjectVariables];
     NSSet* variables    = [plan inScopeVariables];
     if (verbose) {
         NSLog(@"executing query...");
@@ -250,8 +249,6 @@ int parseQuery(NSString* query, NSString* base) {
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
     NSLog(@"Query plan:\n%@\n\n", plan);
-    
-    [plan computeProjectVariables];
     return 0;
 }
 
@@ -394,7 +391,6 @@ int main(int argc, const char * argv[]) {
     NSString* op        = [NSString stringWithFormat:@"%s", argv[argi++]];
     
     while (argc > argi && argv[argi][0] == '-') {
-        NSLog(@"option: %s", argv[argi]);
         if (!strcmp(argv[argi], "-v")) {
             verbose     = 1;
             argi++;

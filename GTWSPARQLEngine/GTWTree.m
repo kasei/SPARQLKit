@@ -2,6 +2,7 @@
 #import "GTWSPARQLEngine.h"
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
+#import <GTWSWBase/GTWTriple.h>
 
 NSString* __strong const kUsedVariables     = @"us.kasei.sparql.variables.used";
 NSString* __strong const kProjectVariables  = @"us.kasei.sparql.variables.project";
@@ -476,109 +477,86 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }];
 }
 
-- (void) computeProjectVariables {
-    [self computeScopeVariables];
-    [self applyPrefixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
-        if (node.type == kPlanProject) {
-            id<GTWTree> list    = node.treeValue;
-            NSMutableArray* vars    = [NSMutableArray array];
-            for (id<GTWTree> v in list.arguments) {
-                if (v.type == kTreeNode && [v.value isKindOfClass:[GTWVariable class]]) {
-                    [vars addObject:v.value];
-                } else if (v.type == kAlgebraExtend) {
-                    id<GTWTree> list    = v.treeValue;
-                    id<GTWTree> node    = list.arguments[1];
-                    id<GTWTerm> v       = node.value;
-                    if ([v isKindOfClass:[GTWVariable class]]) {
-                        [vars addObject:v];
-                    }
-                }
-            }
-            NSSet* set      = [NSMutableSet setWithArray:vars];
-            (node.annotations)[kProjectVariables] = set;
-        } else if (node.type == kPlanNLjoin) {
-            NSSet* lhs  = [node.arguments[0] annotationForKey:kUsedVariables];
-            NSMutableSet* joinVars   = [NSMutableSet setWithSet:[node.arguments[1] annotationForKey:kUsedVariables]];
-            [joinVars intersectSet:lhs];
-            NSMutableArray* vars    = [NSMutableArray array];
-            for (id<GTWVariable> v in joinVars) {
-                [vars addObject:v];
-            }
-            NSMutableSet* set   = [NSMutableSet setWithArray:vars];
-            NSSet* parentVars   = [parent annotationForKey:kProjectVariables];
-            if (parentVars) {
-                [set unionSet:parentVars];
-            }
-            (node.annotations)[kProjectVariables] = set;
-//            NSLog(@"pattern: %@\njoin variables: %@\nproject variables: %@", node, joinVars, set);
-        } else if (node.type == kPlanOrder) {
-            id<GTWTree> list   = node.treeValue;
-            NSMutableArray* vars    = [NSMutableArray array];
-            for (id<GTWTree> v in list.arguments) {
-                if (v.type == kTreeNode && [v.value conformsToProtocol:@protocol(GTWVariable)]) {
-                    [vars addObject:v.value];
-                }
-            }
-            NSMutableSet* set   = [NSMutableSet setWithArray:vars];
-            NSSet* parentVars   = [parent annotationForKey:kProjectVariables];
-            if (parentVars) {
-                [set unionSet:parentVars];
-            }
-            (node.annotations)[kProjectVariables] = set;
-        } else {
-            NSMutableSet* set  = [NSMutableSet setWithSet: [parent annotationForKey:kProjectVariables]];
-            if (!set) {
-                set     = [NSMutableSet setWithSet: [node annotationForKey:kUsedVariables]];
-            }
-            
-            NSSet* usedvars = [node annotationForKey:kUsedVariables];
-            [set intersectSet:usedvars];
-            (node.annotations)[kProjectVariables] = set;
-        }
-        
-        
-//        NSSet* set  = [node.annotations objectForKey:kProjectVariables];
-//        NSLog(@"pushing down project list: %@ on %@", set, [node conciseDescription]);
-        return nil;
-    } postfixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
-        if (node.type == kPlanSlice) {
-            id<GTWTree> child   = node.arguments[0];
-            id proj             = child.annotations[kProjectVariables];
-            (node.annotations)[kProjectVariables]   = proj;
-        }
-        return nil;
-    }];
-}
-
-- (NSSet*) inScopeVariables {
+- (NSSet*) referencedBlanks {
     if (self.type == kTreeNode) {
-        if ([self.value isKindOfClass:[GTWVariable class]]) {
+        if ([self.value isKindOfClass:[GTWBlank class]]) {
             return [NSSet setWithObject:self.value];
-        } else {
-            return [NSSet set];
         }
+        return [NSSet set];
     } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
         NSMutableSet* set   = [NSMutableSet set];
         NSArray* nodes  = [self.value allValues];
         for (id<GTWTerm> n in nodes) {
-            if ([n isKindOfClass:[GTWVariable class]]) {
+            if ([n isKindOfClass:[GTWBlank class]]) {
                 [set addObject:n];
             }
         }
         return set;
+    } else {
+        NSMutableSet* set   = [NSMutableSet set];
+        for (id<GTWTree> n in self.arguments) {
+            [set addObjectsFromArray:[[n referencedBlanks] allObjects]];
+        }
+        return set;
+    }
+}
+
+- (NSSet*) inScopeVariables {
+    NSSet* set  = [NSSet setWithObjects:[GTWVariable class], nil];
+    return [self inScopeNodesOfClass:set];
+}
+
+- (NSSet*) inScopeNodesOfClass: (NSSet*) types {
+    if (self.type == kTreeNode) {
+        for (id type in types) {
+            if ([self.value isKindOfClass:type]) {
+                return [NSSet setWithObject:self.value];
+            }
+        }
+        return [NSSet set];
+    } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
+        NSMutableSet* set   = [NSMutableSet set];
+        NSArray* nodes  = [self.value allValues];
+        for (id<GTWTerm> n in nodes) {
+            for (id type in types) {
+                if ([n isKindOfClass:type]) {
+                    [set addObject:n];
+                }
+            }
+        }
+        return set;
+    } else if (self.type == kAlgebraGraph) {
+        NSMutableSet* set   = [[self.arguments[0] inScopeNodesOfClass:types] mutableCopy];
+        id<GTWTree> pair    = self.treeValue;
+        id<GTWTree> tn      = pair.arguments[0];
+        id<GTWTerm> term    = tn.value;
+        for (id type in types) {
+            if ([term isKindOfClass:type]) {
+                [set addObject:term];
+            }
+        }
+        return set;
     } else if (self.type == kAlgebraProject || self.type == kPlanProject) {
-//        NSLog(@"computing in-scope variables for projection: %@", self);
+//        NSLog(@"computing in-scope nodes for projection: %@", self);
         id<GTWTree> project = self.treeValue;
         NSMutableSet* set   = [NSMutableSet set];
         for (id<GTWTree> t in project.arguments) {
             if (t.type == kTreeNode) {
-                [set addObject:t.value];
+                for (id type in types) {
+                    if ([t.value isKindOfClass:type]) {
+                        [set addObject:t.value];
+                    }
+                }
             } else if (t.type == kAlgebraExtend) {
                 id<GTWTree> list    = t.treeValue;
                 id<GTWTree> node    = list.arguments[1];
-                [set addObject:node.value];
+                for (id type in types) {
+                    if ([node.value isKindOfClass:type]) {
+                        [set addObject:node.value];
+                    }
+                }
                 for (id<GTWTree> pattern in t.arguments) {
-                    NSSet* patvars      = [pattern inScopeVariables];
+                    NSSet* patvars      = [pattern inScopeNodesOfClass:types];
                     [set addObjectsFromArray:[patvars allObjects]];
                 }
             }
@@ -587,15 +565,18 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         return set;
     } else if (self.type == kAlgebraExtend || self.type == kPlanExtend) {
         id<GTWTree> list    = self.treeValue;
-        NSMutableSet* set   = [NSMutableSet setWithSet:[self.arguments[0] inScopeVariables]];
+        NSMutableSet* set   = [NSMutableSet setWithSet:[self.arguments[0] inScopeNodesOfClass:types]];
         id<GTWTree> node    = list.arguments[1];
-        id<GTWTerm> term    = node.value;
-        [set addObject: term];
+        for (id type in types) {
+            if ([node.value isKindOfClass:type]) {
+                [set addObject:node.value];
+            }
+        }
         return set;
     } else {
         NSMutableSet* set   = [NSMutableSet set];
         for (id<GTWTree> n in self.arguments) {
-            [set addObjectsFromArray:[[n inScopeVariables] allObjects]];
+            [set addObjectsFromArray:[[n inScopeNodesOfClass:types] allObjects]];
         }
         return set;
     }
@@ -643,6 +624,14 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             }
         }
         return groupVars;
+    }
+}
+
+- (Class) planResultClass {
+    if (self.type == kPlanConstruct || self.type == kPlanDescribe) {
+        return [GTWTriple class];
+    } else {
+        return [NSDictionary class];
     }
 }
 

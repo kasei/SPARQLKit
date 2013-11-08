@@ -1053,6 +1053,7 @@ cleanup:
     NSMutableArray* args    = [NSMutableArray array];
     BOOL ok = YES;
     GTWSPARQLToken* t;
+    BOOL allowTriplesBlock  = YES;
     while (ok) {
         t   = [self peekNextNonCommentToken];
         if (!t) {
@@ -1062,7 +1063,10 @@ cleanup:
         
         id<GTWTree> algebra;
         if ([self tokenIsVarOrTerm:t]) {
+            if (!allowTriplesBlock)
+                break;
             algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
+            allowTriplesBlock   = NO;
             ASSERT_EMPTY(errors);
             if (algebra) {
                 [args addObject:[self reduceTriplePaths: algebra]];
@@ -1082,7 +1086,10 @@ cleanup:
                 case DECIMAL:
                 case DOUBLE:
                 case INTEGER:
+                    if (!allowTriplesBlock)
+                        break;
                     algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
+                    allowTriplesBlock   = NO;
                     ASSERT_EMPTY(errors);
                     if (algebra) {
                         [args addObject:[self reduceTriplePaths: algebra]];
@@ -1090,6 +1097,7 @@ cleanup:
                     break;
                 case LBRACE:
                     algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
+                    allowTriplesBlock   = YES;
                     ASSERT_EMPTY(errors);
                     if (!algebra)
                         return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (1)" withErrors:errors];
@@ -1098,13 +1106,17 @@ cleanup:
                     break;
                 case KEYWORD:
                     if ([t.value isEqual:@"A"]) {
+                        if (!allowTriplesBlock)
+                            break;
                         algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
+                        allowTriplesBlock   = NO;
                         ASSERT_EMPTY(errors);
                         if (!algebra)
                             return [self errorMessage:@"Could not parse TriplesBlock in GroupGraphPatternSub" withErrors:errors];
                         [args addObject:[self reduceTriplePaths: algebra]];
                     } else {
                         algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
+                        allowTriplesBlock   = YES;
                         ASSERT_EMPTY(errors);
                         if (!algebra)
                             return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (2)" withErrors:errors];
@@ -1187,6 +1199,8 @@ cleanup:
                     } else {
                         pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
                     }
+                    [self checkForSharedBlanksInPatterns:@[pattern, t.arguments[0]] error:errors];
+                    ASSERT_EMPTY(errors);
                     t.arguments = @[pattern, t.arguments[0]];
                     [reordered addObject:t];
                 } else {
@@ -1209,11 +1223,29 @@ cleanup:
         args    = reordered;
     }
     
+    [self checkForSharedBlanksInPatterns:args error:errors];
+    ASSERT_EMPTY(errors);
+    
     if ([args count] == 1) {
         return args[0];
     } else {
         return [[GTWTree alloc] initWithType:kTreeList arguments:args];
     }
+}
+
+- (BOOL) checkForSharedBlanksInPatterns: (NSArray*) args error: (NSMutableArray*) errors {
+    NSMutableSet* seen  = [NSMutableSet set];
+    for (id<GTWTree> p in args) {
+        NSSet* blanks   = [p referencedBlanks];
+        NSMutableSet* intersection  = [seen mutableCopy];
+        [intersection intersectSet:blanks];
+        if ([intersection count]) {
+            [self errorMessage:[NSString stringWithFormat:@"Forbidden sharing of blank node(s) acorss BGPs: %@", intersection] withErrors:errors];
+            return NO;
+        }
+        [seen addObjectsFromArray:[blanks allObjects]];
+    }
+    return YES;
 }
 
 - (id<GTWTree>) algebraByApplyingFilters: (NSMutableArray*) filters toAlgebra: algebra withErrors: (NSMutableArray*) errors {
@@ -2261,6 +2293,9 @@ cleanup:
     } else if (t.type == IRI || t.type == PREFIXNAME) {
         return [self parseIRIOrFunctionWithErrors: errors];
     } else if ([self tokenIsVarOrTerm:t]) {
+        if (t.type == NIL || t.type == ANON || t.type == BNODE) {
+            return [self errorMessage:[NSString stringWithFormat:@"Expected PrimaryExpression term (IRI, Literal, or Var) but found %@", t] withErrors:errors];
+        }
         id<GTWTree> expr    = [self parseVarOrTermWithErrors:errors];
 //        NSLog(@"primary expression var/term: %@", expr);
         ASSERT_EMPTY(errors);
@@ -2637,7 +2672,8 @@ cleanup:
     if (!t || t.type != DOT) {
         return [[GTWTree alloc] initWithType:kTreeList arguments:sameSubj];
     } else {
-        [self nextNonCommentToken];
+        [self parseExpectedTokenOfType:DOT withErrors:errors];
+        ASSERT_EMPTY(errors);
         
         t   = [self peekNextNonCommentToken];
         // TODO: Check if TriplesBlock can be parsed (it's more than just tokenIsVarOrTerm:)
@@ -2744,6 +2780,8 @@ cleanup:
         t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"UNION"];
         while (t) {
             id<GTWTree> rhs = [self parseGroupGraphPatternWithError:errors];
+            ASSERT_EMPTY(errors);
+            [self checkForSharedBlanksInPatterns:@[ggp, rhs] error:errors];
             ASSERT_EMPTY(errors);
             ggp = [[GTWTree alloc] initWithType:kAlgebraUnion arguments:@[ggp, rhs]];
             t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"UNION"];
