@@ -277,11 +277,14 @@
         }
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+        id<GTWTree> expr        = algebra.treeValue;
         if (!lhs || !rhs) {
             NSLog(@"Failed to plan both sides of LEFT JOIN");
             return nil;
         }
-        return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin value: @"left" arguments:@[lhs, rhs]];
+        
+        id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLLeftJoin treeValue:expr arguments:@[lhs, rhs]];
+        return plan;
     } else if (algebra.type == kAlgebraBGP) {
         return [self planBGP: algebra.arguments usingDataset: dataset withModel:model];
     } else if (algebra.type == kAlgebraFilter) {

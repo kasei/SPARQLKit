@@ -1131,107 +1131,111 @@ cleanup:
         }
     }
     
-    NSMutableArray* reordered   = [NSMutableArray array];
-    {
-//        NSLog(@"-----------------------------");
-        NSMutableArray* workItems   = [NSMutableArray arrayWithArray:args];
-        NSMutableArray* filters     = [NSMutableArray array];
-        NSMutableArray* bgp         = [NSMutableArray array];
-        while ([workItems count]) {
-            id<GTWTree> t   = [workItems firstObject];
-            [workItems removeObjectAtIndex:0];
-//            NSLog(@"-> %@", t.type);
-            if (t.type == kTreeTriple || t.type == kTreePath) {
-                [bgp addObject:t];
-            } else if (t.type == kAlgebraExtend) {
-                if (t.arguments && [t.arguments count]) {
-                    [bgp addObject:t];
-                } else {
-                    id<GTWTree> pattern;
-                    if ([bgp count]) {
-                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
-                        bgp         = [NSMutableArray array];
-                    } else if ([reordered count]) {
-                        pattern = [reordered lastObject];
-                        [reordered removeLastObject];
-                    } else {
-                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
-                    }
-                    t.arguments = @[pattern];
-                    t   = [self algebraVerifyingExtend:t withErrors:errors];
-                    ASSERT_EMPTY(errors);
-                    [bgp addObject:t];
-                }
-            } else if (t.type == kAlgebraFilter) {
-                if (t.arguments && [t.arguments count]) {
-                    [bgp addObject:t];
-                } else {
-                    [filters insertObject:t atIndex:0];
-                }
-            } else if (t.type == kTreeList) {
-                NSUInteger i;
-                for (i = 0; i < [t.arguments count]; i++) {
-                    id<GTWTree> child   = t.arguments[i];
-                    [workItems insertObject:child atIndex:i];
-                }
-            } else {
-                if ([bgp count]) {
-                    id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
-                    bgp         = [NSMutableArray array];
-                    while ([filters count]) {
-                        id<GTWTree> filter  = [filters lastObject];
-                        [filters removeLastObject];
-                        filter.arguments = @[pattern];
-//                        pattern = filter;
-                        pattern = [self algebraVerifyingExtend:filter withErrors:errors];
-                        ASSERT_EMPTY(errors);
-                    }
-                    filters  = [NSMutableArray array];
-                    [reordered addObject:pattern];
-                }
-                
-                if (t.type == kAlgebraBGP || t.type == kAlgebraJoin || t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraSlice || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced) {
-                    [reordered addObject:t];
-                } else if (t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
-                    id<GTWTree> pattern;
-                    if ([reordered count]) {
-                        pattern = [reordered lastObject];
-                        [reordered removeLastObject];
-                    } else {
-                        pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
-                    }
-                    [self checkForSharedBlanksInPatterns:@[pattern, t.arguments[0]] error:errors];
-                    ASSERT_EMPTY(errors);
-                    t.arguments = @[pattern, t.arguments[0]];
-                    [reordered addObject:t];
-                } else {
-                    return [self errorMessage:[NSString stringWithFormat:@"unknown type of tree in GroupGraphPatternSub: %@", t] withErrors:errors];
-                }
-            }
-        }
-        if ([bgp count]) {
-            id<GTWTree> pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
-            pattern = [self algebraByApplyingFilters:filters toAlgebra:pattern withErrors:errors];
-            ASSERT_EMPTY(errors);
-            [reordered addObject:pattern];
-        }
-        if ([filters count]) {
-            id<GTWTree> ggp = [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
-            ggp             = [self algebraByApplyingFilters:filters toAlgebra:ggp withErrors:errors];
-            ASSERT_EMPTY(errors);
-            reordered   = [NSMutableArray arrayWithObject:ggp];
-        }
-        args    = reordered;
-    }
-    
-    [self checkForSharedBlanksInPatterns:args error:errors];
+    NSArray* reordered    = [self reorderTrees:args errors:errors];
     ASSERT_EMPTY(errors);
     
-    if ([args count] == 1) {
-        return args[0];
+    [self checkForSharedBlanksInPatterns:reordered error:errors];
+    ASSERT_EMPTY(errors);
+    
+    if ([reordered count] == 1) {
+        return reordered[0];
     } else {
-        return [[GTWTree alloc] initWithType:kTreeList arguments:args];
+        return [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
     }
+}
+
+- (NSArray*) reorderTrees: (NSArray*) args errors:(NSMutableArray*) errors {
+    NSMutableArray* reordered   = [NSMutableArray array];
+    //        NSLog(@"-----------------------------");
+    NSMutableArray* workItems   = [args mutableCopy];
+    NSMutableArray* filters     = [NSMutableArray array];
+    NSMutableArray* bgp         = [NSMutableArray array];
+    while ([workItems count]) {
+        id<GTWTree> t   = [workItems firstObject];
+        [workItems removeObjectAtIndex:0];
+        //            NSLog(@"-> %@", t.type);
+        if (t.type == kTreeTriple || t.type == kTreePath) {
+            [bgp addObject:t];
+        } else if (t.type == kAlgebraExtend) {
+            if (t.arguments && [t.arguments count]) {
+                [bgp addObject:t];
+            } else {
+                id<GTWTree> pattern;
+                if ([bgp count]) {
+                    pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                    bgp         = [NSMutableArray array];
+                } else if ([reordered count]) {
+                    pattern = [reordered lastObject];
+                    [reordered removeLastObject];
+                } else {
+                    pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+                }
+                t.arguments = @[pattern];
+                t   = [self algebraVerifyingExtend:t withErrors:errors];
+                ASSERT_EMPTY(errors);
+                [bgp addObject:t];
+            }
+        } else if (t.type == kAlgebraFilter) {
+            if (t.arguments && [t.arguments count]) {
+                [bgp addObject:t];
+            } else {
+                [filters insertObject:t atIndex:0];
+            }
+        } else if (t.type == kTreeList) {
+            NSArray* children   = [self reorderTrees:t.arguments errors:errors];
+            ASSERT_EMPTY(errors);
+            t.arguments = children;
+            [reordered addObject:t];
+        } else {
+            // wrap everything up from the left of this pattern
+            if ([bgp count]) {
+                id<GTWTree> pattern = [[GTWTree alloc] initWithType:kTreeList arguments:bgp];
+                bgp         = [NSMutableArray array];
+                while ([filters count]) {
+                    id<GTWTree> filter  = [filters lastObject];
+                    [filters removeLastObject];
+                    filter.arguments = @[pattern];
+                    //                        pattern = filter;
+                    pattern = [self algebraVerifyingExtend:filter withErrors:errors];
+                    ASSERT_EMPTY(errors);
+                }
+                filters  = [NSMutableArray array];
+                [reordered addObject:pattern];
+            }
+            
+            if ((t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) && [t.arguments count] == 1) {
+                // need to make the previous pattern the lhs of this optional/minus pattern
+                id<GTWTree> pattern;
+                if ([reordered count]) {
+                    pattern = [reordered lastObject];
+                    [reordered removeLastObject];
+                } else {
+                    pattern = [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
+                }
+                [self checkForSharedBlanksInPatterns:@[pattern, t.arguments[0]] error:errors];
+                ASSERT_EMPTY(errors);
+                t.arguments = @[pattern, t.arguments[0]];
+                [reordered addObject:t];
+            } else if (t.type == kAlgebraBGP || t.type == kAlgebraJoin || t.type == kAlgebraGraph || t.type == kAlgebraService || t.type == kAlgebraUnion || t.type == kAlgebraSlice || t.type == kAlgebraProject || t.type == kTreeResultSet || t.type == kAlgebraDistinct || t.type == kAlgebraReduced || t.type == kAlgebraLeftJoin || t.type == kAlgebraMinus) {
+                [reordered addObject:t];
+            } else {
+                return [self errorMessage:[NSString stringWithFormat:@"unknown type of tree in GroupGraphPatternSub: %@", t] withErrors:errors];
+            }
+        }
+    }
+    if ([bgp count]) {
+        id<GTWTree> pattern = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:bgp];
+        pattern = [self algebraByApplyingFilters:filters toAlgebra:pattern withErrors:errors];
+        ASSERT_EMPTY(errors);
+        [reordered addObject:pattern];
+    }
+    if ([filters count]) {
+        id<GTWTree> ggp = [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
+        ggp             = [self algebraByApplyingFilters:filters toAlgebra:ggp withErrors:errors];
+        ASSERT_EMPTY(errors);
+        reordered   = [NSMutableArray arrayWithObject:ggp];
+    }
+    return reordered;
 }
 
 - (BOOL) checkForSharedBlanksInPatterns: (NSArray*) args error: (NSMutableArray*) errors {
@@ -2703,7 +2707,12 @@ cleanup:
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
-            return [[GTWTree alloc] initWithType:kAlgebraLeftJoin arguments:@[ggp]];
+            if (ggp.type == kAlgebraFilter) {
+                id<GTWTree> expr    = ggp.treeValue;
+                return [[GTWTree alloc] initWithType:kAlgebraLeftJoin treeValue: expr arguments:[ggp.arguments copy]];
+            } else {
+                return [[GTWTree alloc] initWithType:kAlgebraLeftJoin arguments:@[ggp]];
+            }
         } else if ([kw isEqual:@"MINUS"]) {
             // 'MINUS' GroupGraphPattern
             [self nextNonCommentToken];

@@ -85,10 +85,12 @@ static NSString* OSVersionNumber ( void ) {
 }
 
 - (NSEnumerator*) evaluateNLJoin:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    BOOL leftJoin   = (plan.value && [plan.value isEqualToString:@"left"]);
-    NSEnumerator* lhs    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
-    NSArray* rhs    = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
-    return [self joinResultsEnumerator:lhs withResults:rhs leftJoin: leftJoin];
+    BOOL leftJoin       = (plan.type == kPlanNLLeftJoin);
+    NSEnumerator* lhs   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    NSArray* rhs        = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
+    id<GTWTree> expr    = plan.treeValue;
+    NSEnumerator* results   = [self joinResultsEnumerator:lhs withResults:rhs leftJoin: leftJoin filter: expr withModel:model];
+    return results;
 }
 
 - (NSEnumerator*) evaluateMinus:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
@@ -114,15 +116,23 @@ static NSString* OSVersionNumber ( void ) {
     return [results objectEnumerator];
 }
 
-- (NSEnumerator*) joinResultsEnumerator: (NSEnumerator*) lhs withResults: (NSArray*) rhs leftJoin: (BOOL) leftJoin {
+- (NSEnumerator*) joinResultsEnumerator: (NSEnumerator*) lhs withResults: (NSArray*) rhs leftJoin: (BOOL) leftJoin filter: (id<GTWTree>) expr withModel: (id<GTWModel>) model {
     NSMutableArray* results = [NSMutableArray array];
     for (NSDictionary* l in lhs) {
         BOOL joined = NO;
         for (NSDictionary* r in rhs) {
             NSDictionary* j = [l join: r];
             if (j) {
-                joined  = YES;
-                [results addObject:j];
+                if (expr) {
+                    id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:j usingModel: model];
+                    if ([f effectiveBooleanValueWithError:nil]) {
+                        joined  = YES;
+                        [results addObject:j];
+                    }
+                } else {
+                    joined  = YES;
+                    [results addObject:j];
+                }
             }
         }
         if (leftJoin && !joined) {
@@ -765,7 +775,7 @@ static NSString* OSVersionNumber ( void ) {
             }
             [rhsResults addObject:newResult];
         }
-        NSEnumerator* e = [self joinResultsEnumerator:[lhsResults objectEnumerator] withResults:rhsResults leftJoin:NO];
+        NSEnumerator* e = [self joinResultsEnumerator:[lhsResults objectEnumerator] withResults:rhsResults leftJoin:NO filter:nil withModel:model];
         NSArray* a      = [e allObjects];
 //        NSLog(@"ZeroOrMore path results for loop #%lu: %@", length, a);
         return a;
@@ -853,7 +863,7 @@ static NSString* OSVersionNumber ( void ) {
         return [self evaluateAsk:plan withModel:model];
     } else if (type == kPlanHashJoin) {
         return [self evaluateHashJoin:plan withModel:model];
-    } else if (type == kPlanNLjoin) {
+    } else if (type == kPlanNLjoin || type == kPlanNLLeftJoin) {
         return [self evaluateNLJoin:plan withModel:model];
     } else if (type == kPlanMinus) {
         return [self evaluateMinus:plan withModel:model];
