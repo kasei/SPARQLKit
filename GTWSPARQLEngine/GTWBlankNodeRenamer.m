@@ -24,7 +24,7 @@
         if ([t isKindOfClass:[GTWBlank class]]) {
             id<GTWTerm> mapped  = [self.mapping objectForKey:t];
             if (!mapped) {
-                mapped   = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"b-%@-%lu", context, self.counter++]];
+                mapped   = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"bC%@N%lu", context, self.counter++]];
                 [self.mapping setObject:mapped forKey:t];
             }
         }
