@@ -96,6 +96,38 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (!lhs || !rhs) {
             return nil;
         }
+        
+        if ([lhs isKindOfClass:[GTWLiteral class]] || [rhs isKindOfClass:[GTWLiteral class]]) {
+            NSMutableSet* types = [NSMutableSet set];
+            if ([lhs isKindOfClass:[GTWLiteral class]] && lhs.datatype)
+                [types addObject:lhs.datatype];
+            if ([rhs isKindOfClass:[GTWLiteral class]] && rhs.datatype)
+                [types addObject:rhs.datatype];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#string"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#date"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#dateTime"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#byte"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#int"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#integer"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#long"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#short"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#nonPositiveInteger"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#nonNegativeInteger"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedLong"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedInt"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedShort"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedByte"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#positiveInteger"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#negativeInteger"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#decimal"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#float"];
+            [types removeObject:@"http://www.w3.org/2001/XMLSchema#double"];
+            if ([types count]) {
+                // Type error. Open world assumption means we can't determine the answer to a != operation on an unknown datatype.
+                return nil;
+            }
+        }
+        
         if ([lhs isEqual:rhs]) {
             return [GTWLiteral falseLiteral];
         } else {
