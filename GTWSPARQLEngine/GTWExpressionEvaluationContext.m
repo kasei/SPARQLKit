@@ -271,22 +271,25 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprRegex) {
         //        NSLog(@"REGEX arguments: %@", expr.arguments);
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        NSString* string    = term.value;
-        id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        id<GTWTerm> args    = ([expr.arguments count] > 2) ? [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model] : nil;
-        NSInteger opt       = NSRegularExpressionSearch;
-        if (args && [args.value isEqual:@"i"]) {
-            opt |= NSCaseInsensitiveSearch;
+        if ([term isKindOfClass:[GTWLiteral class]]) {
+            NSString* string    = term.value;
+            id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
+            id<GTWTerm> args    = ([expr.arguments count] > 2) ? [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model] : nil;
+            NSInteger opt       = NSRegularExpressionSearch;
+            if (args && [args.value isEqual:@"i"]) {
+                opt |= NSCaseInsensitiveSearch;
+            }
+            //        NSLog(@"regex string : '%@'", string);
+            //        NSLog(@"regex pattern: '%@'", pattern.value);
+            NSRange range       = [string rangeOfString:pattern.value options:opt];
+            //        NSLog(@"regex location {%lu %lu}", range.location, range.length);
+            if (range.location == NSNotFound) {
+                return [GTWLiteral falseLiteral];
+            } else {
+                return [GTWLiteral trueLiteral];
+            }
         }
-        //        NSLog(@"regex string : '%@'", string);
-        //        NSLog(@"regex pattern: '%@'", pattern.value);
-        NSRange range       = [string rangeOfString:pattern.value options:opt];
-        //        NSLog(@"regex location {%lu %lu}", range.location, range.length);
-        if (range.location == NSNotFound) {
-            return [GTWLiteral falseLiteral];
-        } else {
-            return [GTWLiteral trueLiteral];
-        }
+        return nil;
     } else if (expr.type == kExprLang) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]]) {
@@ -805,32 +808,44 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 return [[GTWLiteral alloc] initWithString:term.value datatype:iri.value];
             } else if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
                 id<GTWLiteral> l    = (id<GTWLiteral>) term;
+                NSString* lex   = l.value;
+                NSRange irange   = [lex rangeOfString:@"[-+]?\\d+" options:NSRegularExpressionSearch];
+                NSRange drange   = [lex rangeOfString:@"[-+]?((\\d+([.]\\d*)?)|([.]\\d+))" options:NSRegularExpressionSearch];
+                NSRange frange   = [lex rangeOfString:@"(INF|-INF|NaN|[-+]?\\d+([.]\\d*)?([Ee][-+]?\\d+)?)" options:NSRegularExpressionSearch];
+                double value;
+                long long ivalue;
+                BOOL hasDoubleValue     = NO;
+                BOOL hasIntegerValue    = NO;
+                if (irange.location == 0 && irange.length == [lex length]) {
+                    hasIntegerValue     = YES;
+                    ivalue  = atoll([lex UTF8String]);
+                }
+                if (drange.location == 0 && drange.length == [lex length]) {
+                    hasDoubleValue  = YES;
+                    sscanf([lex UTF8String], "%lf", &value);
+                } else if (frange.location == 0 && frange.length == [lex length]) {
+                    hasDoubleValue  = YES;
+                    NSDecimalNumber *decNumber = [NSDecimalNumber decimalNumberWithString:lex];
+                    value   = [decNumber doubleValue];
+                }
+                
+                
                 if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"] || [iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
-                    NSString* lex   = l.value;
-                    NSRange range   = [lex rangeOfString:@"(INF|-INF|NaN|[-+]?\\d+([.]\\d*)?([Ee][-+]?\\d+)?)" options:NSRegularExpressionSearch];
-                    if (range.location == 0 && range.length == lex.length) {
-                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
-                    } else {
-                        return nil;
+                    if (hasDoubleValue) {
+                        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lE", value] datatype:iri.value];
                     }
+                    return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
-                    NSString* lex   = l.value;
-                    NSRange range   = [lex rangeOfString:@"[-+]?\\d+([.]\\d*)?" options:NSRegularExpressionSearch];
-                    if (range.location == 0 && range.length == lex.length) {
-                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
-                    } else {
-                        NSLog(@"not a decimal lexical form: %@", lex);
-                        return nil;
+                    NSLog(@"xsd:decimal(%@) => %lf", lex, value);
+                    if (drange.location == 0 && drange.length == [lex length]) {
+                        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lf", value] datatype:iri.value];
                     }
+                    return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
-                    NSString* lex   = l.value;
-                    NSRange range   = [lex rangeOfString:@"(-|[+])?\\d+" options:NSRegularExpressionSearch];
-                    if (range.location == 0 && range.length == lex.length) {
-                        NSInteger value        = [l integerValue];
-                        return [GTWLiteral integerLiteralWithValue:value];
-                    } else {
-                        return nil;
+                    if (hasIntegerValue) {
+                        return [GTWLiteral integerLiteralWithValue:ivalue];
                     }
+                    return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#dateTime"]) {
                     NSString* lex   = l.value;
                     NSRange range   = [lex rangeOfString:@"-?\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d([.]\\d+)?((([+]|-)\\d\\d:\\d\\d)|Z)?" options:NSRegularExpressionSearch];
@@ -853,8 +868,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
                     }
                 }
             }
+        } else {
+            NSLog(@"No implementation for function %@", iri.value);
         }
-        NSLog(@"No implementation for function %@", iri.value);
         return nil;
     } else if (expr.type == kExprSameTerm) {
         id<GTWTerm> lhs     = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -924,7 +940,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 promotedtype    = @"http://www.w3.org/2001/XMLSchema#decimal";
                 if (rhsV == 0)
                     return nil;
-                value   = lhsV / rhsV;
+                double value   = (double) lhsV / rhsV;
+                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
             } else {
                 return nil;
             }

@@ -92,7 +92,7 @@
                     if ([syntax isEqual: @"turtle"]) {
                         GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:(graphName ? graphName : base)];
                         NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:file];
-                        GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
+                        GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
                         GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
                         if (p) {
                             //    NSLog(@"parser: %p\n", p);

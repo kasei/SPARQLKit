@@ -10,6 +10,8 @@
 - (GTWQueryPlanner*) init {
     if (self = [super init]) {
         self.bnodeCounter   = 0;
+        self.varID          = 0;
+        self.bnodeMap       = [NSMutableDictionary dictionary];
     }
     return self;
 }
@@ -328,14 +330,13 @@
         t   = algebra.value;
         defaultGraphs   = [dataset defaultGraphs];
         count   = [defaultGraphs count];
-        __block NSUInteger varID    = 0;
-        __block NSMutableDictionary* bnodeMap   = [NSMutableDictionary dictionary];
+        NSMutableDictionary* bnodeMap   = self.bnodeMap;
         id<GTWTerm> (^mapBnodes)(id<GTWTerm> t) = ^id<GTWTerm>(id<GTWTerm> t){
             if ([t isKindOfClass:[GTWBlank class]]) {
                 if ([bnodeMap objectForKey:t]) {
                     return [bnodeMap objectForKey:t];
                 } else {
-                    NSUInteger vid  = ++varID;
+                    NSUInteger vid  = ++(self.varID);
                     id<GTWTerm> v   = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".b%lu", vid]];
                     [bnodeMap setObject:v forKey:t];
                     return v;

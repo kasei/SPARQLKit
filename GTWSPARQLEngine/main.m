@@ -43,7 +43,7 @@ NSString* fileContents (NSString* filename) {
 
 int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
-    GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
+    GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
     
     if (NO) {
         GTWSPARQLToken* t;
@@ -132,17 +132,16 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 	librdf_world* librdf_world_ptr	= librdf_new_world();
     GTWRedlandTripleStore* store    = [[GTWRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
-    GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
+    GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
     
 //    GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:@"http://graph.kasei.us/"];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     //    NSLog(@"parser: %p\n", p);
     if (p) {
-        id<GTWTriple> t   = nil;
-        while ((t = [p nextObject])) {
+        [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             [store addTriple:t error:nil];
-        }
+        } error:nil];
 //        NSLog(@"%lu total triples", count);
     } else {
         NSLog(@"Could not construct parser");
@@ -294,6 +293,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
 int usage(int argc, const char * argv[]) {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
+    fprintf(stderr, "    %s dparse DATA-FILE\n", argv[0]);
     fprintf(stderr, "    %s query config-json-string QUERY-STRING\n", argv[0]);
     fprintf(stderr, "    %s queryfile query.rq data.rdf\n", argv[0]);
     fprintf(stderr, "    %s test triple\n", argv[0]);
@@ -424,6 +424,22 @@ int main(int argc, const char * argv[]) {
         id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
+    } else if ([op isEqual: @"dparse"]) {
+        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* base      = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
+        NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
+        GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+        GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:base];
+        GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
+        GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+        if (p) {
+            [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+//                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+                fprintf(stdout, "%s\n", [[t description] UTF8String]);
+            } error:nil];
+        } else {
+            NSLog(@"Could not construct parser");
+        }
     } else if ([op isEqual: @"qparse"]) {
         if (argc < (argi+1)) {
             NSLog(@"qparse operation must be supplied with a query filename.");

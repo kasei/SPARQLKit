@@ -826,10 +826,14 @@ static NSString* OSVersionNumber ( void ) {
     if (o > 0) {
         for (i = 0; i < o; i++) {
             [results nextObject];
+//            NSDictionary* r = [results nextObject];
+//            NSLog(@"discarding result: %@", r);
         }
     }
     if (l < 0) {
         return results;
+    } else if (l == 0) {
+        return [@[] objectEnumerator];
     } else {
         NSMutableArray* slice   = [NSMutableArray array];
         NSUInteger count    = 0;

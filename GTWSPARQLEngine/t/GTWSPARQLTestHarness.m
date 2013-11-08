@@ -15,6 +15,7 @@
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
+#import "GTWTripleModel.h"
 #import "GTWQuadModel.h"
 #import "GTWRedlandParser.h"
 //#import "GTWRasqalSPARQLParser.h"
@@ -282,7 +283,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
 //      GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
-        GTWTurtleLexer* lexer   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
+        GTWSPARQLLexer* lexer   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
         id<GTWRDFParser> parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
         //  NSLog(@"parsing data with %@", parser);
         __block NSUInteger count    = 0;
@@ -576,20 +577,33 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSData* data                = [fh readDataToEndOfFile];
             id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsXMLParser alloc] init];
             expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
-        } else if ([resultsFilename hasSuffix:@".ttl"]) {
-            GTWIRI* base                = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", resultsFilename]];
-            GTWTurtleLexer* l   = [[GTWTurtleLexer alloc] initWithFileHandle:fh];
-            id<GTWRDFParser> parser = [[GTWTurtleParser alloc] initWithLexer:l base:base];
-            NSError* error;
+        } else if ([resultsFilename hasSuffix:@".ttl"] || [resultsFilename hasSuffix:@".rdf"]) {
             NSMutableArray* triples = [NSMutableArray array];
+            GTWIRI* base                = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", resultsFilename]];
             __block BOOL sparqlResults  = NO;
-            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-                    sparqlResults   = YES;
-                }
-                [triples addObject:t];
-            } error:&error];
-            
+            if ([resultsFilename hasSuffix:@".ttl"]) {
+                GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+                id<GTWRDFParser> parser = [[GTWTurtleParser alloc] initWithLexer:l base:base];
+                NSError* error;
+                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                    if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+                        sparqlResults   = YES;
+                    }
+                    [triples addObject:t];
+                } error:&error];
+            } else {
+                NSData* data            = [fh readDataToEndOfFile];
+                dispatch_sync(self.raptor_queue, ^{
+                    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
+                    NSError* error;
+                    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                        if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+                            sparqlResults   = YES;
+                        }
+                        [triples addObject:t];
+                    } error:&error];
+                });
+            }
             if (sparqlResults) {
                 expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
             } else {

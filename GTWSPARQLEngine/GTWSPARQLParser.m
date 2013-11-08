@@ -271,14 +271,11 @@ cleanup:
         return nil;
     
     id<GTWTree> algebra = ggp;
+
     // SolutionModifier
-    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: project withErrors:errors];
+    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: project distinct:distinct withErrors:errors];
     ASSERT_EMPTY(errors);
-    
-    if (distinct) {
-        algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
-    }
-    
+
     if (dataset) {
         algebra = [[GTWTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[algebra]];
     }
@@ -365,7 +362,7 @@ cleanup:
         if (!ggp) {
             NSLog(@"-------------------");
         }
-        id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil withErrors:errors];
+        id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil distinct:NO withErrors:errors];
         ASSERT_EMPTY(errors);
         
         if (dataset) {
@@ -382,7 +379,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         id<GTWTree> ggp         = [self parseConstructTemplateWithErrors: errors];
         ASSERT_EMPTY(errors);
-        id<GTWTree> template = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil withErrors:errors];
+        id<GTWTree> template = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: nil distinct:NO withErrors:errors];
         ASSERT_EMPTY(errors);
      
         id<GTWTree> algebra;
@@ -435,7 +432,7 @@ cleanup:
     
     id<GTWTree> algebra = ggp;
     // SolutionModifier
-    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: nil withErrors:errors];
+    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: nil distinct:NO withErrors:errors];
     ASSERT_EMPTY(errors);
     
     if (dataset) {
@@ -726,8 +723,10 @@ cleanup:
         return nil;
     }
     
+    id<GTWTree> algebra = ggp;
+    
     // SolutionModifier
-    id<GTWTree> algebra = [self parseSolutionModifierForAlgebra:ggp withProjectionArray: project withErrors:errors];
+    algebra = [self parseSolutionModifierForAlgebra:algebra withProjectionArray: project distinct:distinct withErrors:errors];
     
     // ValuesClause
     algebra = [self parseValuesClauseForAlgebra:algebra withErrors:errors];
@@ -735,9 +734,6 @@ cleanup:
 
     
     
-    if (distinct) {
-        algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
-    }
     
     if (star && [self currentQuerySeenAggregates]) {
         return [self errorMessage:@"SELECT * not legal with GROUP BY" withErrors:errors];
@@ -836,7 +832,7 @@ cleanup:
 //[25]  	LimitOffsetClauses	  ::=  	LimitClause OffsetClause? | OffsetClause LimitClause?
 //[26]  	LimitClause	  ::=  	'LIMIT' INTEGER
 //[27]  	OffsetClause	  ::=  	'OFFSET' INTEGER
-- (id<GTWTree>) parseSolutionModifierForAlgebra: (id<GTWTree>) algebra withProjectionArray: (NSArray*) project withErrors: (NSMutableArray*) errors {
+- (id<GTWTree>) parseSolutionModifierForAlgebra: (id<GTWTree>) algebra withProjectionArray: (NSArray*) project distinct: (BOOL) distinct withErrors: (NSMutableArray*) errors {
     NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
     GTWSPARQLToken* t;
     t   = [self parseOptionalTokenOfType:KEYWORD withValue:@"GROUP"];
@@ -1009,6 +1005,11 @@ cleanup:
                 limit    = (GTWLiteral*) [self tokenAsTerm:t withErrors:errors];
             }
         }
+
+        if (distinct) {
+            algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
+        }
+        
         if (limit || offset) {
             if (!limit)
                 limit   = [[GTWLiteral alloc] initWithString:@"-1" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
