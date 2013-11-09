@@ -179,16 +179,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSString* line	= [[NSString alloc] initWithData:linebuffer encoding:NSUTF8StringEncoding];
         NSRegularExpression* re = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
         NSRange range   = [re rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
-//        NSLog(@">>> '%@'", line);
-//        NSLog(@"{ %lu, %lu } (%lu)", range.location, range.length, [line length]);
         if ((range.location + range.length) == [line length]) {
             goto FILL_LOOP;
         }
-        //			$line		=~ s/\\u([0-9A-Fa-f]{4})/chr(hex($1))/ge;	 // TODO
-        //			$line		=~ s/\\U([0-9A-Fa-f]{8})/chr(hex($1))/ge;	 // TODO
 		[self.buffer appendString:line];
 	}
-    //	NSLog(@"- '%@' (%lu)", self.buffer, [self.buffer length]);
 }
 
 - (NSString*) _peekChar {
@@ -264,16 +259,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSRange range	= {0, [mword length]};
 	NSUInteger lines	= [mword replaceOccurrencesOfString:@"\n" withString:@"\n" options:NSLiteralSearch range:range];
 	
-	// TODO
-    //	my $lastnl	= rindex($word, "\n");	// TODO
-    //	my $cols	= length($word) - $lastnl - 1;
 	self.line	+= lines;
-    //	if (lines) {
-    //		self.column	= $cols;
-    //	} else {
-    //		self.column	+= $cols;
-    //	}
-	
 	self.character	+= [word length];
 	range.location	= 0;
 	range.length	= [word length];
@@ -302,15 +288,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	range.location	= 0;
 	range.length	= [mword length];
 	NSUInteger lines	= [mword replaceOccurrencesOfString:@"\n" withString:@"\n" options:NSLiteralSearch range:range];
-	//	my $lastnl	= rindex($word, "\n");	// TODO
-	//	my $cols	= length($word) - $lastnl - 1;
 	self.line	+= lines;
-	//	if (lines) {
-	//		self.column	= $cols;
-	//	} else {
-	//		self.column	+= $cols;
-	//	}
-    
 	self.character	+= [word length];
 	return word;
 }
@@ -327,7 +305,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	if (range.location == 0) {
 		NSString* pname	= [self _readLength:range.length];
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
-        //# 		warn "full prefixedname: '$pname'";
         if ([values count] != 2) {
             NSMutableArray* mvalues = [NSMutableArray arrayWithArray:values];
             [mvalues removeObjectAtIndex:0];
@@ -339,10 +316,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	} else if (range2.location == 0) {
 		NSString* pname	= [self _readLength:range2.length];
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
-        //# 		warn "prefix: '$pname'";
 		return [self newPName: values];
 	} else {
-        //		NSLog(@"returning nil pname");
 		return nil;
 	}
 }
@@ -350,16 +325,12 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) getBnode {
 	[self _getCharSafe:@"_"];
 	[self _getCharSafe:@":"];
-    //	NSString* r_NAME_START_CHAR	= @"[A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}]";
-    //	NSString* r_NAMECHAR_EXTRA	= @"[-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]";
     NSString* r_bnode   = @"^([0-9A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])(([A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])|([-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]))*";
 	NSRange range	= [self.buffer rangeOfString:r_bnode options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		NSString* name	= [self _readLength:range.length];
-        //        NSLog(@"got bnode name ===> %@", name);
         return [self newTokenOfType:BNODE withArgs:@[name]];
 	} else {
-        //		NSLog(@"returning nil pname");
 		return nil;
 	}
 }
@@ -383,11 +354,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (GTWSPARQLToken*) _getNumber {
 	NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
     NSRange double_range	= [self.buffer rangeOfString:@"[+-]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
-    //	if ($self->{buffer} =~ /^${r_double}\b/) {
-    //		return $self->new_token(DOUBLE, $self->_read_length($+[0]));
-    //	} else if ($self->{buffer} =~ /^${r_decimal}\b/) {
-    //		return $self->new_token(DECIMAL, $self->_read_length($+[0]));
-    //	} else if ($self->{buffer} =~ /^${r_integer}\b/) {
 	if (integer_range.location == 0) {
 		NSString* integer	= [self _readLength:integer_range.length];
 		return [self newTokenOfType:INTEGER withArgs:@[integer]];
@@ -439,11 +405,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSRange range	= [self.buffer rangeOfString:@"a\\b" options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		[self _readLength:1];
-		// TODO make sure there is a word boundary after true/false (a|true|false)\b
+		// TODO: make sure there is a word boundary after true/false (a|true|false)\b
 		return [self newTokenOfType:KEYWORD withArgs:@[@"A"]];
 	} else if ([self.buffer hasPrefix:@"true"]) {
 		[self _readLength:4];
-		// TODO make sure there is a word boundary after true/false (true|false)\b
+		// TODO: make sure there is a word boundary after true/false (true|false)\b
 		return [self newTokenOfType:BOOLEAN withArgs:@[@"true"]];
 	} else if ([self.buffer hasPrefix:@"false"]) {
 		[self _readLength:5];
@@ -451,7 +417,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 	
 	[self throwError:@"Expected keyword"];
-    //	NSLog(@"returning nil keyword");
 	return nil;
 }
 
@@ -498,7 +463,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (GTWSPARQLToken*) getDoubleLiteral {
-	//	NSString* c	= [self _peekChar];
 	[self _getCharSafe: @"\""];
 	if ([self.buffer hasPrefix: @"\"\""]) {
 		// #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
@@ -581,7 +545,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					}
 				} else {
 					NSRange range	= [self.buffer rangeOfString:@"[^\"\\\\]+" options:NSRegularExpressionSearch];
-                    //                    NSLog(@"reading length %lu with buffer: >>>%@", range.length, self.buffer);
 					[string appendString: [self _readLength: range.length]];
 				}
 			}
@@ -592,10 +555,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
 			NSString* pat		= @"[^\"\\\\]+";
-            //			NSLog(@"pattern: '%@'", pat);
 			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
-            //			NSLog(@"double quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
 			if ([[self.buffer substringToIndex:1] isEqualToString:@"\\"]) {
 				[self _getCharSafe:@"\\"];
 				NSString* esc	= [self _getChar];
@@ -661,7 +622,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (GTWSPARQLToken*) getSingleLiteral {
-	//	NSString* c	= [self _peekChar];
 	[self _getCharSafe: @"'"];
 	if ([self.buffer hasPrefix: @"''"]) {
 		if (![self _readWord:@"''"]) {
@@ -752,10 +712,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
 			NSString* pat		= @"[^'\\\\]+";
-            //			NSLog(@"pattern: '%@'", pat);
 			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
-            //			NSLog(@"single quoted string character ('%@'): { %lu, %lu }", c, range.location, range.length);
 			if ([[self.buffer substringToIndex:1] isEqualToString:@"\\"]) {
 				[self _getCharSafe:@"\\"];
 				NSString* esc	= [self _getChar];
@@ -935,7 +893,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (GTWSPARQLToken*) _getToken {
 	NSDictionary* charTokens	= SPARQLCharTokens();
-    //	NSDictionary* methodTokens	= SPARQLMethodTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
 	while (1) {
 	NEXT:		;
@@ -946,10 +903,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			return nil;
 		}
 		
-        //		NSLog(@"- getToken called with buffer '%@'\n", self.buffer);
 		NSString* c;
 		unichar cc;
-		// 		warn "getting token with buffer: " . Dumper($self->{buffer});
 		c	= [self _peekChar];
 		cc	= [c characterAtIndex:0];
 		self.startColumn	= self.column;
@@ -971,7 +926,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 			
             // we're ignoring whitespace tokens, but we could return them here instead of falling through to the 'next':
-			// 			return $self->new_token(WS);
 			goto NEXT;
 		}
 		
@@ -1045,7 +999,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
         if ([c isEqualToString: @"@"]) {
 			return [self getLanguage];
         } else if ([c isEqualToString: @"<"]) {
-            //           NSLog(@"saw '<'; IRIRef or Relational expression.");
 			return [self getIRIRefOrRelational];
         } else if ([c isEqualToString: @"?"]) {
 			return [self getVariable];
@@ -1066,12 +1019,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
         } else if ([c isEqualToString: @":"]) {
 			return [self getPName];
         }
-        // 		NSValue* value	= [methodTokens objectForKey:c];
-        // 		if (value != nil) {
-        // 			SEL selector	= [value pointerValue];
-        // 			return [self performSelector:selector];
-        // 		}
-        //	   else if (defined(my $method = $METHOD_TOKEN{$c})) { return $self->$method() }
         
         
         // Direct mapping:
@@ -1105,7 +1052,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
         }
         // PREFIXNAME
 		else if ([pnCharSet characterIsMember:cc]) {
-            //			NSLog(@"getting pname");
 			GTWSPARQLToken* t	= [self getPName];
 			if (t) {
 				return t;
@@ -1124,381 +1070,3 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 @end
-
-/**
- 
- sub check_for_bom {
- my $self	= shift;
- my $c	= $self->_peek_char();
- if ($c eq "\x{FEFF}") {
- $self->_get_char;
- }
- }
- 
- 
- 
- 
- sub _new_pname {
- my $self	= shift;
- my @pname	= @_;
- if (scalar(@pname) == 2) {
- my $local	= $pname[1];
- if ($local =~ /[%\\]/) {
- my $new	= '';
- my $len		= length($local);
- my $index	= 0;
- while ($index < $len) {
- my $c	= substr($local, $index, 1);
- if ($c eq '\\') {
- $new	.= substr($local, ++$index, 1);
- } else if ($c eq '%') {
- my $ord	= substr($local, $index+1, 2);
- $new	.= chr(hex($ord));
- $index	+= 2;
- } else {
- $new	.= $c;
- }
- $index++;
- }
- $pname[1]	= $new;
- }
- }
- return $self->new_token(PREFIXNAME, @pname);
- }
- 
- sub get_pname {
- my $self	= shift;
- 
- if ($self->{buffer} =~ /^$r_PNAME_LN/) {
- my $pname	= $self->_read_length($+[0]);
- my @values	= split(/:/, $pname, 2);
- # 		warn "full prefixedname: '$pname'";
- return $self->_new_pname( @values );
- } else if ($self->{buffer} =~ /^$r_PNAME_NS/) {
- my $pname	= $self->_read_length($+[0]);
- my @values	= split(/:/, $pname, 2);
- # 		warn "prefix: '$pname'";
- return $self->_new_pname( @values );
- } else {
- return;
- }
- }
- 
- sub get_iriref_or_relational {
- my $self	= shift;
- if ($self->{buffer} =~ /^${r_IRI_REF}/) {
- $self->_get_char_safe('<');
- my $iri	= '';
- while (1) {
- my $c	= $self->_peek_char;
- last unless defined($c);
- if (substr($self->{buffer}, 0, 1) eq '\\') {
- $self->_get_char_safe('\\');
- my $esc	= $self->_get_char;
- given ($esc) {
- when('\\'){ $iri .= "\\" }
- when('"'){ $iri .= '"' }
- when('r'){ $iri .= "\r" }
- when('t'){ $iri .= "\t" }
- when('n'){ $iri .= "\n" }
- when('>'){ $iri .= ">" }
- when('U'){
- my $codepoint	= $self->_read_length(8);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $iri .= chr(hex($codepoint));
- }
- when('u'){
- my $codepoint	= $self->_read_length(4);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $iri .= chr(hex($codepoint));
- }
- default {
- $self->throw_error("Unrecognized iri escape '$esc'");
- }
- }
- } else if ($self->{buffer} =~ /^[^>\\]+/) {
- $iri	.= $self->_read_length($+[0]);
- } else if (substr($self->{buffer}, 0, 1) eq '>') {
- last;
- } else {
- $self->throw_error("Got '$c' while expecting IRI character");
- }
- }
- $self->_get_char_safe(q[>]);
- return $self->new_token(IRI, $iri);
- } else {
- $self->_get_char_safe('<');
- my $c	= $self->_peek_char;
- if ($c eq '=') {
- $self->_get_char_safe('=');
- return $self->new_token(LE);
- } else {
- return $self->new_token(LT);
- }
- }
- }
- 
- 
- sub get_bnode {
- my $self	= shift;
- $self->_read_word('_:');
- unless ($self->{buffer} =~ /^(?:${r_PN_CHARS_U}|[0-9])(?:(?:${r_PN_CHARS}|[.])*${r_PN_CHARS})?/o) {
- $self->throw_error("Expected: name");
- }
- my $name	= $self->_read_length($+[0]);
- return $self->new_token(BNODE, $name);
- }
- 
- sub get_double_literal {
- my $self	= shift;
- my $c		= $self->_peek_char();
- $self->_get_char_safe(q["]);
- if (substr($self->{buffer}, 0, 2) eq q[""]) {
- # #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
- $self->_read_word(q[""]);
- 
- my $quote_count	= 0;
- my $string	= '';
- while (1) {
- if (length($self->{buffer}) == 0) {
- $self->fill_buffer;
- if (length($self->{buffer}) == 0) {
- $self->throw_error("Found EOF in string literal");
- }
- }
- if (substr($self->{buffer}, 0, 1) eq '"') {
- my $c	= $self->_get_char;
- $quote_count++;
- if ($quote_count == 3) {
- last;
- }
- } else {
- if ($quote_count) {
- $string	.= '"' foreach (1..$quote_count);
- $quote_count	= 0;
- }
- if (substr($self->{buffer}, 0, 1) eq '\\') {
- my $c	= $self->_get_char;
- # 					$self->_get_char_safe('\\');
- my $esc	= $self->_get_char_fill_buffer;
- given ($esc) {
- when('\\'){ $string .= "\\" }
- when('"'){ $string .= '"' }
- when("'"){ $string .= "'" }
- when('r'){ $string .= "\r" }
- when('t'){ $string .= "\t" }
- when('n'){ $string .= "\n" }
- when('>'){ $string .= ">" }
- when('U'){
- my $codepoint	= $self->_read_length(8);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- when('u'){
- my $codepoint	= $self->_read_length(4);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- default {
- $self->throw_error("Unrecognized string escape '$esc'");
- }
- }
- } else {
- $self->{buffer}	=~ /^[^"\\]+/;
- $string	.= $self->_read_length($+[0]);
- }
- }
- }
- return $self->new_token(STRING3D, $string);
- } else {
- ### #x22 scharacter* #x22
- my $string	= '';
- while (1) {
- if (substr($self->{buffer}, 0, 1) eq '\\') {
- my $c	= $self->_peek_char;
- $self->_get_char_safe('\\');
- my $esc	= $self->_get_char;
- given ($esc) {
- when('\\'){ $string .= "\\" }
- when('"'){ $string .= '"' }
- when("'"){ $string .= "'" }
- when('r'){ $string .= "\r" }
- when('t'){ $string .= "\t" }
- when('n'){ $string .= "\n" }
- when('>'){ $string .= ">" }
- when('U'){
- my $codepoint	= $self->_read_length(8);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- when('u'){
- my $codepoint	= $self->_read_length(4);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- default {
- $self->throw_error("Unrecognized string escape '$esc'");
- }
- }
- } else if ($self->{buffer} =~ /^[^"\\]+/) {
- $string	.= $self->_read_length($+[0]);
- } else if (substr($self->{buffer}, 0, 1) eq '"') {
- last;
- } else {
- $self->throw_error("Got '$c' while expecting string character");
- }
- }
- $self->_get_char_safe(q["]);
- return $self->new_token(STRING1D, $string);
- }
- }
- 
- sub get_single_literal {
- my $self	= shift;
- my $c		= $self->_peek_char();
- $self->_get_char_safe("'");
- if (substr($self->{buffer}, 0, 2) eq q['']) {
- # #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
- $self->_read_word(q['']);
- 
- my $quote_count	= 0;
- my $string	= '';
- while (1) {
- if (length($self->{buffer}) == 0) {
- $self->fill_buffer;
- if (length($self->{buffer}) == 0) {
- $self->throw_error("Found EOF in string literal");
- }
- }
- if (substr($self->{buffer}, 0, 1) eq "'") {
- my $c	= $self->_get_char;
- $quote_count++;
- if ($quote_count == 3) {
- last;
- }
- } else {
- if ($quote_count) {
- $string	.= "'" foreach (1..$quote_count);
- $quote_count	= 0;
- }
- if (substr($self->{buffer}, 0, 1) eq '\\') {
- my $c	= $self->_get_char;
- # 					$self->_get_char_safe('\\');
- my $esc	= $self->_get_char_fill_buffer;
- given ($esc) {
- when('\\'){ $string .= "\\" }
- when('"'){ $string .= '"' }
- when("'"){ $string .= "'" }
- when('r'){ $string .= "\r" }
- when('t'){ $string .= "\t" }
- when('n'){ $string .= "\n" }
- when('>'){ $string .= ">" }
- when('U'){
- my $codepoint	= $self->_read_length(8);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- when('u'){
- my $codepoint	= $self->_read_length(4);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- default {
- $self->throw_error("Unrecognized string escape '$esc'");
- }
- }
- } else {
- $self->{buffer}	=~ /^[^'\\]+/;
- $string	.= $self->_read_length($+[0]);
- }
- }
- }
- return $self->new_token(STRING3S, $string);
- } else {
- ### #x22 scharacter* #x22
- my $string	= '';
- while (1) {
- if (substr($self->{buffer}, 0, 1) eq '\\') {
- my $c	= $self->_peek_char;
- $self->_get_char_safe('\\');
- my $esc	= $self->_get_char;
- given ($esc) {
- when('\\'){ $string .= "\\" }
- when('"'){ $string .= '"' }
- when("'"){ $string .= "'" }
- when('r'){ $string .= "\r" }
- when('t'){ $string .= "\t" }
- when('n'){ $string .= "\n" }
- when('>'){ $string .= ">" }
- when('U'){
- my $codepoint	= $self->_read_length(8);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- when('u'){
- my $codepoint	= $self->_read_length(4);
- unless ($codepoint =~ /^[0-9A-Fa-f]+$/) {
- $self->throw_error("Bad unicode escape codepoint '$codepoint'");
- }
- $string .= chr(hex($codepoint));
- }
- default {
- $self->throw_error("Unrecognized string escape '$esc'");
- }
- }
- } else if ($self->{buffer} =~ /^[^'\\]+/) {
- $string	.= $self->_read_length($+[0]);
- } else if (substr($self->{buffer}, 0, 1) eq "'") {
- last;
- } else {
- $self->throw_error("Got '$c' while expecting string character");
- }
- }
- $self->_get_char_safe(q[']);
- return $self->new_token(STRING1S, $string);
- }
- }
- 
- sub get_relational {
- my $self	= shift;
- $self->_get_char_safe('>');
- my $c	= $self->_peek_char;
- if ($c eq '=') {
- $self->_get_char_safe('=');
- return $self->new_token(GE);
- } else {
- return $self->new_token(GT);
- }
- }
- 
- sub throw_error {
- my $self	= shift;
- my $error	= shift;
- my $line	= $self->start_line;
- my $col		= $self->start_column;
- # 	Carp::cluck "$line:$col: $error: " . Dumper($self->{buffer});
- RDF::Trine::Error::ParserError::Positioned->throw(
- -text => "$error at $line:$col",
- -value => [$line, $col],
- );
- }
- 
- **/

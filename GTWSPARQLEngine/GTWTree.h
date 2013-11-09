@@ -113,14 +113,9 @@ extern GTWTreeType __strong const kExprIsURI;
 extern GTWTreeType __strong const kExprIsBlank;
 extern GTWTreeType __strong const kExprIsLiteral;
 extern GTWTreeType __strong const kExprCast;
-//    EXPR_ORDER_COND_ASC,
-//    EXPR_ORDER_COND_DESC,
 extern GTWTreeType __strong const kExprLangMatches;
 extern GTWTreeType __strong const kExprRegex;
-//    EXPR_GROUP_COND_ASC,
-//    EXPR_GROUP_COND_DESC,
 extern GTWTreeType __strong const kExprCount;
-//    EXPR_VARSTAR,
 extern GTWTreeType __strong const kExprSameTerm;
 extern GTWTreeType __strong const kExprSum;
 extern GTWTreeType __strong const kExprAvg;
@@ -178,7 +173,6 @@ extern GTWTreeType __strong const kExprStrUUID;
 extern GTWTreeType __strong const kExprExists;
 extern GTWTreeType __strong const kExprNotExists;
 
-    //
 extern GTWTreeType __strong const kTreeResult;
 extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, results )
 
@@ -189,10 +183,8 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 @property id<GTWTree> treeValue;
 @property NSArray* arguments;
 
-// if node.value or node.ptr is set, the node is considered a leaf node, and node.arguments are ignored. node.value and node.ptr may be used to store any relevant semantic value(s) for the node
 @property id value;
 @property void* ptr;
-@property NSUInteger location;
 @property NSMutableDictionary* annotations;
 
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
@@ -201,11 +193,9 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 - (GTWTree*) initWithType: (GTWTreeType) type arguments: (NSArray*) args;
 - (GTWTree*) initWithType: (GTWTreeType) type value: (id) value arguments: (NSArray*) args;
 - (GTWTree*) initWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
-//- (GTWTree*) initWithType: (GTWTreeType) type value: (id) value pointer: (void*) ptr arguments: (NSArray*) args;
 - (NSString*) treeTypeName;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;
-- (void) computeScopeVariables;
 - (NSSet*) nonAggregatedVariables;
 - (NSSet*) projectableAggregateVariables;
 - (Class) planResultClass;

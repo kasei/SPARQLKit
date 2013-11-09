@@ -35,7 +35,6 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
         self.aggregateSets  = [NSMutableArray array];
         self.stack  = [NSMutableArray array];
         self.namespaces = [NSMutableDictionary dictionary];
-        //        self.bnodeID    = 0;
         __block NSUInteger bnodeID  = 0;
         self.bnodeIDGenerator   = ^(NSString* name) {
             if (name == nil) {
@@ -54,13 +53,6 @@ typedef NS_ENUM(NSInteger, GTWSPARQLParserState) {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
-    
-//    if ((c & 0xFC00) == 0xD800) {
-//        unichar c2  = [value characterAtIndex:++src];
-//        c = (((c & 0x3FF) << 10) | (c2 & 0x3FF)) + 0x10000;
-//    }
-    
-    
     
     self.lexer      = [[GTWSPARQLLexer alloc] initWithString:unescaped];
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
@@ -172,7 +164,6 @@ cleanup:
                 [self errorMessage:@"Failed to parse PREFIX declaration" withErrors:errors];
                 return;
             }
-//            NSLog(@"PREFIX %@: %@\n", name.value, iri.value);
         } else if ([t.value isEqual:@"BASE"]) {
             [self nextNonCommentToken];
             GTWSPARQLToken* iri     = [self nextNonCommentToken];
@@ -182,7 +173,6 @@ cleanup:
                 [self errorMessage:@"Failed to parse BASE declaration" withErrors:errors];
                 return;
             }
-//            NSLog(@"BASE %@\n", iri.value);
         } else {
             return;
         }
@@ -290,18 +280,14 @@ cleanup:
 - (id<GTWTree>) rewriteTree: (id<GTWTree>) tree withAggregateMapping: (NSDictionary*) mapping withErrors: (NSMutableArray*) errors {
     if (!tree)
         return nil;
-//    NSLog(@"rewriting %@", tree);
-//    NSLog(@"----> %@", tree.type);
     if (tree.type == kAlgebraExtend) {
         id<GTWTree> tv          = tree.treeValue;
         id<GTWTree> expr        = [self rewriteTree:tv.arguments[0] withAggregateMapping:mapping withErrors:errors];
         GTWVariable* v          = [mapping objectForKey:expr];
-//        NSLog(@"%@ -> %@", expr, v);
         if (v) {
             id<GTWTree> tn  = [[GTWTree alloc] initWithType:kTreeNode value:v arguments:nil];
             id<GTWTree> pair    = [[GTWTree alloc] initWithType:kTreeList arguments:@[tn, tv.arguments[1]]];
             id<GTWTree> ext = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:nil];
-//            NSLog(@"-------> %@", ext);
             return ext;
         }
     } else if ([mapping objectForKey:tree]) {
@@ -316,7 +302,6 @@ cleanup:
         id<GTWTree> newTree = [self rewriteTree:t withAggregateMapping:mapping withErrors:errors];
         [args addObject:newTree];
     }
-//    NSLog(@"new tree of type %@", tree.type);
     id<GTWTree> newt    = [[GTWTree alloc] initWithType:tree.type value:tree.value treeValue:tv arguments:args];
     return newt;
 }
@@ -324,7 +309,6 @@ cleanup:
 - (id<GTWTree>) rewriteAlgebra: (id<GTWTree>) algebra forProjection: (NSArray*) project withAggregateMapping: (NSDictionary*) mapping withErrors: (NSMutableArray*) errors {
     GTWTree* vlist;
     if ([mapping count]) {
-//        NSLog(@"Rewrite mapping: %@", mapping);
         NSMutableArray* mappedProject  = [NSMutableArray array];
         for (id<GTWTree> tree in project) {
             id<GTWTree> t   = [self rewriteTree:tree withAggregateMapping:mapping withErrors:errors];
@@ -497,8 +481,6 @@ cleanup:
     
     id<GTWTree> pattern     = algebra.arguments[0];
     NSSet* scopeVars        = [pattern inScopeVariables];
-//    NSLog(@"in-scope variables: %@", scopeVars);
-//    NSLog(@"projection list: %@", plist);
     for (id<GTWTree> v in plist) {
         if (v.type == kAlgebraExtend) {
             id<GTWTree> list    = v.treeValue;
@@ -523,11 +505,9 @@ cleanup:
     
     if ([self currentQuerySeenAggregates]) {
         NSSet* groupVars    = [(GTWTree*)algebra projectableAggregateVariables];
-//        NSLog(@"grouping vars: %@", groupVars);
         
         NSMutableSet* newProjection = [NSMutableSet set];
         for (id<GTWTree> v in plist) {
-//            NSLog(@"project -> %@", v);
             if (v.type == kTreeNode) {
                 id<GTWTerm> t   = v.value;
                 if (![groupVars containsObject:t]) {
@@ -539,7 +519,6 @@ cleanup:
                 }
             } else {
                 NSSet* vars = [v nonAggregatedVariables];
-//                NSLog(@"non-aggregated variables: %@", vars);
                 for (id<GTWTerm> t in vars) {
                     if (![groupVars containsObject:t]) {
                         if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
@@ -614,8 +593,6 @@ cleanup:
     id<GTWTree> pair        = [[GTWTree alloc] initWithType:kTreeList arguments:@[defTree, namedTree]];
     return pair;
 }
-
-
 
 //[53]  	GroupGraphPattern	  ::=  	'{' ( SubSelect | GroupGraphPatternSub ) '}'
 - (id<GTWTree>) parseGroupGraphPatternWithError: (NSMutableArray*) errors {
@@ -743,7 +720,6 @@ cleanup:
     return algebra;
 }
 
-
 //[20]  	GroupCondition	  ::=  	BuiltInCall | FunctionCall | '(' Expression ( 'AS' Var )? ')' | Var
 - (id<GTWTree>) parseGroupConditionWithErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -774,8 +750,6 @@ cleanup:
         return [self parseBuiltInCallWithErrors:errors];
     }
 }
-
-
 
 // [24]  	OrderCondition	  ::=  	 ( ( 'ASC' | 'DESC' ) BrackettedExpression ) | ( Constraint | Var )
 - (id<GTWTree>) parseOrderConditionAscending: (BOOL*) ascending withErrors: (NSMutableArray*) errors {
@@ -822,7 +796,6 @@ cleanup:
     }
     return func;
 }
-
 
 //[18]  	SolutionModifier	  ::=  	GroupClause? HavingClause? OrderClause? LimitOffsetClauses?
 //[19]  	GroupClause	  ::=  	'GROUP' 'BY' GroupCondition+
@@ -873,7 +846,7 @@ cleanup:
         while ((cond = [self parseOrderConditionAscending:&asc withErrors:errors])) {
             ASSERT_EMPTY(errors);
             [conds addObject:cond];
-            [conds addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:(asc ? 1 : -1)]]];  // XXX this is the order (ASC=1 or DESC=-1 that should be coming from the parseOrderConditionWithErrors call)
+            [conds addObject:[[GTWTree alloc] initLeafWithType:kTreeNode value: [GTWLiteral integerLiteralWithValue:(asc ? 1 : -1)]]];
         }
         ASSERT_EMPTY(errors);
         orderList  = [[GTWTree alloc] initWithType:kTreeList arguments:conds];
@@ -893,7 +866,6 @@ cleanup:
         }
         id<GTWTree> groupList   = [[GTWTree alloc] initWithType:kTreeList arguments:groupConditions];
         id<GTWTree> aggregateTree   = [[GTWTree alloc] initWithType:kTreeList arguments:aggregateList];
-//        NSLog(@"aggregateList: %@", aggregateList);
         groupingTree    = [[GTWTree alloc] initWithType:kTreeList arguments:@[groupList, aggregateTree]];
     }
 
@@ -932,7 +904,6 @@ cleanup:
     }
  
     if (havingConstraint) {
-        //        NSLog(@"HAVING: %@", havingConstraint);
         NSMutableDictionary* treeMap    = [NSMutableDictionary dictionary];
         for (id<GTWTree,NSCopying> k in mapping) {
             id<GTWTerm> v   = mapping[k];
@@ -1029,7 +1000,6 @@ cleanup:
 //[22]  	HavingCondition	  ::=  	Constraint
 //[24]  	OrderCondition	  ::=  	 ( ( 'ASC' | 'DESC' ) BrackettedExpression )
 //| ( Constraint | Var )
-
 
 
 //[28]  	ValuesClause	  ::=  	( 'VALUES' DataBlock )?
@@ -1146,14 +1116,12 @@ cleanup:
 
 - (NSArray*) reorderTrees: (NSArray*) args errors:(NSMutableArray*) errors {
     NSMutableArray* reordered   = [NSMutableArray array];
-    //        NSLog(@"-----------------------------");
     NSMutableArray* workItems   = [args mutableCopy];
     NSMutableArray* filters     = [NSMutableArray array];
     NSMutableArray* bgp         = [NSMutableArray array];
     while ([workItems count]) {
         id<GTWTree> t   = [workItems firstObject];
         [workItems removeObjectAtIndex:0];
-        //            NSLog(@"-> %@", t.type);
         if (t.type == kTreeTriple || t.type == kTreePath) {
             [bgp addObject:t];
         } else if (t.type == kAlgebraExtend) {
@@ -1195,7 +1163,6 @@ cleanup:
                     id<GTWTree> filter  = [filters lastObject];
                     [filters removeLastObject];
                     filter.arguments = @[pattern];
-                    //                        pattern = filter;
                     pattern = [self algebraVerifyingExtend:filter withErrors:errors];
                     ASSERT_EMPTY(errors);
                 }
@@ -1392,7 +1359,6 @@ cleanup:
     return nil;
 }
 
-
 //[65]  	DataBlockValue	  ::=  	iri |	RDFLiteral |	NumericLiteral |	BooleanLiteral |	'UNDEF'
 - (NSArray*) parseDataBlockValuesWithErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -1413,11 +1379,6 @@ cleanup:
     return values;
 }
 
-
-
-
-
-
 // Returns an NSArray of triples. Each item in the array is a kTreeList with three items, a subject term, an path (with a path tree type), and an object term.
 // TriplesSameSubjectPath	  ::=  	VarOrTerm PropertyListPathNotEmpty |	TriplesNodePath PropertyListPath
 - (NSArray*) triplesArrayByParsingTriplesSameSubjectPathWithErrors: (NSMutableArray*) errors {
@@ -1426,7 +1387,6 @@ cleanup:
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
     id<GTWTree> node    = nil;
     if ([self tokenIsVarOrTerm:t]) {
-//        NSLog(@"parsing triples on VarOrTerm code path");
         id<GTWTree> subject = [self parseVarOrTermWithErrors:errors];
         ASSERT_EMPTY(errors);
         id<GTWTree> propertyObjectTriples = [self parsePropertyListPathNotEmptyForSubject:subject withErrors:errors];
@@ -1435,7 +1395,6 @@ cleanup:
         [triples addObjectsFromArray:propertyObjectTriples.arguments];
         return triples;
     } else {
-//        NSLog(@"parsing triples on TriplesNodePath code path");
         id<GTWTree> nodetriples = [self parseTriplesNodePathAsNode: &node withErrors:errors];
         for (id<GTWTree> t in nodetriples.arguments) {
             [triples addObject:t];
@@ -1473,7 +1432,6 @@ cleanup:
         return [[GTWTree alloc] initWithType:kTreeList arguments:list];
     }
 }
-
 
 // [77]  	PropertyListNotEmpty	  ::=  	Verb ObjectList ( ';' ( Verb ObjectList )? )*
 - (NSArray*) propertyObjectPairsByParsingPropertyListNotEmptyWithErrors: (NSMutableArray*) errors {
@@ -1755,7 +1713,6 @@ cleanup:
         return [[GTWTree alloc] initWithType:kPathNegate arguments:@[path]];
     } else {
         id<GTWTree> path    = [self parseIRIWithErrors:errors];
-//        NSLog(@"primary path element: %@", path);
         ASSERT_EMPTY(errors);
         return path;
     }
@@ -1770,7 +1727,7 @@ cleanup:
         id<GTWTree> path    = [self parsePathOneInPropertySetWithErrors:errors];
         t   = [self peekNextNonCommentToken];
         
-        // XXX is this really optional? what sort of a path is '(' ')' ?
+        // TODO: is this really optional? what sort of a path is '(' ')' ?
         while (t && t.type == OR) {
             [self nextNonCommentToken];
             id<GTWTree> rhs = [self parsePathOneInPropertySetWithErrors:errors];
@@ -1823,7 +1780,6 @@ cleanup:
         return [[GTWTree alloc] initWithType:kTreeList arguments:plist];
     }
 }
-
 
 // [99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
 - (NSArray*) propertyObjectPairsByParsingBlankNodePropertyListAsNode: (id<GTWTree>*) node WithErrors: (NSMutableArray*) errors {
@@ -1951,14 +1907,14 @@ cleanup:
             GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:o.value];
             id<GTWTree> ttree   = [[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
             if (!ttree) {
-                NSLog(@"(1) no triple tree");
+                return [self errorMessage:@"(1) no triple tree" withErrors:errors];
             }
             [triples addObject:ttree];
             if (i == [nodes count]-1) {
                 GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:rdfnil];
                 id<GTWTree> ttree   = [[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
                 if (!ttree) {
-                    NSLog(@"(2) no triple tree");
+                    return [self errorMessage:@"(2) no triple tree" withErrors:errors];
                 }
                 [triples addObject:ttree];
             } else {
@@ -1967,7 +1923,7 @@ cleanup:
                 GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:newlist.value];
                 id<GTWTree> ttree   = [[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
                 if (!ttree) {
-                    NSLog(@"(3) no triple tree");
+                    return [self errorMessage:@"(3) no triple tree" withErrors:errors];
                 }
                 [triples addObject:ttree];
                 list    = newlist;
@@ -1977,7 +1933,7 @@ cleanup:
         GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:rdfnil];
         id<GTWTree> ttree   = [[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
         if (!ttree) {
-            NSLog(@"(4) no triple tree");
+            return [self errorMessage:@"(4) no triple tree" withErrors:errors];
         }
         [triples addObject:ttree];
     }
@@ -2008,8 +1964,6 @@ cleanup:
         return [self parseTriplesNodePathAsNode:node withErrors:errors];
     }
 }
-
-
 
 // [106]  	VarOrTerm	  ::=  	Var | GraphTerm
 - (BOOL) tokenIsTerm: (GTWSPARQLToken*) t {
@@ -2046,36 +2000,12 @@ cleanup:
 }
 
 - (BOOL) tokenIsVarOrTerm: (GTWSPARQLToken*) t {
-    switch (t.type) {
-        case VAR:
-        case NIL:
-        case IRI:
-        case ANON:
-        case PREFIXNAME:
-        case BNODE:
-        case STRING1D:
-        case STRING3D:
-        case STRING1S:
-        case STRING3S:
-        case BOOLEAN:
-        case DECIMAL:
-        case DOUBLE:
-        case INTEGER:
-        case MINUS:
-        case PLUS:
-            return YES;
-        case KEYWORD:
-            if ([t.value isEqualToString:@"A"]) {
-                return YES;
-            } else {
-                return NO;
-            }
-        default:
-            return NO;
-    }
+    if ([self tokenIsTerm:t])
+        return YES;
     if (t.type == VAR)
         return YES;
-    
+    if (t.type == KEYWORD && [t.value isEqualToString:@"A"])
+        return YES;
     return NO;
 }
 
@@ -2129,7 +2059,6 @@ cleanup:
 // [110]  	Expression	  ::=  	ConditionalOrExpression
 - (id<GTWTree>) parseExpressionWithErrors: (NSMutableArray*) errors {
     id<GTWTree> expr    = [self parseConditionalOrExpressionWithErrors:errors];
-//    NSLog(@"expression: %@", expr);
     return expr;
 }
 
@@ -2144,7 +2073,6 @@ cleanup:
         expr    = [[GTWTree alloc] initWithType:kExprOr arguments:@[expr, rhs]];
         t   = [self peekNextNonCommentToken];
     }
-//    NSLog(@"conditional or expression: %@", expr);
     return expr;
 }
 
@@ -2159,14 +2087,12 @@ cleanup:
         expr    = [[GTWTree alloc] initWithType:kExprAnd arguments:@[expr, rhs]];
         t   = [self peekNextNonCommentToken];
     }
-//    NSLog(@"conditional and expression: %@", expr);
     return expr;
 }
 
 //[113]  	ValueLogical	  ::=  	RelationalExpression
 - (id<GTWTree>) parseValueLogicalWithErrors: (NSMutableArray*) errors {
     id<GTWTree> expr    = [self parseRelationalExpressionWithErrors:errors];
-//    NSLog(@"value logical expression: %@", expr);
     return expr;
 }
 
@@ -2215,14 +2141,12 @@ cleanup:
         ASSERT_EMPTY(errors);
         return [[GTWTree alloc] initWithType:kExprNotIn arguments:@[expr, list]];
     }
-//    NSLog(@"relational expression: %@", expr);
     return expr;
 }
 
 //[115]  	NumericExpression	  ::=  	AdditiveExpression
 - (id<GTWTree>) parseNumericExpressionWithErrors: (NSMutableArray*) errors {
     id<GTWTree> expr    = [self parseAdditiveExpressionWithErrors:errors];
-//    NSLog(@"numeric expression: %@", expr);
     return expr;
 }
 
@@ -2239,7 +2163,6 @@ cleanup:
         expr    = [[GTWTree alloc] initWithType:(t.type == PLUS ? kExprPlus : kExprMinus) arguments:@[expr, rhs]];
         t   = [self peekNextNonCommentToken];
     }
-//    NSLog(@"additive expression: %@", expr);
     return expr;
 }
 
@@ -2254,7 +2177,6 @@ cleanup:
         expr    = [[GTWTree alloc] initWithType:(t.type == STAR ? kExprMul : kExprDiv) arguments:@[expr, rhs]];
         t   = [self peekNextNonCommentToken];
     }
-//    NSLog(@"multiplicative expression: %@", expr);
     return expr;
 }
 
@@ -2302,9 +2224,7 @@ cleanup:
             return [self errorMessage:[NSString stringWithFormat:@"Expected PrimaryExpression term (IRI, Literal, or Var) but found %@", t] withErrors:errors];
         }
         id<GTWTree> expr    = [self parseVarOrTermWithErrors:errors];
-//        NSLog(@"primary expression var/term: %@", expr);
         ASSERT_EMPTY(errors);
-//        NSLog(@"primary expression: %@", expr);
         return expr;
     } else {
         return [self parseBuiltInCallWithErrors:errors];
@@ -2427,7 +2347,6 @@ cleanup:
 //|	RegexExpression
 //|	ExistsFunc
 //|	NotExistsFunc
-
 - (id<GTWTree>) parseBuiltInCallWithErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
 	NSRange agg_range	= [t.value rangeOfString:@"(COUNT|SUM|MIN|MAX|AVG|SAMPLE|GROUP_CONCAT)" options:NSRegularExpressionSearch];
@@ -2665,8 +2584,6 @@ cleanup:
     return [[GTWTree alloc] initWithType:kTreeNode value: t arguments:nil];
 }
 
-
-
 // [55]  	TriplesBlock	  ::=  	TriplesSameSubjectPath ( '.' TriplesBlock? )?
 - (id<GTWTree>) triplesByParsingTriplesBlockWithErrors: (NSMutableArray*) errors {
     NSArray* sameSubj    = [self triplesArrayByParsingTriplesSameSubjectPathWithErrors:errors];
@@ -2800,7 +2717,6 @@ cleanup:
     } else {
         return [self errorMessage:[NSString stringWithFormat:@"Expecting KEYWORD but got %@", t] withErrors:errors];
     }
-    //@@ GroupOrUnionGraphPattern | OptionalGraphPattern | MinusGraphPattern | GraphGraphPattern | ServiceGraphPattern | Filter | Bind | InlineData
     NSLog(@"parseGraphPatternNotTriplesWithError: not implemented yet");
     return nil;
 }
@@ -2819,11 +2735,6 @@ cleanup:
     if (t.type != type) {
         NSString* reason    = [NSString stringWithFormat:@"Expecting %@ but found %@", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], t];
         return [self errorMessage:reason withErrors:errors];
-//        NSException* e  = [NSException exceptionWithName:@"us.kasei.sparql.parse-error" reason:reason userInfo:@{}];
-//        NSLog(@"%@; %@", reason, [e callStackSymbols]);
-//        NSLog(@"buffer: %@", self.lexer.buffer);
-//        NSLog(@"token: %@", [self peekNextNonCommentToken]);
-//        return nil;
     } else {
         return t;
     }
@@ -2894,9 +2805,6 @@ cleanup:
     [self.aggregateSets removeLastObject];
 }
 
-
-
-
 #pragma mark -
 
 - (id<GTWTerm>) tokenAsTerm: (GTWSPARQLToken*) t withErrors: (NSMutableArray*) errors {
@@ -2913,8 +2821,6 @@ cleanup:
         return iri;
     } else if (t.type == ANON) {
         return self.bnodeIDGenerator(nil);
-        //        NSUInteger ident    = ++self.bnodeID;
-        //        return [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"b%lu", ident]];
     } else if (t.type == PREFIXNAME) {
         NSString* ns    = t.args[0];
         NSString* base  = (self.namespaces)[ns];
@@ -2939,7 +2845,6 @@ cleanup:
         }
     } else if (t.type == BNODE) {
         return self.bnodeIDGenerator(t.value);
-        //        return [[GTWBlank alloc] initWithID:t.value];
     } else if (t.type == STRING1D || t.type == STRING1S) {
         NSString* value = t.value;
         GTWSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
@@ -3013,7 +2918,6 @@ cleanup:
     if ([[self.stack lastObject][1] count] == 0)
         return NO;
     return YES;
-    //    return ([self.stack count] > 0 && ([[self.stack lastObject][1] count] > 0));
 }
 
 - (BOOL) haveSubject {
@@ -3022,7 +2926,7 @@ cleanup:
 
 - (void) pushNewSubject: (id<GTWTerm>) subj {
     NSMutableArray* preds   = [[NSMutableArray alloc] init];
-    NSArray* pair   = @[subj, preds];// [NSArray arrayWithObjects:subj, preds, nil];
+    NSArray* pair   = @[subj, preds];
     [self.stack addObject:pair];
 }
 

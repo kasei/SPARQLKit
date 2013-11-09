@@ -80,7 +80,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprEq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-//        NSLog(@"kExprEq: %@ <=> %@", lhs, rhs);
         if (!lhs || !rhs) {
             return nil;
         }
@@ -92,7 +91,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprNeq) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         rhs = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-//        NSLog(@"%@ <=> %@", lhs, rhs);
         if (!lhs || !rhs) {
             return nil;
         }
@@ -103,25 +101,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 [types addObject:lhs.datatype];
             if ([rhs isKindOfClass:[GTWLiteral class]] && rhs.datatype)
                 [types addObject:rhs.datatype];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#string"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#date"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#dateTime"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#byte"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#int"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#integer"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#long"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#short"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#nonPositiveInteger"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#nonNegativeInteger"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedLong"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedInt"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedShort"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#unsignedByte"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#positiveInteger"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#negativeInteger"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#decimal"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#float"];
-            [types removeObject:@"http://www.w3.org/2001/XMLSchema#double"];
+            [types minusSet:[GTWLiteral supportedDatatypes]];
             if ([types count]) {
                 // Type error. Open world assumption means we can't determine the answer to a != operation on an unknown datatype.
                 return nil;
@@ -135,7 +115,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprIsURI) {
         lhs = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        //        NSLog(@"ISIRI(%@)", lhs);
         if ([lhs conformsToProtocol:@protocol(GTWIRI)]) {
             return [GTWLiteral trueLiteral];
         } else {
@@ -281,15 +260,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             if (args && [args.value isEqual:@"i"]) {
                 reopt   |= NSRegularExpressionCaseInsensitive;
             }
-    //        NSLog(@"REPLACE string : '%@'", string);
-    //        NSLog(@"REPLACE pattern: '%@'", pattern.value);
-    //        NSLog(@"REPLACE value  : '%@'", replace.value);
-
             NSError* error;
             NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
             NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
-            
-    //        NSLog(@"---------------> '%@'\n\n", replaced);
             
             if (term.language) {
                 return [[GTWLiteral alloc] initWithValue:replaced language:term.language];
@@ -301,7 +274,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         return nil;
     } else if (expr.type == kExprRegex) {
-        //        NSLog(@"REGEX arguments: %@", expr.arguments);
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]]) {
             NSString* string    = term.value;
@@ -311,10 +283,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             if (args && [args.value isEqual:@"i"]) {
                 opt |= NSCaseInsensitiveSearch;
             }
-            //        NSLog(@"regex string : '%@'", string);
-            //        NSLog(@"regex pattern: '%@'", pattern.value);
             NSRange range       = [string rangeOfString:pattern.value options:opt];
-            //        NSLog(@"regex location {%lu %lu}", range.location, range.length);
             if (range.location == NSNotFound) {
                 return [GTWLiteral falseLiteral];
             } else {
@@ -480,7 +449,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return nil;
         }
     } else if (expr.type == kExprUUID) {
-        //        urn:uuid:b9302fb5-642e-4d3b-af19-29a8f6d894c9
         CFUUIDRef uuid = CFUUIDCreate(NULL);
         NSString *uuidStr = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
         CFRelease(uuid);
@@ -499,7 +467,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (term && [term isKindOfClass:[GTWLiteral class]] && [term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#dateTime"]) {
             NSTimeZone* tz  = nil;
             NSDate* date    = [NSDate dateWithW3CDTFString:term.value havingTimeZone:&tz];
-            //            NSLog(@"date function date: %@ (%@)", date, term.value);
             if (!date)
                 return nil;
             
@@ -584,7 +551,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 NSInteger seconds   = [tz secondsFromGMT];
                 if (seconds != 0) {
                     date    = [NSDate dateWithTimeInterval:seconds sinceDate:date];
-                    //                    NSLog(@"timezone adjusted date: %@", date);
                 }
             }
             value  = [dateFormatter stringFromDate:date];
@@ -800,11 +766,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
             mapping[v]    = result[varname];
         }
-//        NSLog(@"EXISTS mapping: %@", mapping);
         id<GTWTree,GTWQueryPlan> plan    = expr.arguments[0];
-//        NSLog(@"EXISTS pattern: %@", plan);
         plan                            = [plan copyReplacingValues:mapping];
-//        NSLog(@"EXISTS plan   : %@", plan);
         NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
         id result           = [e nextObject];
         if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
@@ -868,7 +831,6 @@ static BOOL isNumeric(id<GTWTerm> term) {
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
-                    NSLog(@"xsd:decimal(%@) => %lf", lex, value);
                     if (drange.location == 0 && drange.length == [lex length]) {
                         return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lf", value] datatype:iri.value];
                     }

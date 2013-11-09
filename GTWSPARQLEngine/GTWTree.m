@@ -46,13 +46,7 @@ GTWTreeType __strong const kAlgebraGraph				= @"AlgebraGraph";
 GTWTreeType __strong const kAlgebraService				= @"AlgebraService";
 GTWTreeType __strong const kAlgebraExtend				= @"AlgebraExtend";
 GTWTreeType __strong const kAlgebraMinus				= @"AlgebraMinus";
-//GTWTreeType __strong const kAlgebraZeroLengthPath		= @"AlgebraZeroLengthPath";
-//GTWTreeType __strong const kAlgebraZeroOrMorePath		= @"AlgebraZeroOrMorePath";
-//GTWTreeType __strong const kAlgebraOneOrMorePath		= @"AlgebraOneOrMorePath";
-//GTWTreeType __strong const kAlgebraNegatedPropertySet	= @"AlgebraNegatedPropertySet";
 GTWTreeType __strong const kAlgebraGroup				= @"AlgebraGroup";
-//GTWTreeType __strong const kAlgebraAggregation			= @"AlgebraAggregation";
-//GTWTreeType __strong const kAlgebraAggregateJoin		= @"AlgebraAggregateJoin";
 GTWTreeType __strong const kAlgebraToList				= @"AlgebraToList";
 GTWTreeType __strong const kAlgebraOrderBy				= @"AlgebraOrderBy";
 GTWTreeType __strong const kAlgebraProject				= @"AlgebraProject";
@@ -211,15 +205,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         NSUInteger size     = [args count];
         NSMutableArray* arguments  = [NSMutableArray arrayWithCapacity:size];
         self.arguments  = args;
-        int location_set	= 0;
-        NSUInteger location	= 0;
-        //	fprintf(stderr, "constructing %s with locations:\n", gtw_tree_type_name(type));
-        NSUInteger locsize	= size;
-        
-        if (type == kPlanHashJoin) {
-            // PLAN_HASHJOIN's 3rd child is the list of join vars, not a subplan, so it shouldn't participate in invocation counting
-            locsize--;
-        }
         
         for (i = 0; i < size; i++) {
             GTWTree* n  = args[i];
@@ -228,42 +213,13 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 return nil;
             }
             
-            //            if (type == TREE_NODE || type == TREE_TRIPLE || type == TREE_QUAD || type == TREE_EXPRESSION) {
-            //
-            //            } else {
             if (![n isKindOfClass:[GTWTree class]]) {
                 NSLog(@"argument object isn't a tree object: %@", n);
-                ;
             }
             
-            //            NSLog(@"argument object: %@", n);
-            if (i < locsize) {
-                //			fprintf(stderr, "- %"PRIu32"\n", n->location);
-                if (location_set) {
-                    if (location != n.location) {
-                        location	= 0;
-                    }
-                } else {
-                    location_set	= 1;
-                    location		= n.location;
-                }
-            }
-            //            }
             [arguments addObject:n];
         }
         self.arguments  = arguments;
-        /*
-         if (location > 0) {
-         fprintf(stderr, "setting location to %"PRIu32"\n", location);
-         }
-         */
-        
-        // 	if (type == PLAN_UNION) {
-        // 		if (size == 1) {
-        // 			fprintf(stderr, "*** UNION with 1 branch\n");
-        // 			gtw_error_trap();
-        // 		}
-        // 	}
         if (type == kPlanHashJoin && size >= 3) {
             GTWTree* n	= args[2];
             NSUInteger count	= [n.arguments count];
@@ -271,7 +227,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 NSLog(@"hashjoin without join variables\n");
             }
         }
-        self.location	= location;
     }
     
     if (self.type == kTreeNode && !(self.value || self.treeValue)) {
@@ -319,7 +274,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         id tv               = self.treeValue;
         copy.treeValue      = [tv copyReplacingValues: map];
         copy.ptr            = self.ptr;
-        copy.location       = self.location;
         copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
         return copy;
     }
@@ -330,54 +284,12 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (GTWTree*) copy {
-    GTWTree* copy       = [GTWTree alloc];
-    copy.leaf           = self.leaf;
-    copy.type           = self.type;
-    copy.arguments      = [self.arguments copy];
-    copy.value          = [self.value copy];
-    id tv               = self.treeValue;
-    copy.treeValue      = [tv copy];
-    copy.ptr            = self.ptr;
-    copy.location       = self.location;
-    copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
-    return copy;
+    return [self copyReplacingValues:@{}];
 }
 
 
 - (NSString*) treeTypeName {
     return self.type;
-//    return [NSString stringWithCString:gtw_tree_type_name(self.type) encoding:NSUTF8StringEncoding];
-}
-
-- (id) _applyBlock: (id(^)(id<GTWTree> node, NSUInteger level, BOOL* stop))block inOrder: (GTWTreeTraversalOrder) order level: (NSUInteger) level {
-    BOOL stop   = NO;
-    id value    = nil;
-    if (order == GTWTreePrefixOrder) {
-        value    = block(self, level, &stop);
-        if (stop)
-            return value;
-    }
-    
-    if (order == GTWTreeInfixOrder) {
-        if ([self.arguments count] == 2) {
-            [self.arguments[0] _applyBlock:block inOrder:order level:level+1];
-            value   = [self _applyBlock:block inOrder:order level:level];
-            [self.arguments[1] _applyBlock:block inOrder:order level:level+1];
-        } else {
-            NSLog(@"Cannot use infix tree traversal on tree node with children count of %ld", [self.arguments count]);
-            return nil;
-        }
-    } else {
-        for (GTWTree* child in self.arguments) {
-            [child _applyBlock:block inOrder:order level:level+1];
-        }
-    }
-    
-    if (order == GTWTreePostfixOrder) {
-        value    = block(self, level, &stop);
-    }
-    
-    return value;
 }
 
 - (id) _applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix withParent: (id<GTWTree>) parent level: (NSUInteger) level {
@@ -406,75 +318,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 - (id) annotationForKey: (NSString*) key {
     return (self.annotations)[key];
-}
-
-- (void) computeScopeVariables {
-    [self applyPrefixBlock:nil postfixBlock:^id(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL *stop) {
-        if (node.leaf) {
-            if (node.type == kTreeNode) {
-                id<GTWTerm> term    = node.value;
-                if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                    NSSet* set          = [NSSet setWithObject:term];
-                    //                NSLog(@"variables: %@ for plan: %@", set, node);
-                    (node.annotations)[kUsedVariables] = set;
-                }
-            } else if (node.type == kTreeQuad) {
-                id<GTWQuad> q  = node.value;
-                NSArray* array  = @[q.subject, q.predicate, q.object, q.graph];
-                NSMutableSet* set   = [NSMutableSet set];
-                for (id<GTWTerm> term in array) {
-                    if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                        [set addObject:term];
-                    }
-                    (node.annotations)[kUsedVariables] = set;
-                }
-            } else if (node.type == kTreeTriple) {
-                id<GTWTriple> q  = node.value;
-                NSArray* array  = @[q.subject, q.predicate, q.object];
-                NSMutableSet* set   = [NSMutableSet set];
-                for (id<GTWTerm> term in array) {
-                    if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                        [set addObject:term];
-                    }
-                    (node.annotations)[kUsedVariables] = set;
-                }
-            }
-        } else {
-            NSMutableSet* set   = [NSMutableSet set];
-            if (node.value && [node.value conformsToProtocol:@protocol(GTWTerm)]) {
-                id<GTWTerm> term    = node.value;
-                if ([term conformsToProtocol:@protocol(GTWVariable)]) {
-                    [set unionSet: [NSSet setWithObject:term]];
-                }
-            }
-            
-            NSUInteger count    = [node.arguments count];
-            if (count) {
-                GTWTree* firstchild  = node.arguments[0];
-                [set unionSet:(firstchild.annotations)[kUsedVariables]];
-                NSUInteger i;
-                for (i = 1; i < count; i++) {
-                    GTWTree* nextchild  = node.arguments[i];
-                    NSSet* newset  = (nextchild.annotations)[kUsedVariables];
-                    if (newset) {
-                        [set unionSet:newset];
-                    }
-                }
-                if (node.value && [node.value isKindOfClass:[GTWTree class]]) {
-                    GTWTree* tree   = node.value;
-                    [tree computeScopeVariables];
-                    NSSet* newset  = (tree.annotations)[kUsedVariables];
-                    if (newset) {
-                        [set unionSet:newset];
-                    }
-                }
-                
-            }
-            NSMutableDictionary* a  = [node annotations];
-            a[kUsedVariables] = [set copy];
-        }
-        return nil;
-    }];
 }
 
 - (NSSet*) referencedBlanks {
@@ -801,6 +644,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
         return [NSString stringWithFormat:@"%@GRAPH %@ {\n%@\n%@}\n", indent, gterm, indent, lhs];
     } else {
+        // TODO: implement more coverage of Algebra types (esp. dealing with projection in subqueries)
         NSLog(@"Do not know how to serialize algebra as SPARQL: %@", algebra);
         return nil;
     }
@@ -813,7 +657,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         sparql  = [NSString stringWithFormat:@"SELECT * WHERE {\n%@\n}", sparql];
     }
     
-    NSLog(@"SPARQL:\n-----------\n%@\n-------\n", sparql);
+//    NSLog(@"SPARQL:\n-----------\n%@\n-------\n", sparql);
     return sparql;
 }
 

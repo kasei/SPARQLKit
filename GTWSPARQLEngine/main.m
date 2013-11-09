@@ -206,7 +206,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     }
     
     GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = (GTWTree<GTWTree,GTWQueryPlan>*) [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
     if (verbose) {
         NSLog(@"plan:\n%@", plan);
     }
@@ -222,8 +222,6 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     
     NSData* data        = [s dataFromResults:e withVariables:variables];
     fwrite([data bytes], [data length], 1, stdout);
-//    NSArray* results    = [e allObjects];
-//    printResultsTable(stdout, results, variables);
     return 0;
 }
 
@@ -231,12 +229,10 @@ int parseQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
     
     GTWIRI* graph               = [[GTWIRI alloc] initWithValue: base];
-    //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-    //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
     NSError* error;
-    id<GTWTree> algebra            = [parser parseSPARQL:query withBaseURI:base error:&error];
+    id<GTWTree> algebra         = [parser parseSPARQL:query withBaseURI:base error:&error];
     if (error) {
         NSLog(@"Parse error: %@", error);
         return 1;
@@ -246,18 +242,13 @@ int parseQuery(NSString* query, NSString* base) {
     id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
     id<GTWModel> model          = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = (GTWTree<GTWTree,GTWQueryPlan>*) [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
     NSLog(@"Query plan:\n%@\n\n", plan);
     return 0;
 }
 
 int lexQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
-    
-//    GTWIRI* graph               = [[GTWIRI alloc] initWithValue: base];
-//    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-//    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
-//    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     GTWSPARQLLexer* l           = [[GTWSPARQLLexer alloc] initWithString:query];
     
     NSLog(@"Query tokens:\n-----------------------\n");
@@ -282,10 +273,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
         } error:nil];
     }
     
-//    loadFile(store, filename, base, @"rdfxml");
     GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
-//    GTWAddressBookTripleStore* store    = [[GTWAddressBookTripleStore alloc] init];
-//    GTWTripleModel* model   = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName: graph];
     GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     return runQueryWithModelAndDataset(query, base, model, dataset, verbose);
 }
@@ -372,8 +360,6 @@ int main(int argc, const char * argv[]) {
     
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
-//        NSDictionary* dict = [NSDictionary dictionary];
-//        NSLog(@"%@", [[d alloc] initWithDictionary:dict]);
     }
     // ------------------------------------------------------------------------------------------------------------------------
     
@@ -415,23 +401,22 @@ int main(int argc, const char * argv[]) {
             NSLog(@"query operation must be supplied with both a data source configuration string and a query.");
             return 1;
         }
-        NSString* config    = [NSString stringWithFormat:@"%s", argv[argi++]];
-        NSString* query     = [NSString stringWithFormat:@"%s", argv[argi++]];
-//        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* query         = [NSString stringWithFormat:@"%s", argv[argi++]];
 
         Class c;
-        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithValue: kDefaultBase];
-        id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
-        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
+        GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
+        id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"dparse"]) {
-        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
-        NSString* base      = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
-        NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
-        GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
-        GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
-        GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
-        GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+        NSString* filename      = [NSString stringWithFormat:@"%s", argv[argi++]];
+        NSString* base          = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
+        NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
+        GTWSPARQLLexer* l       = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+//        GTWIRI* graph         = [[GTWIRI alloc] initWithValue:base];
+        GTWIRI* baseuri         = [[GTWIRI alloc] initWithValue:base];
+        GTWTurtleParser* p      = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
         if (p) {
             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
 //                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
@@ -471,7 +456,6 @@ int main(int argc, const char * argv[]) {
             NSLog(@"dump operation must be supplied with a data source configuration string.");
             return 1;
         }
-//        NSString* sourceName    = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* config;
         if (argc > argi) {
             config    = [NSString stringWithFormat:@"%s", argv[argi++]];

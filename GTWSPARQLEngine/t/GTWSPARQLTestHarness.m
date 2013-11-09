@@ -644,7 +644,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                         NSSet* variables    = [plan inScopeVariables];
                         NSData* data;
                         if ([resultsClass isEqual: [GTWTriple class]]) {
-                            data    = [s dataFromEnumerator:[got objectEnumerator]];
+                            data    = [(id<GTWTriplesSerializer>)s dataFromTriples:[got objectEnumerator]];
                         } else {
                             data    = [(id<GTWSPARQLResultsSerializer>)s dataFromResults:[got objectEnumerator] withVariables:variables];
                         }
@@ -660,7 +660,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                         }
                         NSData* data;
                         if ([resultsClass isEqual: [GTWTriple class]]) {
-                            data    = [s dataFromEnumerator:[expected objectEnumerator]];
+                            data    = [(id<GTWTriplesSerializer>)s dataFromTriples:[expected objectEnumerator]];
                         } else {
                             data    = [(id<GTWSPARQLResultsSerializer>)s dataFromResults:[expected objectEnumerator] withVariables:variables];
                         }

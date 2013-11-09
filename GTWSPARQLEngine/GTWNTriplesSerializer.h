@@ -11,4 +11,7 @@
 
 @interface GTWNTriplesSerializer : NSObject<GTWSerializer, GTWTriplesSerializer>
 
++ (NSString*) nTriplesEncodingOfString: (NSString*) value;
++ (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term;
+
 @end

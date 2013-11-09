@@ -79,11 +79,3 @@
 }
 
 @end
-
-/*
-<binding><uri>U</uri></binding>
-<binding><literal>S</literal></binding>
-<binding><literal xml:lang="L">S</literal></binding>
-<binding><literal datatype="D">S</literal></binding>
-<binding><bnode>I</bnode></binding>
-*/

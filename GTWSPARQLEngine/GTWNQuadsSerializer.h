@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "GTWSPARQLEngine.h"
+#import "GTWNTriplesSerializer.h"
 
 @interface GTWNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>
 
