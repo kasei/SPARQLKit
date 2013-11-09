@@ -38,16 +38,16 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 	raptor_uri* dt;
     if (l->type == RASQAL_LITERAL_VARIABLE) {
         v	= rasqal_literal_as_variable(l);
-        return [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
+        return [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"%s", v->name]];
     }
     
     rasqal_literal_type type    = rasqal_literal_get_rdf_term_type(l);
 	switch (type) {
 		case RASQAL_LITERAL_BLANK:
-            return [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
+            return [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
 			break;
 		case RASQAL_LITERAL_URI:
-            return [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
+            return [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
 			break;
 		case RASQAL_LITERAL_STRING:
 		case RASQAL_LITERAL_XSD_STRING:
@@ -62,16 +62,16 @@ id<GTWTerm> rasqal_literal_to_object (rasqal_literal* l) {
 		case RASQAL_LITERAL_QNAME:
 			dt	= rasqal_literal_datatype(l);
 			if (dt) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)] datatype:[NSString stringWithFormat:@"%s", raptor_uri_as_string(dt)]];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)] datatype:[NSString stringWithFormat:@"%s", raptor_uri_as_string(dt)]];
 			} else if (l->language) {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)] language:[NSString stringWithFormat:@"%s", l->language]];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)] language:[NSString stringWithFormat:@"%s", l->language]];
 			} else {
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%s", rasqal_literal_as_string(l)]];
 			}
 			break;
 		case RASQAL_LITERAL_VARIABLE:
 			v	= rasqal_literal_as_variable(l);
-            return [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
+            return [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"%s", v->name]];
 			break;
 		default:
             NSLog(@"unknown rasqal type %s (cf. %s)", rasqal_literal_type_label(type), rasqal_literal_type_label(l->type));
@@ -384,7 +384,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 	/* look for LET variable and value */
 	var = rasqal_graph_pattern_get_variable(gp);
 	if(var) {
-        GTWVariable* v    = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", var->name]];
+        GTWVariable* v    = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"%s", var->name]];
         rasqal_expression* expr = rasqal_graph_pattern_get_filter_expression(gp);
         if (expr) {
             GTWTree* expression = rasqal_expression_to_tree(expr);
@@ -706,7 +706,7 @@ static GTWTree* roqet_query_walk(rasqal_world* rasqal_world_ptr, raptor_world* r
 				rasqal_variable* v = (rasqal_variable*)raptor_sequence_get_at(seq, i);
 				if(!v)
 					break;
-                id<GTWTerm> t   = [[GTWVariable alloc] initWithName:[NSString stringWithFormat:@"%s", v->name]];
+                id<GTWTerm> t   = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@"%s", v->name]];
                 GTWTree* var = [[GTWTree alloc] initLeafWithType:kTreeNode value: t];
                 vars[i]         = var;
 //				gtw_term* t	= gtw_new_term(NODE_TYPE_VARIABLE, (const char*) v->name, NULL, NULL);

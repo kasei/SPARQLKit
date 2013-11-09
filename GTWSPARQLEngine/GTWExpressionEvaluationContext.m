@@ -205,19 +205,19 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 if (value < 0) {
                     value = -value;
                 }
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lu", (unsigned long) value] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lu", (unsigned long) value] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
             } else if ([datatype isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
                 double value  = [term doubleValue];
                 if (value < 0.0) {
                     value = -value;
                 }
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", value] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", value] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
             }
         } else {
             return nil;
         }
     } else if (expr.type == kExprUMinus) {
-        id<GTWTerm> zero    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWTerm> zero    = [[GTWLiteral alloc] initWithValue:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         id<GTWTree> lhs     = [[GTWTree alloc] initWithType:kTreeNode value:zero arguments:nil];
         id<GTWTree> rhs     = expr.arguments[0];
         id<GTWTree> minus   = [[GTWTree alloc] initWithType:kExprMinus arguments:@[lhs, rhs]];
@@ -241,15 +241,15 @@ static BOOL isNumeric(id<GTWTerm> term) {
         } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
             double value    = [term doubleValue];
             double c        = func(value);
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
         } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#double"]) {
             double value    = [term doubleValue];
             double c        = func(value);
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#double"];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#double"];
         } else if ([term.datatype isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
             double value    = [term doubleValue];
             double c        = func(value);
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#float"];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", c] datatype:@"http://www.w3.org/2001/XMLSchema#float"];
         } else {
             return nil;
         }
@@ -262,10 +262,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
                                                                       kCFStringEncodingUTF8);
         NSString* value = [NSString stringWithString:(__bridge NSString*)escaped];
         CFRelease(escaped);
-        return [[GTWLiteral alloc] initWithString:(NSString*) value];
+        return [[GTWLiteral alloc] initWithValue:(NSString*) value];
     } else if (expr.type == kExprStr) {
         id<GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        GTWLiteral* str = [[GTWLiteral alloc] initWithString:term.value];
+        GTWLiteral* str = [[GTWLiteral alloc] initWithValue:term.value];
         return str;
     } else if (expr.type == kExprReplace) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -292,11 +292,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
     //        NSLog(@"---------------> '%@'\n\n", replaced);
             
             if (term.language) {
-                return [[GTWLiteral alloc] initWithString:replaced language:term.language];
+                return [[GTWLiteral alloc] initWithValue:replaced language:term.language];
             } else if (term.datatype) {
-                return [[GTWLiteral alloc] initWithString:replaced datatype:term.datatype];
+                return [[GTWLiteral alloc] initWithValue:replaced datatype:term.datatype];
             } else {
-                return [[GTWLiteral alloc] initWithString:replaced];
+                return [[GTWLiteral alloc] initWithValue:replaced];
             }
         }
         return nil;
@@ -356,7 +356,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprStrLen) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if (term && [term isKindOfClass:[GTWLiteral class]]) {
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [term.value length]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lu", [term.value length]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         } else {
             return nil;
         }
@@ -407,9 +407,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
                         substr  = @"";
                     }
                     if (term.language) {
-                        return [[GTWLiteral alloc] initWithString:substr language:term.language];
+                        return [[GTWLiteral alloc] initWithValue:substr language:term.language];
                     } else if (term.datatype) {
-                        return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+                        return [[GTWLiteral alloc] initWithValue:substr datatype:term.datatype];
                     } else {
                         return [[GTWLiteral alloc] initWithValue:substr];
                     }
@@ -434,9 +434,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
                         return term;
                     }
                     if (term.language) {
-                        return [[GTWLiteral alloc] initWithString:substr language:term.language];
+                        return [[GTWLiteral alloc] initWithValue:substr language:term.language];
                     } else if (term.datatype) {
-                        return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+                        return [[GTWLiteral alloc] initWithValue:substr datatype:term.datatype];
                     } else {
                         return [[GTWLiteral alloc] initWithValue:substr];
                     }
@@ -489,10 +489,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
         CFUUIDRef uuid = CFUUIDCreate(NULL);
         NSString *uuidStr = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuid);
         CFRelease(uuid);
-        return [[GTWLiteral alloc] initWithString:uuidStr];
+        return [[GTWLiteral alloc] initWithValue:uuidStr];
     } else if (expr.type == kExprNow) {
         NSDate* date    = [[NSDate alloc] init];
-        id<GTWTerm> now = [[GTWLiteral alloc] initWithString:[date getW3CDTFString] datatype:@"http://www.w3.org/2001/XMLSchema#dateTime"];
+        id<GTWTerm> now = [[GTWLiteral alloc] initWithValue:[date getW3CDTFString] datatype:@"http://www.w3.org/2001/XMLSchema#dateTime"];
         return now;
     } else if (expr.type == kExprYear || expr.type == kExprMonth || expr.type == kExprDay || expr.type == kExprHours || expr.type == kExprMinutes || expr.type == kExprSeconds || expr.type == kExprTZ || expr.type == kExprTimeZone) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -530,7 +530,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                     }
                     if ([value isEqual: @"PT"])
                         [value appendString:@"0S"];
-                    return [[GTWLiteral alloc] initWithString:value datatype:@"http://www.w3.org/2001/XMLSchema#dayTimeDuration"];
+                    return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#dayTimeDuration"];
                 } else {
                     if (tz) {
                         NSMutableString* value  = [NSMutableString string];
@@ -551,9 +551,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
                         [value appendFormat:@"%02d", (int) minutes];
                         if ([value isEqual: @"00:00"])
                             [value setString:@"Z"];
-                        return [[GTWLiteral alloc] initWithString:value];
+                        return [[GTWLiteral alloc] initWithValue:value];
                     } else {
-                        return [[GTWLiteral alloc] initWithString:@""];
+                        return [[GTWLiteral alloc] initWithValue:@""];
                     }
                 }
             }
@@ -588,7 +588,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 }
             }
             value  = [dateFormatter stringFromDate:date];
-            return [[GTWLiteral alloc] initWithString:value datatype:datatype];
+            return [[GTWLiteral alloc] initWithValue:value datatype:datatype];
         }
         return nil;
     } else if (expr.type == kExprSubStr) {
@@ -607,11 +607,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
             }
             
             if (term.language) {
-                return [[GTWLiteral alloc] initWithString:substr language:term.language];
+                return [[GTWLiteral alloc] initWithValue:substr language:term.language];
             } else if (term.datatype) {
-                return [[GTWLiteral alloc] initWithString:substr datatype:term.datatype];
+                return [[GTWLiteral alloc] initWithValue:substr datatype:term.datatype];
             } else {
-                return [[GTWLiteral alloc] initWithString:substr];
+                return [[GTWLiteral alloc] initWithValue:substr];
             }
         }
         return nil;
@@ -663,11 +663,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         
         if (language) {
-            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""] language:language];
+            return [[GTWLiteral alloc] initWithValue:[array componentsJoinedByString:@""] language:language];
         } else if (datatype && ![datatype isEqual: @"http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"]) {
-            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""] datatype:datatype];
+            return [[GTWLiteral alloc] initWithValue:[array componentsJoinedByString:@""] datatype:datatype];
         } else {
-            return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:@""]];
+            return [[GTWLiteral alloc] initWithValue:[array componentsJoinedByString:@""]];
         }
     } else if (expr.type == kExprDatatype) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -686,9 +686,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
             NSString* lang  = l.language;
             if (!lang)
                 lang    = @"";
-            return [[GTWLiteral alloc] initWithString:lang];
+            return [[GTWLiteral alloc] initWithValue:lang];
         }
-        return [[GTWLiteral alloc] initWithString:@""];
+        return [[GTWLiteral alloc] initWithValue:@""];
     } else if (expr.type == kExprStrEnds) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWTerm> pat     = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
@@ -704,7 +704,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWTerm> dt      = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
-            return [[GTWLiteral alloc] initWithString:term.value datatype:dt.value];
+            return [[GTWLiteral alloc] initWithValue:term.value datatype:dt.value];
         } else {
             return nil;
         }
@@ -712,7 +712,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWTerm> lang  = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]] && !(term.language) && !(term.datatype)) {
-            return [[GTWLiteral alloc] initWithString:term.value language:lang.value];
+            return [[GTWLiteral alloc] initWithValue:term.value language:lang.value];
         } else {
             return nil;
         }
@@ -747,13 +747,13 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprBNode) {
         if ([expr.arguments count] == 0) {
             NSUInteger ident    = self.bnodeID++;
-            GTWBlank* b  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"B%lu", ident]];
+            GTWBlank* b  = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"B%lu", ident]];
             return b;
         } else {
             id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             NSUInteger rHash    = [[rident description] hash];
             NSUInteger bHash    = [term.value hash];
-            GTWBlank* b  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"B%lu-%lu", rHash, bHash]];
+            GTWBlank* b  = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"B%lu-%lu", rHash, bHash]];
             return b;
         }
     } else if (expr.type == kExprIRI) {
@@ -768,17 +768,17 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         NSString* value     = [term.value uppercaseString];
         if (term.language) {
-            return [[GTWLiteral alloc] initWithString:value language:term.language];
+            return [[GTWLiteral alloc] initWithValue:value language:term.language];
         } else {
-            return [[GTWLiteral alloc] initWithString:value datatype:term.datatype];
+            return [[GTWLiteral alloc] initWithValue:value datatype:term.datatype];
         }
     } else if (expr.type == kExprLCase) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         NSString* value     = [term.value lowercaseString];
         if (term.language) {
-            return [[GTWLiteral alloc] initWithString:value language:term.language];
+            return [[GTWLiteral alloc] initWithValue:value language:term.language];
         } else {
-            return [[GTWLiteral alloc] initWithString:value datatype:term.datatype];
+            return [[GTWLiteral alloc] initWithValue:value datatype:term.datatype];
         }
     } else if (expr.type == kExprContains) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
@@ -837,7 +837,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if ([iri.value hasPrefix: @"http://www.w3.org/2001/XMLSchema#"]) {
             id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#string"]) {
-                return [[GTWLiteral alloc] initWithString:term.value datatype:iri.value];
+                return [[GTWLiteral alloc] initWithValue:term.value datatype:iri.value];
             } else if ([term conformsToProtocol:@protocol(GTWLiteral)]) {
                 id<GTWLiteral> l    = (id<GTWLiteral>) term;
                 NSString* lex   = l.value;
@@ -864,13 +864,13 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 
                 if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"] || [iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
                     if (hasDoubleValue) {
-                        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lE", value] datatype:iri.value];
+                        return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lE", value] datatype:iri.value];
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
                     NSLog(@"xsd:decimal(%@) => %lf", lex, value);
                     if (drange.location == 0 && drange.length == [lex length]) {
-                        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lf", value] datatype:iri.value];
+                        return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lf", value] datatype:iri.value];
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
@@ -882,7 +882,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                     NSString* lex   = l.value;
                     NSRange range   = [lex rangeOfString:@"-?\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d([.]\\d+)?((([+]|-)\\d\\d:\\d\\d)|Z)?" options:NSRegularExpressionSearch];
                     if (range.location == 0 && range.length == lex.length) {
-                        return [[GTWLiteral alloc] initWithString:l.value datatype:iri.value];
+                        return [[GTWLiteral alloc] initWithValue:l.value datatype:iri.value];
                     } else {
                         return nil;
                     }
@@ -894,7 +894,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                             lex = @"false";
                         if ([lex isEqualToString:@"1"])
                             lex = @"true";
-                        return [[GTWLiteral alloc] initWithString:lex datatype:iri.value];
+                        return [[GTWLiteral alloc] initWithValue:lex datatype:iri.value];
                     } else {
                         return nil;
                     }
@@ -973,11 +973,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 if (rhsV == 0)
                     return nil;
                 double value   = (double) lhsV / rhsV;
-                return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
             } else {
                 return nil;
             }
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%ld", (long int) value] datatype:promotedtype];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%ld", (long int) value] datatype:promotedtype];
         } else {
             double lhsV = [lhs doubleValue];
             double rhsV = [rhs doubleValue];
@@ -995,7 +995,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             } else {
                 return nil;
             }
-            return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
+            return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", value] datatype:promotedtype];
         }
     } else {
         return nil;

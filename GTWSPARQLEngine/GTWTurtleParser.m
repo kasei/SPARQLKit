@@ -30,10 +30,10 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
         self.bnodeIDGenerator   = ^(NSString* name) {
             if (name == nil) {
                 NSUInteger ident    = ++bnodeID;
-                GTWBlank* subj  = [[GTWBlank alloc] initWithID:[NSString stringWithFormat:@"b%lu", ident]];
+                GTWBlank* subj  = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"b%lu", ident]];
                 return subj;
             } else {
-                return [[GTWBlank alloc] initWithID:name];
+                return [[GTWBlank alloc] initWithValue:name];
             }
         };
     }
@@ -449,7 +449,7 @@ cleanup:
         id<GTWTerm> var = [[GTWVariable alloc] initWithValue:t.value];
         return var;
     } else if (t.type == IRI) {
-        id<GTWTerm> iri     = [[GTWIRI alloc] initWithIRI:t.value base:self.baseIRI];
+        id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:t.value base:self.baseIRI];
         if (!iri) {
             return [self errorMessage:[NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI] withErrors:errors];
         }
@@ -468,13 +468,13 @@ cleanup:
             NSString* local = t.args[1];
             //            NSLog(@"constructing IRI from prefixname <%@> <%@> with base: %@", base, local, self.base);
             NSString* value   = [NSString stringWithFormat:@"%@%@", base, local];
-            id<GTWTerm> iri     = [[GTWIRI alloc] initWithIRI:value base:self.baseIRI];
+            id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:value base:self.baseIRI];
             if (!iri) {
                 return [self errorMessage:[NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI] withErrors:errors];
             }
             return iri;
         } else {
-            id<GTWTerm> iri     = [[GTWIRI alloc] initWithIRI:base base:self.baseIRI];
+            id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:base base:self.baseIRI];
             if (!iri) {
                 return [self errorMessage:[NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI] withErrors:errors];
             }
@@ -490,13 +490,13 @@ cleanup:
             t   = [self nextNonCommentToken];
             id<GTWTerm> dt  = [self tokenAsTerm:t withErrors:errors];
             ASSERT_EMPTY(errors);
-            return [[GTWLiteral alloc] initWithString:value datatype:dt.value];
+            return [[GTWLiteral alloc] initWithValue:value datatype:dt.value];
         }
         GTWSPARQLToken* lang  = [self parseOptionalTokenOfType:LANG];
         if (lang) {
-            return [[GTWLiteral alloc] initWithString:value language:lang.value];
+            return [[GTWLiteral alloc] initWithValue:value language:lang.value];
         }
-        return [[GTWLiteral alloc] initWithString:value];
+        return [[GTWLiteral alloc] initWithValue:value];
     } else if (t.type == STRING3D || t.type == STRING3S) {
         NSString* value = t.value;
         GTWSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
@@ -504,19 +504,19 @@ cleanup:
             t   = [self nextNonCommentToken];
             id<GTWTerm> dt  = [self tokenAsTerm:t withErrors:errors];
             ASSERT_EMPTY(errors);
-            return [[GTWLiteral alloc] initWithString:value datatype:dt.value];
+            return [[GTWLiteral alloc] initWithValue:value datatype:dt.value];
         }
-        return [[GTWLiteral alloc] initWithString:value];
+        return [[GTWLiteral alloc] initWithValue:value];
     } else if ((t.type == KEYWORD) && [t.value isEqual:@"A"]) {
-        return [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     } else if (t.type == BOOLEAN) {
-        return [[GTWLiteral alloc] initWithString:t.value datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+        return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
     } else if (t.type == DECIMAL) {
-        return [[GTWLiteral alloc] initWithString:t.value datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+        return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
     } else if (t.type == DOUBLE) {
-        return [[GTWLiteral alloc] initWithString:t.value datatype:@"http://www.w3.org/2001/XMLSchema#double"];
+        return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#double"];
     } else if (t.type == INTEGER) {
-        return [[GTWLiteral alloc] initWithString:t.value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
     } else if (t.type == PLUS) {
         t   = [self nextNonCommentToken];
         return [self tokenAsTerm:t withErrors:errors];
@@ -524,11 +524,11 @@ cleanup:
         t   = [self nextNonCommentToken];
         NSString* value = [NSString stringWithFormat:@"-%@", t.value];
         if (t.type == INTEGER) {
-            return [[GTWLiteral alloc] initWithString:value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         } else if (t.type == DECIMAL) {
-            return [[GTWLiteral alloc] initWithString:value datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
         } else if (t.type == DOUBLE) {
-            return [[GTWLiteral alloc] initWithString:value datatype:@"http://www.w3.org/2001/XMLSchema#double"];
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#double"];
         } else {
             return [self errorMessage:[NSString stringWithFormat:@"Expecting numeric value after MINUS but found: %@", t] withErrors:errors];
         }

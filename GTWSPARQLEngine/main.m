@@ -57,8 +57,8 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     
     
     
-    GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:base];
-    GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
+    GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
+    GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     if (p) {
         //    NSLog(@"parser: %p\n", p);
@@ -79,9 +79,9 @@ int run_memory_quad_store_example(NSString* filename, NSString* base) {
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
     loadRDFFromFileIntoStore(store, filename, base);
     
-//    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-//    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
-//    GTWIRI* type  =[[GTWIRI alloc] initWithIRI:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
+//    GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+//    GTWIRI* greg    = [[GTWIRI alloc] initWithValue:@"http://kasei.us/about/foaf.xrdf#greg"];
+//    GTWIRI* type  =[[GTWIRI alloc] initWithValue:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
     
     NSLog(@"Graphs:\n");
     [store enumerateGraphsUsingBlock:^(id<GTWTerm> g){
@@ -134,8 +134,8 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
     GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
     
-//    GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:@"http://graph.kasei.us/"];
-    GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
+//    GTWIRI* graph       = [[GTWIRI alloc] initWithValue:@"http://graph.kasei.us/"];
+    GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
     GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
     //    NSLog(@"parser: %p\n", p);
     if (p) {
@@ -148,7 +148,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     }
     
     
-    GTWIRI* g = [[GTWIRI alloc] initWithIRI:@"http://example.org/"];
+    GTWIRI* g = [[GTWIRI alloc] initWithValue:@"http://example.org/"];
     GTWTripleModel* model = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:g];
     id<GTWTriplesSerializer> s    = [[GTWNTriplesSerializer alloc] init];
 //    NSLog(@"model: %@\n--------------\n", model);
@@ -157,9 +157,9 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     [s serializeTriples:e toHandle:out];
     
     
-//    GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-//    GTWIRI* greg    = [[GTWIRI alloc] initWithIRI:@"http://kasei.us/about/foaf.xrdf#greg"];
-////    GTWIRI* type  =[[GTWIRI alloc] initWithIRI:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
+//    GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+//    GTWIRI* greg    = [[GTWIRI alloc] initWithValue:@"http://kasei.us/about/foaf.xrdf#greg"];
+////    GTWIRI* type  =[[GTWIRI alloc] initWithValue:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
 //    
 //    {
 //        __block NSUInteger count    = 0;
@@ -230,7 +230,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
 int parseQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
     
-    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
+    GTWIRI* graph               = [[GTWIRI alloc] initWithValue: base];
     //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
     //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
@@ -254,7 +254,7 @@ int parseQuery(NSString* query, NSString* base) {
 int lexQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
     
-//    GTWIRI* graph               = [[GTWIRI alloc] initWithIRI: base];
+//    GTWIRI* graph               = [[GTWIRI alloc] initWithValue: base];
 //    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
 //    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
 //    GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
@@ -269,7 +269,7 @@ int lexQuery(NSString* query, NSString* base) {
 }
 
 int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger verbose) {
-    GTWIRI* graph = [[GTWIRI alloc] initWithIRI: base];
+    GTWIRI* graph = [[GTWIRI alloc] initWithValue: base];
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
 
     {
@@ -420,7 +420,7 @@ int main(int argc, const char * argv[]) {
 //        NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
 
         Class c;
-        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithValue: kDefaultBase];
         id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
@@ -429,8 +429,8 @@ int main(int argc, const char * argv[]) {
         NSString* base      = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
         NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
         GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
-        GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:base];
-        GTWIRI* baseuri     = [[GTWIRI alloc] initWithIRI:base];
+        GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
+        GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
         GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
         if (p) {
             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
@@ -480,13 +480,13 @@ int main(int argc, const char * argv[]) {
         }
         
         Class c;
-        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+        GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithValue: kDefaultBase];
         id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
 
-        GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
-        GTWVariable* p  = [[GTWVariable alloc] initWithName:@"p"];
-        GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
-        GTWVariable* g  = [[GTWVariable alloc] initWithName:@"g"];
+        GTWVariable* s  = [[GTWVariable alloc] initWithValue:@"s"];
+        GTWVariable* p  = [[GTWVariable alloc] initWithValue:@"p"];
+        GTWVariable* o  = [[GTWVariable alloc] initWithValue:@"o"];
+        GTWVariable* g  = [[GTWVariable alloc] initWithValue:@"g"];
         NSError* error  = nil;
 
         NSSet* protocols    = [c implementedProtocols];
@@ -543,11 +543,11 @@ int main(int argc, const char * argv[]) {
         } else if ([testtype isEqual: @"endpoint"]) {
             NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
             id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
-            GTWIRI* graph = [[GTWIRI alloc] initWithIRI: kDefaultBase];
+            GTWIRI* graph = [[GTWIRI alloc] initWithValue: kDefaultBase];
             GTWTripleModel* model           = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
-            GTWVariable* s  = [[GTWVariable alloc] initWithName:@"s"];
-            GTWVariable* o  = [[GTWVariable alloc] initWithName:@"o"];
-            GTWIRI* rdftype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+            GTWVariable* s  = [[GTWVariable alloc] initWithValue:@"s"];
+            GTWVariable* o  = [[GTWVariable alloc] initWithValue:@"o"];
+            GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
             NSError* error  = nil;
             NSEnumerator* e = [model quadsMatchingSubject:s predicate:rdftype object:o graph:graph error:&error];
             id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];

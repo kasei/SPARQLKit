@@ -121,20 +121,20 @@
                     switch (type) {
                         case LIBRDF_NODE_TYPE_RESOURCE:
                             uri		= librdf_node_get_uri(values[i]);
-                            term    = [[GTWIRI alloc] initWithIRI:@((const char*) librdf_uri_as_string(uri))];
+                            term    = [[GTWIRI alloc] initWithValue:@((const char*) librdf_uri_as_string(uri))];
                             break;
                         case LIBRDF_NODE_TYPE_LITERAL:
                             value	= librdf_node_get_literal_value(values[i]);
                             if ((lang = librdf_node_get_literal_value_language(values[i]))) {
-                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value) language:@(lang)];
+                                term    = [[GTWLiteral alloc] initWithValue:@((const char*) value) language:@(lang)];
                             } else if ((uri = librdf_node_get_literal_value_datatype_uri(values[i]))) {
-                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
+                                term    = [[GTWLiteral alloc] initWithValue:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
                             } else {
-                                term    = [[GTWLiteral alloc] initWithString:@((const char*) value)];
+                                term    = [[GTWLiteral alloc] initWithValue:@((const char*) value)];
                             }
                             break;
                         case LIBRDF_NODE_TYPE_BLANK:
-                            term    = [[GTWBlank alloc] initWithID:@((const char*) librdf_node_get_blank_identifier(values[i]))];
+                            term    = [[GTWBlank alloc] initWithValue:@((const char*) librdf_node_get_blank_identifier(values[i]))];
                             break;
                         default:
                             if (error) {
@@ -212,19 +212,19 @@
     switch (type) {
         case LIBRDF_NODE_TYPE_RESOURCE:
             uri		= librdf_node_get_uri(term);
-            return [[GTWIRI alloc] initWithIRI:@((const char*) librdf_uri_as_string(uri))];
+            return [[GTWIRI alloc] initWithValue:@((const char*) librdf_uri_as_string(uri))];
         case LIBRDF_NODE_TYPE_LITERAL:
             value	= librdf_node_get_literal_value(term);
             if ((lang = librdf_node_get_literal_value_language(term))) {
-                return [[GTWLiteral alloc] initWithString:@((const char*) value) language:@(lang)];
+                return [[GTWLiteral alloc] initWithValue:@((const char*) value) language:@(lang)];
             } else if ((uri = librdf_node_get_literal_value_datatype_uri(term))) {
-                return [[GTWLiteral alloc] initWithString:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
+                return [[GTWLiteral alloc] initWithValue:@((const char*) value) datatype:@((const char*) raptor_uri_as_string(uri))];
             } else {
-                return [[GTWLiteral alloc] initWithString:@((const char*) value)];
+                return [[GTWLiteral alloc] initWithValue:@((const char*) value)];
             }
             break;
         case LIBRDF_NODE_TYPE_BLANK:
-            return [[GTWBlank alloc] initWithID:@((const char*) librdf_node_get_blank_identifier(term))];
+            return [[GTWBlank alloc] initWithValue:@((const char*) librdf_node_get_blank_identifier(term))];
             break;
         default:
             break;

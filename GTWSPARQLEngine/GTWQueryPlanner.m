@@ -146,7 +146,7 @@
             NSString* sparql                = [GTWTree sparqlForAlgebra: pattern];
             if (!sparql)
                 return nil;
-            GTWLiteral* spterm  = [[GTWLiteral alloc] initWithString:sparql];
+            GTWLiteral* spterm  = [[GTWLiteral alloc] initWithValue:sparql];
             id<GTWTree> tn      = [[GTWTree alloc] initWithType:kTreeNode value:spterm arguments:nil];
 //            id<GTWTree> list    = [[GTWTree alloc] initWithType:kTreeList arguments:@[spterm]];
             return [[GTWQueryPlan alloc] initWithType:kPlanService treeValue:list arguments:@[tn]];

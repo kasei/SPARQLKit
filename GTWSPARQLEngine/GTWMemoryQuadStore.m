@@ -90,7 +90,7 @@
                 NSString* graphName = source[@"graph"];
                 if (file && syntax) {
                     if ([syntax isEqual: @"turtle"]) {
-                        GTWIRI* graph       = [[GTWIRI alloc] initWithIRI:(graphName ? graphName : base)];
+                        GTWIRI* graph       = [[GTWIRI alloc] initWithValue:(graphName ? graphName : base)];
                         NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:file];
                         GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
                         GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];

@@ -7,12 +7,27 @@
 //
 
 #import "GTWSPARQLResultsTextTableSerializer.h"
+#import <GTWSWBase/GTWLiteral.h>
 
 @implementation GTWSPARQLResultsTextTableSerializer
 
 - (void) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables toHandle: (NSFileHandle*) handle {
     NSData* data    = [self dataFromResults:results withVariables:variables];
     [handle writeData:data];
+}
+
+- (NSString*) stringForTerm: (id<GTWTerm>) term {
+    if (!term)
+        return @"";
+    if ([term isKindOfClass:[GTWLiteral class]]) {
+        id<GTWLiteral> l    = (id<GTWLiteral>) term;
+        if ([l isNumeric]) {
+            if ([l.datatype isEqualToString:@"http://www.w3.org/2001/XMLSchema#integer"]) {
+                return [NSString stringWithFormat:@"%lld", (long long) [l integerValue]];
+            }
+        }
+    }
+    return [term description];
 }
 
 - (NSData*) dataFromResults: r withVariables: (NSSet*) variables {
@@ -33,7 +48,7 @@
             NSString* vname = [vars[i] value];
             id<GTWTerm> t   = r[vname];
             if (t) {
-                NSString* value = [t description];
+                NSString* value = [self stringForTerm:t];
                 col_widths[i]   = MAX(col_widths[i], [value length]);
             }
         }
@@ -60,7 +75,7 @@
         for (i = 0; i < count; i++) {
             NSString* vname = [vars[i] value];
             id<GTWTerm> t   = r[vname];
-            NSString* value = t ? [t description] : @"";
+            NSString* value = [self stringForTerm:t];
             
             {
                 NSInteger j;

@@ -33,7 +33,7 @@
     } else {
         @autoreleasepool {
             for (NSString* graphName in [self.graphs allKeys]) {
-                GTWIRI* graph   = [[GTWIRI alloc] initWithIRI:graphName];
+                GTWIRI* graph   = [[GTWIRI alloc] initWithValue:graphName];
                 id<GTWTripleStore> store    = (self.graphs)[graphName];
                 BOOL ok = [store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t){
                     id<GTWQuad> q      = [GTWQuad quadFromTriple:t withGraph:graph];
@@ -95,7 +95,7 @@
 - (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
     @autoreleasepool {
         for (NSString* graph in [self.graphs allKeys]) {
-            GTWIRI* iri = [[GTWIRI alloc] initWithIRI:graph];
+            GTWIRI* iri = [[GTWIRI alloc] initWithValue:graph];
             block(iri);
         }
     }

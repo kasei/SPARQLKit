@@ -145,7 +145,7 @@ static NSString* OSVersionNumber ( void ) {
 - (NSEnumerator*) evaluateAsk:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSEnumerator* results   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSDictionary* result    = [results nextObject];
-    GTWLiteral* l   = [[GTWLiteral alloc] initWithString:(result ? @"true" : @"false") datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
+    GTWLiteral* l   = [[GTWLiteral alloc] initWithValue:(result ? @"true" : @"false") datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
     NSDictionary* r = @{ @".bool": l };
     return [@[r] objectEnumerator];
 }
@@ -339,7 +339,7 @@ static NSString* OSVersionNumber ( void ) {
             }
         }
 //        NSLog(@"-> %lu", [counter count]);
-        return [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%lu", [counter count]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lu", [counter count]] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
     } else if (expr.type == kExprGroupConcat) {
         NSArray* a  = expr.value;
         NSNumber* distinct  = a[0];
@@ -351,7 +351,7 @@ static NSString* OSVersionNumber ( void ) {
                 [container addObject:t.value];
         }
         NSArray* array  = [container allObjects];
-        return [[GTWLiteral alloc] initWithString:[array componentsJoinedByString:separator]];
+        return [[GTWLiteral alloc] initWithValue:[array componentsJoinedByString:separator]];
     } else if (expr.type == kExprMax) {
         id<GTWTerm> max = nil;
         for (NSDictionary* result in results) {
@@ -371,7 +371,7 @@ static NSString* OSVersionNumber ( void ) {
         }
         return min;
     } else if (expr.type == kExprSum) {
-        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithValue:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         for (NSDictionary* result in results) {
             id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             sum = (id<GTWLiteral>) [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
@@ -381,7 +381,7 @@ static NSString* OSVersionNumber ( void ) {
         return sum;
     } else if (expr.type == kExprAvg) {
         NSInteger count = 0;
-        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithString:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        id<GTWLiteral> sum    = [[GTWLiteral alloc] initWithValue:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
         for (NSDictionary* result in results) {
             id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
             sum = (id<GTWLiteral>) [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
@@ -390,7 +390,7 @@ static NSString* OSVersionNumber ( void ) {
             count++;
         }
         if (sum) {
-            id<GTWLiteral,GTWTerm> total   = [[GTWLiteral alloc] initWithString:[NSString stringWithFormat:@"%ld", count] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+            id<GTWLiteral,GTWTerm> total   = [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%ld", count] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
             id<GTWTerm> avg = [self.evalctx evaluateNumericExpressionOfType:kExprDiv lhs:sum rhs:total];
             return avg;
         } else {

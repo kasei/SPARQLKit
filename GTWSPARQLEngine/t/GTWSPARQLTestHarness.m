@@ -65,8 +65,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 - (NSArray*) arrayFromModel: (id<GTWModel>) model withList: (id<GTWTerm>) list {
     NSMutableArray* array   = [NSMutableArray array];
     id<GTWTerm> head    = list;
-    GTWIRI* first       = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"];
-    GTWIRI* rest       = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
+    GTWIRI* first       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"];
+    GTWIRI* rest       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
     while (head) {
         NSArray* objects    = [model objectsForSubject:head predicate:first graph:nil];
         [array addObjectsFromArray:objects];
@@ -85,7 +85,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSLog(@"Running manifest tests with pattern '%@'", pattern);
     }
     __block NSError* error          = nil;
-    GTWIRI* base                = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", manifest]];
+    GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", manifest]];
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
     GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
     
@@ -101,8 +101,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         } error:&error];
     });
     
-    GTWVariable* v  = [[GTWVariable alloc] initWithName:@"o"];
-    GTWIRI* include = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
+    GTWVariable* v  = [[GTWVariable alloc] initWithValue:@"o"];
+    GTWIRI* include = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
     NSMutableArray* manifests   = [NSMutableArray array];
     [model enumerateBindingsMatchingSubject:nil predicate:include object:v graph:nil usingBlock:^(NSDictionary *q) {
         id<GTWTerm> list    = q[@"o"];
@@ -168,8 +168,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         });
     }
     
-    GTWIRI* type = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-    GTWIRI* mantype = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"];
+    GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+    GTWIRI* mantype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"];
     
     NSMutableArray* manifestTerms   = [NSMutableArray array];
     [model enumerateQuadsMatchingSubject:nil predicate:type object:mantype graph:nil usingBlock:^(id<GTWQuad> q) {
@@ -205,7 +205,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 - (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifest: (id<GTWTerm>) manifest withModel: (id<GTWModel>) model {
 //    NSLog(@"%@", manifest);
     NSMutableArray* tests   = [NSMutableArray array];
-    id<GTWTerm> entries = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#entries"];
+    id<GTWTerm> entries = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#entries"];
     [model enumerateQuadsMatchingSubject:manifest predicate:entries object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
         id<GTWTerm> list    = q.object;
         NSArray* array      = [self arrayFromModel:model withList:list];
@@ -235,7 +235,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 }
 
 - (BOOL) runTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
-    GTWIRI* type = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+    GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     NSArray* testtypes  = [model objectsForSubject:test predicate:type graph:nil];
     if (testtypes && [testtypes count]) {
         id<GTWTerm> testtype    = testtypes[0];
@@ -282,7 +282,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
     GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
-//      GTWIRI* base     = [[GTWIRI alloc] initWithIRI:filename];
+//      GTWIRI* base     = [[GTWIRI alloc] initWithValue:filename];
         GTWSPARQLLexer* lexer   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
         id<GTWRDFParser> parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
         //  NSLog(@"parsing data with %@", parser);
@@ -343,17 +343,17 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 }
 
 - (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: (GTWIRI*) defaultGraph hasService: (BOOL*) serviceFlag {
-    GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
-    //    GTWIRI* mfresult = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
+    GTWIRI* mfaction = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
+    //    GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
     
     NSArray* actions    = [model objectsForSubject:test predicate:mfaction graph:nil];
     if (actions && [actions count]) {
         id<GTWTerm> action  = actions[0];
-        GTWIRI* qtquery         = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#query"];
-        GTWIRI* qtdata          = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#data"];
-        GTWIRI* qtgraphdata     = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#graphData"];
-        GTWIRI* qtendpoint      = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#endpoint"];
-        GTWIRI* qtservicedata   = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#serviceData"];
+        GTWIRI* qtquery         = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#query"];
+        GTWIRI* qtdata          = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#data"];
+        GTWIRI* qtgraphdata     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#graphData"];
+        GTWIRI* qtendpoint      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#endpoint"];
+        GTWIRI* qtservicedata   = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#serviceData"];
         
         id<GTWTerm> query   = [model anyObjectForSubject:action predicate:qtquery graph:nil];
         NSArray* data       = [model objectsForSubject:action predicate:qtdata graph:nil];
@@ -408,7 +408,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         [self loadDatasetFromAlgebra:algebra intoStore:testStore defaultGraph:defaultGraph base:defaultGraph];
         
-//        GTWIRI* base    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
+//        GTWIRI* base    = [[GTWIRI alloc] initWithValue:@"http://base.example.org/"];
         
         if (NO) {
             NSLog(@"test model ------------------->\n");
@@ -443,7 +443,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 }
 
 - (id<GTWTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError**) error {
-    GTWIRI* mfaction = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
+    GTWIRI* mfaction = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     id<GTWTerm> action  = [model anyObjectForSubject:test predicate:mfaction graph:nil];
     if (action) {
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:action.value] error:nil];
@@ -469,7 +469,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         return algebra;
         
-//        GTWIRI* data    = [[GTWIRI alloc] initWithIRI:@"http://base.example.org/"];
+//        GTWIRI* data    = [[GTWIRI alloc] initWithValue:@"http://base.example.org/"];
 //        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
 //        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[data.value]];
 //        id<GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
@@ -537,7 +537,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     self.testsCount++;
     self.evalTests++;
     GTWMemoryQuadStore* testStore   = [[GTWMemoryQuadStore alloc] init];
-    GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithIRI:@"tag:kasei.us,2013;default-graph"];
+    GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
     GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
@@ -563,7 +563,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             s   = [[GTWNTriplesSerializer alloc] init];
         }
         
-        GTWIRI* mfresult = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
+        GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
         id<GTWTerm> result          = [model anyObjectForSubject:test predicate:mfresult graph:nil];
         NSString* resultsFilename   = [[NSURL URLWithString:result.value] path];
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:resultsFilename];
@@ -579,7 +579,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
         } else if ([resultsFilename hasSuffix:@".ttl"] || [resultsFilename hasSuffix:@".rdf"]) {
             NSMutableArray* triples = [NSMutableArray array];
-            GTWIRI* base                = [[GTWIRI alloc] initWithIRI:[NSString stringWithFormat:@"file://%@", resultsFilename]];
+            GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
             __block BOOL sparqlResults  = NO;
             if ([resultsFilename hasSuffix:@".ttl"]) {
                 GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
@@ -693,15 +693,15 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 }
 
 - (NSArray*) SPARQLResultsEnumeratorFromTriples: (NSArray*) triples settingVariables: (NSMutableSet*) variables {
-    GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithIRI:@"tag:kasei.us,2013;default-graph"];
-    GTWIRI* type = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-    GTWIRI* resultset = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"];
-    GTWIRI* resultVariable  = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#resultVariable"];
-    GTWIRI* rssolutions     = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#solution"];
-    GTWIRI* rsbinding       = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#binding"];
-    GTWIRI* rsboolean       = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#boolean"];
-    GTWIRI* rsvariable      = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#variable"];
-    GTWIRI* rsvalue         = [[GTWIRI alloc] initWithIRI:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#value"];
+    GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
+    GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+    GTWIRI* resultset = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"];
+    GTWIRI* resultVariable  = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#resultVariable"];
+    GTWIRI* rssolutions     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#solution"];
+    GTWIRI* rsbinding       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#binding"];
+    GTWIRI* rsboolean       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#boolean"];
+    GTWIRI* rsvariable      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#variable"];
+    GTWIRI* rsvalue         = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#value"];
     
     GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
     NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
