@@ -236,35 +236,46 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
 - (BOOL) runTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
     GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-    NSArray* testtypes  = [model objectsForSubject:test predicate:type graph:nil];
+    GTWIRI* dtapproval      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#approval"];
+    NSArray* testtypes      = [model objectsForSubject:test predicate:type graph:nil];
     if (testtypes && [testtypes count]) {
-        id<GTWTerm> testtype    = testtypes[0];
-        if (self.verbose) {
-            NSLog(@"%@ - %@", testtype.value, test.value);
+        id<GTWTerm> approval    = [model anyObjectForSubject:test predicate:dtapproval graph:nil];
+        if (!approval) {
+            NSLog(@"no approval value for test %@", test);
+            return NO;
         }
-        if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest"]) {
-            if (self.runSyntaxTests) {
-                return [self runQuerySyntaxTest: test withModel: model expectSuccess: YES];
-            } else {
-                return YES;
+        
+        if ([approval.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"]) {
+            id<GTWTerm> testtype    = testtypes[0];
+            if (self.verbose) {
+                NSLog(@"%@ - %@", testtype.value, test.value);
             }
-        } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest"]) {
-//            return YES; // XXXXXXXXXXXXX
-            if (self.runSyntaxTests) {
-                return [self runQuerySyntaxTest: test withModel: model expectSuccess: NO];
+            if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest"]) {
+                if (self.runSyntaxTests) {
+                    return [self runQuerySyntaxTest: test withModel: model expectSuccess: YES];
+                } else {
+                    return YES;
+                }
+            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest"]) {
+                if (self.runSyntaxTests) {
+                    return [self runQuerySyntaxTest: test withModel: model expectSuccess: NO];
+                } else {
+                    return YES;
+                }
+            } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
+                if (self.runEvalTests) {
+                    BOOL ok     = [self runQueryEvalTest: test withModel: model];
+                    [NSURLProtocol unregisterClass:[GTWSPARQLTestHarnessURLProtocol class]];
+                    return ok;
+                } else {
+                    return YES;
+                }
             } else {
-                return YES;
-            }
-        } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
-            if (self.runEvalTests) {
-                BOOL ok     = [self runQueryEvalTest: test withModel: model];
-                [NSURLProtocol unregisterClass:[GTWSPARQLTestHarnessURLProtocol class]];
-                return ok;
-            } else {
-                return YES;
+                NSLog(@"can't handle tests of type %@", testtype.value);
+                return NO;
             }
         } else {
-            NSLog(@"can't handle tests of type %@", testtype.value);
+//            NSLog(@"test not approved: %@ (%@)", test, approval);
             return NO;
         }
     } else {
@@ -410,7 +421,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
 //        GTWIRI* base    = [[GTWIRI alloc] initWithValue:@"http://base.example.org/"];
         
-        if (NO) {
+        if (YES) {
             NSLog(@"test model ------------------->\n");
             [testStore enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
                 NSLog(@"-> %@", q);
@@ -622,7 +633,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         }
         
         NSError* reason;
-        if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator] reason:&reason]) {
+        if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator] canonicalize:YES reason:&reason]) {
 //            NSLog(@"eval query plan: %@", plan);
             dispatch_sync(self.results_queue, ^{
                 self.testsPassing++;
