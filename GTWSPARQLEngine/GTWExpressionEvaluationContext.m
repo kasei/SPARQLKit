@@ -83,6 +83,15 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (!lhs || !rhs) {
             return nil;
         }
+        
+        if ([lhs isKindOfClass:[GTWLiteral class]] || [rhs isKindOfClass:[GTWLiteral class]]) {
+            GTWLiteral* l   = (GTWLiteral*) lhs;
+            GTWLiteral* r   = (GTWLiteral*) rhs;
+            if (![GTWLiteral literal: l isComparableWith:r]) {
+                return [GTWLiteral falseLiteral];
+            }
+        }
+        
         if ([lhs isValueEqual:rhs]) {
             return [GTWLiteral trueLiteral];
         } else {
@@ -123,74 +132,78 @@ static BOOL isNumeric(id<GTWTerm> term) {
     } else if (expr.type == kExprGe) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (isNumeric(term)) {
-            double value    = [term doubleValue];
-            double cmpvalue = [cmp doubleValue];
-            if (value >= cmpvalue) {
-                return [GTWLiteral trueLiteral];
-            } else {
+        if ([term isKindOfClass:[GTWLiteral class]] && [cmp isKindOfClass:[GTWLiteral class]] && [GTWLiteral literal:term isComparableWith:cmp]) {
+            NSComparisonResult r        = [term compare:cmp];
+            if (r == NSOrderedAscending) {
                 return [GTWLiteral falseLiteral];
+            } else {
+                return [GTWLiteral trueLiteral];
             }
+        } else {
+            return nil;
         }
-        return nil;
     } else if (expr.type == kExprLe) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (isNumeric(term)) {
-            double value    = [term doubleValue];
-            double cmpvalue = [cmp doubleValue];
-            if (value <= cmpvalue) {
-                return [GTWLiteral trueLiteral];
-            } else {
+        if ([term isKindOfClass:[GTWLiteral class]] && [cmp isKindOfClass:[GTWLiteral class]] && [GTWLiteral literal:term isComparableWith:cmp]) {
+            NSComparisonResult r        = [term compare:cmp];
+            if (r == NSOrderedDescending) {
                 return [GTWLiteral falseLiteral];
+            } else {
+                return [GTWLiteral trueLiteral];
             }
+        } else {
+            return nil;
         }
-        return nil;
     } else if (expr.type == kExprLt) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (isNumeric(term)) {
-            double value    = [term doubleValue];
-            double cmpvalue = [cmp doubleValue];
-            if (value < cmpvalue) {
+        if ([term isKindOfClass:[GTWLiteral class]] && [cmp isKindOfClass:[GTWLiteral class]] && [GTWLiteral literal:term isComparableWith:cmp]) {
+            NSComparisonResult r        = [term compare:cmp];
+            if (r == NSOrderedAscending) {
                 return [GTWLiteral trueLiteral];
             } else {
                 return [GTWLiteral falseLiteral];
             }
+        } else {
+            return nil;
         }
-        return nil;
     } else if (expr.type == kExprGt) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<GTWLiteral,GTWTerm> cmp  = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
-        if (isNumeric(term)) {
-            double value    = [term doubleValue];
-            double cmpvalue = [cmp doubleValue];
-            if (value > cmpvalue) {
+        if ([term isKindOfClass:[GTWLiteral class]] && [cmp isKindOfClass:[GTWLiteral class]] && [GTWLiteral literal:term isComparableWith:cmp]) {
+            NSComparisonResult r        = [term compare:cmp];
+            if (r == NSOrderedDescending) {
                 return [GTWLiteral trueLiteral];
             } else {
                 return [GTWLiteral falseLiteral];
             }
+        } else {
+            return nil;
         }
-        return nil;
     } else if (expr.type == kExprRand) {
         GTWLiteral* l   = [GTWLiteral doubleLiteralWithValue:((double)rand() / RAND_MAX)];
         return l;
     } else if (expr.type == kExprAbs) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        if (isNumeric(term)) {
-            NSString* datatype  = term.datatype;
-            if ([datatype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
+        if ([term isNumeric]) {
+            if ([term isInteger]) {
                 NSInteger value  = [term integerValue];
                 if (value < 0) {
                     value = -value;
                 }
-                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lu", (unsigned long) value] datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
-            } else if ([datatype isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
+                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lld", (long long) value] datatype:term.datatype];
+            } else if ([term isDouble]) {
                 double value  = [term doubleValue];
                 if (value < 0.0) {
                     value = -value;
                 }
-                return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lf", value] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+                
+                if ([term.datatype isEqualToString:@"http://www.w3.org/2001/XMLSchema#decimal"]) {
+                    return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lg", value] datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+                } else {
+                    return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lE", value] datatype:term.datatype];
+                }
             }
         } else {
             return nil;
