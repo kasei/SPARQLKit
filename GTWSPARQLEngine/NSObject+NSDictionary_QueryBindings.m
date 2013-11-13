@@ -20,4 +20,14 @@
     return join;
 }
 
+- (id) copyWithCanonicalization {
+//    NSLog(@"copying result dictionary with canonicalization: %@", self);
+    NSMutableDictionary* copy   = [NSMutableDictionary dictionary];
+    for (id key in self) {
+        id value    = self[key];
+        copy[key]   = ([value respondsToSelector:@selector(copyWithCanonicalization)]) ? [value copyWithCanonicalization] : [value copy];
+    }
+    return [copy copy];
+}
+
 @end

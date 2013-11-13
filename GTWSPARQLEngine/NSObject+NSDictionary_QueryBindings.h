@@ -11,5 +11,5 @@
 @interface NSDictionary (NSDictionary_QueryBindings)
 
 - (NSDictionary*) join: (NSDictionary*) result;
-
+- (id) copyWithCanonicalization;
 @end

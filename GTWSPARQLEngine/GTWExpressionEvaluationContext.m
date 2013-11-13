@@ -83,7 +83,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (!lhs || !rhs) {
             return nil;
         }
-        if ([lhs isEqual:rhs]) {
+        if ([lhs isValueEqual:rhs]) {
             return [GTWLiteral trueLiteral];
         } else {
             return [GTWLiteral falseLiteral];
@@ -108,7 +108,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             }
         }
         
-        if ([lhs isEqual:rhs]) {
+        if ([lhs isValueEqual:rhs]) {
             return [GTWLiteral falseLiteral];
         } else {
             return [GTWLiteral trueLiteral];
@@ -639,6 +639,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
         id<GTWTerm> term  = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         if ([term isKindOfClass:[GTWLiteral class]]) {
             GTWLiteral* l   = (GTWLiteral*) term;
+            if ([l isSimpleLiteral]) {
+                return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/XMLSchema#string"];
+            }
             NSString* dt    = l.datatype;
             if (!dt)
                 dt    = @"";
@@ -917,7 +920,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         if (![rhs isKindOfClass:[GTWLiteral class]] || ![rhs isNumeric]) {
             return nil;
         }
-        NSString* promotedtype  = [GTWLiteral promtedTypeForNumericTypes:lhs.datatype and:rhs.datatype];
+        NSString* promotedtype  = [GTWLiteral promotedTypeForNumericTypes:lhs.datatype and:rhs.datatype];
 //        NSLog(@"promoted type: %@", promotedtype);
         
         if ([promotedtype isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
