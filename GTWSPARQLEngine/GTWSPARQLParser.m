@@ -1076,24 +1076,13 @@ cleanup:
                     [self parseOptionalTokenOfType:DOT];
                     break;
                 case KEYWORD:
-                    if ([t.value isEqual:@"A"]) {
-                        if (!allowTriplesBlock)
-                            break;
-                        algebra = [self triplesByParsingTriplesBlockWithErrors:errors];
-                        allowTriplesBlock   = NO;
-                        ASSERT_EMPTY(errors);
-                        if (!algebra)
-                            return [self errorMessage:@"Could not parse TriplesBlock in GroupGraphPatternSub" withErrors:errors];
-                        [args addObject:[self reduceTriplePaths: algebra]];
-                    } else {
-                        algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
-                        allowTriplesBlock   = YES;
-                        ASSERT_EMPTY(errors);
-                        if (!algebra)
-                            return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (2)" withErrors:errors];
-                        [args addObject:algebra];
-                        [self parseOptionalTokenOfType:DOT];
-                    }
+                    algebra = [self treeByParsingGraphPatternNotTriplesWithError:errors];
+                    allowTriplesBlock   = YES;
+                    ASSERT_EMPTY(errors);
+                    if (!algebra)
+                        return [self errorMessage:@"Could not parse GraphPatternNotTriples in GroupGraphPatternSub (2)" withErrors:errors];
+                    [args addObject:algebra];
+                    [self parseOptionalTokenOfType:DOT];
                     break;
                 default:
                     ok  = NO;
@@ -1137,9 +1126,6 @@ cleanup:
                 id<GTWTree> pair    = E.treeValue;
                 id<GTWTree> algebra = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:@[G]];
                 G   = [self algebraVerifyingExtend:algebra withErrors:errors];
-                if ([errors count]) {
-                    NSLog(@"Extend error on pattern: %@", algebra);
-                }
                 ASSERT_EMPTY(errors);
             } else {
                 if (G.type == kAlgebraBGP && [G.arguments count] == 0) {
@@ -1151,9 +1137,6 @@ cleanup:
                         G   = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:triples];
                     } else {
                         [self checkForSharedBlanksInPatterns:@[G, E] error:errors];
-                        if ([errors count]) {
-                            NSLog(@"shared blank nodes on patterns: %@ %@", G, E);
-                        }
                         ASSERT_EMPTY(errors);
                         G   = [[GTWTree alloc] initWithType:kAlgebraJoin arguments:@[G, E]];
                     }
@@ -1189,26 +1172,6 @@ cleanup:
         [seen addObjectsFromArray:[blanks allObjects]];
     }
     return YES;
-}
-
-- (id<GTWTree>) algebraByApplyingFilters: (NSMutableArray*) filters toAlgebra: algebra withErrors: (NSMutableArray*) errors {
-    if ([filters count] == 0) {
-        return algebra;
-    } else if ([filters count] == 1) {
-        id<GTWTree> filter  = filters[0];
-        filter.arguments    = @[algebra];
-        [filters removeAllObjects];
-        return filter;
-    } else {
-        NSMutableArray* exprs   = [NSMutableArray array];
-        for (id<GTWTree> f in filters) {
-            [exprs addObject:f.treeValue];
-        }
-        id<GTWTree> conj    = [[GTWTree alloc] initWithType:kExprAnd arguments:exprs];
-        id<GTWTree> filter  = [[GTWTree alloc] initWithType:kAlgebraFilter treeValue: conj arguments:@[algebra]];
-        [filters removeAllObjects];
-        return filter;
-    }
 }
 
 //[60]  	Bind	  ::=  	'BIND' '(' Expression 'AS' Var ')'
@@ -1648,16 +1611,6 @@ cleanup:
     } else {
         id<GTWTree> path    = [self parsePathEltWithErrors:errors];
         ASSERT_EMPTY(errors);
-        if (!path)
-            return nil;
-        t   = [self peekNextNonCommentToken];
-        while (t && t.type == HAT) {
-            [self nextNonCommentToken];
-            id<GTWTree> pathInv    = [self parsePathEltWithErrors:errors];
-            ASSERT_EMPTY(errors);
-            path    = [[GTWTree alloc] initWithType:kPathInverse arguments:@[path, pathInv]];
-            t   = [self peekNextNonCommentToken];
-        }
         return path;
     }
 }
@@ -2879,50 +2832,6 @@ cleanup:
     return [self errorMessage:[NSString stringWithFormat:@"unexpected token as term: %@ (near '%@')", t, self.lexer.buffer] withErrors:errors];
 }
 
-
-- (id<GTWTerm>) currentSubject {
-    NSArray* pair   = [self.stack lastObject];
-    return pair[0];
-}
-
-- (id<GTWTerm>) currentPredicate {
-    NSArray* pair   = [self.stack lastObject];
-    return [pair[1] lastObject];
-}
-
-- (BOOL) haveSubjectPredicatePair {
-    if ([self.stack count] == 0)
-        return NO;
-    if ([[self.stack lastObject] count] < 2)
-        return NO;
-    if ([[self.stack lastObject][1] count] == 0)
-        return NO;
-    return YES;
-}
-
-- (BOOL) haveSubject {
-    return ([self.stack count] > 0);
-}
-
-- (void) pushNewSubject: (id<GTWTerm>) subj {
-    NSMutableArray* preds   = [[NSMutableArray alloc] init];
-    NSArray* pair   = @[subj, preds];
-    [self.stack addObject:pair];
-}
-
-- (void) popSubject {
-    [self.stack removeLastObject];
-}
-
-- (void) pushNewPredicate: (id<GTWTerm>) pred {
-    NSArray* pair   = [self.stack lastObject];
-    [pair[1] addObject:pred];
-}
-
-- (void) popPredicate {
-    NSArray* pair   = [self.stack lastObject];
-    [pair[1] removeLastObject];
-}
 
 - (id) errorMessage: (id) message withErrors:(NSMutableArray*) errors {
     [errors addObject:message];
