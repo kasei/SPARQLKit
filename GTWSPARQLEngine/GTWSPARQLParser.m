@@ -2881,7 +2881,16 @@ cleanup:
         return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
     } else if (t.type == PLUS) {
         t   = [self nextNonCommentToken];
-        return [self tokenAsTerm:t withErrors:errors];
+        NSString* value = [NSString stringWithFormat:@"+%@", t.value];
+        if (t.type == INTEGER) {
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
+        } else if (t.type == DECIMAL) {
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#decimal"];
+        } else if (t.type == DOUBLE) {
+            return [[GTWLiteral alloc] initWithValue:value datatype:@"http://www.w3.org/2001/XMLSchema#double"];
+        } else {
+            return [self errorMessage:[NSString stringWithFormat:@"Expecting numeric value after PLUS but found: %@", t] withErrors:errors];
+        }
     } else if (t.type == MINUS) {
         t   = [self nextNonCommentToken];
         NSString* value = [NSString stringWithFormat:@"-%@", t.value];
