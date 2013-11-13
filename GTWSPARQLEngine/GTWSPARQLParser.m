@@ -1107,27 +1107,18 @@ cleanup:
     [self checkForSharedBlanksInPatterns:reordered error:errors];
     ASSERT_EMPTY(errors);
     
-//    if ([reordered count] == 1) {
-//        return reordered[0];
-//    } else {
-        return [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
-//    }
+    return [[GTWTree alloc] initWithType:kTreeList arguments:reordered];
 }
 
 - (NSArray*) reorderTrees: (NSArray*) args errors:(NSMutableArray*) errors {
-    // Let FS := the empty set
-    // Let G := the empty pattern, a basic graph pattern which is the empty set.
     NSMutableSet* FS    = [NSMutableSet set];
     id<GTWTree> G       = [[GTWTree alloc] initWithType:kAlgebraBGP arguments:@[]];
     
-    // For each element E in the GroupGraphPattern
     for (id<GTWTree> E in args) {
-        //     If E is of the form OPTIONAL{P}
         if (E.type == kAlgebraFilter) {
             [FS addObject:E];
         } else {
             if (E.type == kAlgebraLeftJoin) {
-                //         Let A := Translate(P)
                 id<GTWTree> A   = E.arguments[0];
                 while (A.type == kTreeList && [A.arguments count] == 1) {
                     A   = A.arguments[0];
@@ -1135,30 +1126,14 @@ cleanup:
                 [self checkForSharedBlanksInPatterns:@[G, A] error:errors];
                 ASSERT_EMPTY(errors);
                 
-                //         If A is of the form Filter(F, A2)
                 if (A.type == kAlgebraFilter) {
-                    //             G := LeftJoin(G, A2, F)
                     G   = [[GTWTree alloc] initWithType:kAlgebraLeftJoin treeValue:A.treeValue arguments:@[G, A.arguments[0]]];
                 } else {
-                    //         Else
-                    //             G := LeftJoin(G, A, true)
                     G   = [[GTWTree alloc] initWithType:kAlgebraLeftJoin treeValue:E.treeValue arguments:@[G, A]];
                 }
-                //         End
-                
-                //     End
-            }
-            
-            //     If E is of the form MINUS{P}
-            else if (E.type == kAlgebraMinus) {
-                //         G := Minus(G, Translate(P))
+            } else if (E.type == kAlgebraMinus) {
                 G   = [[GTWTree alloc] initWithType:kAlgebraMinus arguments:@[G, E.arguments[0]]];
-                //     End
-            }
-            
-            //     If E is of the form BIND(expr AS var)
-            else if (E.type == kAlgebraExtend) {
-                //         G := Extend(G, var, expr)
+            } else if (E.type == kAlgebraExtend) {
                 id<GTWTree> pair    = E.treeValue;
                 id<GTWTree> algebra = [[GTWTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:@[G]];
                 G   = [self algebraVerifyingExtend:algebra withErrors:errors];
@@ -1166,13 +1141,7 @@ cleanup:
                     NSLog(@"Extend error on pattern: %@", algebra);
                 }
                 ASSERT_EMPTY(errors);
-                //     End
-            }
-            
-            //     If E is any other form
-            else {
-                //         Let A := Translate(E)
-                //         G := Join(G, A)
+            } else {
                 if (G.type == kAlgebraBGP && [G.arguments count] == 0) {
                     G   = E;
                 } else {
@@ -1189,9 +1158,7 @@ cleanup:
                         G   = [[GTWTree alloc] initWithType:kAlgebraJoin arguments:@[G, E]];
                     }
                 }
-                //     End
             }
-            // End
         }
     }
     
@@ -1206,7 +1173,6 @@ cleanup:
         ASSERT_EMPTY(errors);
     }
     
-    // The result is G.
     return @[G];
 }
 
