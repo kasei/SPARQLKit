@@ -80,106 +80,111 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return array;
 }
 
-- (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifest: (NSString*) manifest {
+- (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifests: (NSArray*) manifestFiles {
     if (pattern) {
         NSLog(@"Running manifest tests with pattern '%@'", pattern);
     }
     __block NSError* error          = nil;
-    GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", manifest]];
-    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
-    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
-    
-    NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
-    NSData* data                = [fh readDataToEndOfFile];
-    dispatch_sync(self.raptor_queue, ^{
-        id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
-        NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-        GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
-        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-            [store addQuad:[renamer renameObject:q inContext:ctx] error:&error];
-        } error:&error];
-    });
-    
-    GTWVariable* v  = [[GTWVariable alloc] initWithValue:@"o"];
-    GTWIRI* include = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
-    NSMutableArray* manifests   = [NSMutableArray array];
-    [model enumerateBindingsMatchingSubject:nil predicate:include object:v graph:nil usingBlock:^(NSDictionary *q) {
-        id<GTWTerm> list    = q[@"o"];
-        NSArray* files      = [self arrayFromModel:model withList:list];
-        NSMutableArray* matchingFiles   = [NSMutableArray array];
-        for (id<GTWTerm> f in files) {
-            // Skip entailment tests as well as the protocol and SD manifests which don't contain tests we can run
-            if ([f.value rangeOfString:@"entailment"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"protocol"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"service-description"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"csv-tsv-res"].location != NSNotFound)
-                continue;
-
-            
-            
-            if ([f.value rangeOfString:@"add"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"update"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"clear"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"copy"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"delete"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"drop"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"move"].location != NSNotFound)
-                continue;
-
-            
-            
-            
-            
-            
-            
-            if ([f.value rangeOfString:@"service"].location != NSNotFound)
-                continue;
-            if ([f.value rangeOfString:@"syntax-fed"].location != NSNotFound)
-                continue;
-//            NSLog(@"Manifest --> %@", f);
-            [matchingFiles addObject:f];
-        }
-        [manifests addObjectsFromArray:matchingFiles];
-    } error:nil];
-    
-    for (id<GTWIRI> file in manifests) {
-        NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
+    for (NSString* manifest in manifestFiles) {
+        GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", manifest]];
+        GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+        GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+        NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
         NSData* data                = [fh readDataToEndOfFile];
         dispatch_sync(self.raptor_queue, ^{
-            id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
-            __block NSUInteger count    = 0;
+            id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
             NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
             GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                 GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
                 [store addQuad:[renamer renameObject:q inContext:ctx] error:&error];
-                count++;
             } error:&error];
         });
+ 
+        GTWVariable* v  = [[GTWVariable alloc] initWithValue:@"o"];
+        GTWIRI* include = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
+        NSMutableArray* manifests   = [NSMutableArray array];
+        [model enumerateBindingsMatchingSubject:nil predicate:include object:v graph:nil usingBlock:^(NSDictionary *q) {
+            id<GTWTerm> list    = q[@"o"];
+            NSArray* files      = [self arrayFromModel:model withList:list];
+            NSMutableArray* matchingFiles   = [NSMutableArray array];
+            for (id<GTWTerm> f in files) {
+                // Skip entailment tests as well as the protocol and SD manifests which don't contain tests we can run
+                if ([f.value rangeOfString:@"entailment"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"protocol"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"service-description"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"csv-tsv-res"].location != NSNotFound)
+                    continue;
+                
+                
+                
+                if ([f.value rangeOfString:@"add"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"update"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"clear"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"copy"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"delete"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"drop"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"move"].location != NSNotFound)
+                    continue;
+                
+                
+                
+                
+                
+                
+                
+                if ([f.value rangeOfString:@"service"].location != NSNotFound)
+                    continue;
+                if ([f.value rangeOfString:@"syntax-fed"].location != NSNotFound)
+                    continue;
+                //            NSLog(@"Manifest --> %@", f);
+                [matchingFiles addObject:f];
+            }
+            [manifests addObjectsFromArray:matchingFiles];
+        } error:nil];
+        
+        for (id<GTWIRI> file in manifests) {
+            NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
+            NSData* data                = [fh readDataToEndOfFile];
+            dispatch_sync(self.raptor_queue, ^{
+                id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
+                __block NSUInteger count    = 0;
+                NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
+                GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
+                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                    GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
+                    [store addQuad:[renamer renameObject:q inContext:ctx] error:&error];
+                    count++;
+                } error:&error];
+            });
+        }
+        
+        GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        GTWIRI* mantype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"];
+        
+        NSMutableArray* manifestTerms   = [NSMutableArray array];
+        [model enumerateQuadsMatchingSubject:nil predicate:type object:mantype graph:nil usingBlock:^(id<GTWQuad> q) {
+            [manifestTerms addObject:q.subject];
+        } error:nil];
+        
+        for (id<GTWTerm> t in manifestTerms) {
+            [self runTestsMatchingPattern: pattern fromManifest:t withModel: model];
+        }
     }
     
-    GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-    GTWIRI* mantype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"];
-    
-    NSMutableArray* manifestTerms   = [NSMutableArray array];
-    [model enumerateQuadsMatchingSubject:nil predicate:type object:mantype graph:nil usingBlock:^(id<GTWQuad> q) {
-        [manifestTerms addObject:q.subject];
-    } error:nil];
-    
-    for (id<GTWTerm> t in manifestTerms) {
-        [self runTestsMatchingPattern: pattern fromManifest:t withModel: model];
-    }
-    
+    return YES;
+}
+
+- (void) printSummary {
     NSLog(@"Failing tests: %@", self.failingTests);
     NSLog(@"%lu/%lu passing tests (%.1f%%)", self.testsPassing, self.testsCount, (100.0 * (float) self.testsPassing / (float) self.testsCount));
     if (self.runSyntaxTests) {
@@ -194,12 +199,10 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             //            NSLog(@"%@", self.testData[kFailingEvalTests]);
         }
     }
-    
-    return YES;
 }
 
-- (BOOL) runTestsFromManifest: (NSString*) manifest {
-    return [self runTestsMatchingPattern:nil fromManifest:manifest];
+- (BOOL) runTestsFromManifests: (NSArray*) manifests {
+    return [self runTestsMatchingPattern:nil fromManifests:manifests];
 }
 
 - (BOOL) runTestsMatchingPattern: (NSString*) pattern fromManifest: (id<GTWTerm>) manifest withModel: (id<GTWModel>) model {
@@ -421,7 +424,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
 //        GTWIRI* base    = [[GTWIRI alloc] initWithValue:@"http://base.example.org/"];
         
-        if (YES) {
+        if (NO) {
             NSLog(@"test model ------------------->\n");
             [testStore enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
                 NSLog(@"-> %@", q);

@@ -543,22 +543,34 @@ int main(int argc, const char * argv[]) {
             run_memory_quad_store_example(filename, base);
         }
     } else if ([op isEqual: @"testsuite"]) {
-        NSString* manifest  = @"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl";
-        if (argc > (argi+1) && !strcmp(argv[argi], "-m")) {
+        NSMutableArray* manifests   = [NSMutableArray array];
+        while (argc > (argi+1) && !strcmp(argv[argi], "-m")) {
             ++argi;
-            manifest    = [NSString stringWithFormat:@"%s", argv[argi++]];
+            NSString* manifest    = [NSString stringWithFormat:@"%s", argv[argi++]];
+            [manifests addObject:manifest];
         }
         NSString* pattern   = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : nil;
+        
+        if ([manifests count] == 0) {
+            // Defaults
+            [manifests addObject:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg11/manifest-all.ttl"];
+            [manifests addObject:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg/data-r2/manifest-syntax.ttl"];
+            [manifests addObject:@"/Users/greg/data/prog/git/perlrdf/RDF-Query/xt/dawg/data-r2/manifest-evaluation.ttl"];
+            if (!pattern)
+                pattern = @"#(?!construct-)";
+        }
+        
         while (YES) {
             GTWSPARQLTestHarness* harness   = [[GTWSPARQLTestHarness alloc] initWithConcurrency:(concurrent ? YES : NO)];
             harness.verbose         = verbose;
             harness.runEvalTests    = YES;
             harness.runSyntaxTests  = YES;
             if (pattern) {
-                [harness runTestsMatchingPattern:pattern fromManifest:manifest ];
+                [harness runTestsMatchingPattern:pattern fromManifests:manifests];
             } else {
-                [harness runTestsFromManifest:manifest];
+                [harness runTestsFromManifests:manifests];
             }
+            [harness printSummary];
             if (!stress)
                 break;
         }
