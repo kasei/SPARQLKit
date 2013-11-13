@@ -627,13 +627,12 @@
 }
 
 - (id<GTWTree,GTWQueryPlan>) planBGP: (NSArray*) triples usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
-//    NSLog(@"planning BGP: %@\n", triples);
-    NSArray* defaultGraphs   = [dataset defaultGraphs];
-    NSInteger graphCount   = [defaultGraphs count];
+    NSArray* defaultGraphs  = [dataset defaultGraphs];
+    NSInteger graphCount    = [defaultGraphs count];
     NSInteger i;
     id<GTWTree,GTWQueryPlan> plan;
     if (graphCount == 0) {
-        return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
     } else if ([triples count] == 0) {
         return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
     } else if ([triples count] == 1) {
