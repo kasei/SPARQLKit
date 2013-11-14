@@ -178,17 +178,9 @@ static NSString* OSVersionNumber ( void ) {
                     newResult[name]     = result[name];
                     testResult[name]    = result[name];
                 }
-            } else if (treenode.type == kAlgebraExtend) {
-                id<GTWTree> list    = treenode.treeValue;
-                GTWTree* expr       = list.arguments[0];
-                GTWTree* node       = list.arguments[1];
-                id<GTWVariable> v   = node.value;
-                NSString* name      = v.value;
-                id<GTWTerm> f       = [self.evalctx evaluateExpression:expr withResult:testResult usingModel:model resultIdentity:result];
-                if (f) {
-                    newResult[name]     = f;
-                    testResult[name]    = f;
-                }
+            } else {
+                NSLog(@"Unexpected plan type in evaluating project: %@", plan);
+                return nil;
             }
         }
         [projected addObject:newResult];
