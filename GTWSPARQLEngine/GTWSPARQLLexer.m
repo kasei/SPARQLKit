@@ -304,6 +304,16 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSRange range2	= [self.buffer rangeOfString:r_PNAME_NS options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		NSString* pname	= [self _readLength:range.length];
+        if ([pname rangeOfString:@"\\"].location != NSNotFound) {
+            NSError* error;
+            NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"\\\\(.)" options:0 error:&error];
+            if (error) {
+                NSLog(@"%@", error);
+            }
+            pname  = [regex stringByReplacingMatchesInString:pname options:0 range:NSMakeRange(0, [pname length]) withTemplate:@"$1"];
+        }
+        
+        
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
         if ([values count] != 2) {
             NSMutableArray* mvalues = [NSMutableArray arrayWithArray:values];
