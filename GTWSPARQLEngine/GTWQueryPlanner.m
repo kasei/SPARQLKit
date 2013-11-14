@@ -223,8 +223,8 @@
         } else if ([algebra.arguments count] == 1) {
             return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
         } else if ([algebra.arguments count] == 2) {
-            id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
-            id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
             if (!lhs || !rhs) {
                 NSLog(@"Failed to plan both sides of JOIN");
                 return nil;
@@ -232,10 +232,10 @@
             return [self joinPlanForPlans: lhs and: rhs];
         } else {
             NSMutableArray* args    = [NSMutableArray arrayWithArray:algebra.arguments];
-            id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
             [args removeLastObject];
             while ([args count] > 0) {
-                id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+                id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
                 [args removeLastObject];
                 if (!lhs) {
                     NSLog(@"Failed to plan both sides of %lu-way JOIN", [algebra.arguments count]);

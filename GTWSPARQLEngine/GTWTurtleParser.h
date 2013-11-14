@@ -14,7 +14,7 @@
 @property GTWSPARQLLexer* lexer;
 @property NSMutableArray* stack;
 @property NSMutableDictionary* namespaces;
-@property GTWIRI* baseIRI;
+@property id<GTWIRI> baseIRI;
 @property (nonatomic, copy) IDGenerator bnodeIDGenerator;
 @property (copy) void(^tripleBlock)(id<GTWTriple>);
 @property BOOL verbose;

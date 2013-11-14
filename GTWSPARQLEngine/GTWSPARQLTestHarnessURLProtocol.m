@@ -94,7 +94,7 @@ static dispatch_once_t mockToken;
         id<GTWTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        GTWTree<GTWTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
+        GTWTree<GTWTree,GTWQueryPlan>* plan   = (GTWTree<GTWTree,GTWQueryPlan>*) [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
         
         if (NO) {

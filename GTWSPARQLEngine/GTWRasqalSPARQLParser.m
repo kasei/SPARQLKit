@@ -522,7 +522,7 @@ static GTWTree* roqet_graph_pattern_walk(rasqal_world* rasqal_world_ptr, rasqal_
 //					children2[size2++]	= gtw_new_tree_va(ALGEBRA_FILTER, NULL, 2, gtw_tree_copy(tree_child(c,0)), pat);
                     //					gtw_free_tree(c);
                     
-                    GTWTree* expr       = c.treeValue;
+                    id<GTWTree> expr       = c.treeValue;
 //                    NSLog(@"FILTER expression: %@", expr);
                     
                     if (expr) {

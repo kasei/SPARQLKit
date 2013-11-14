@@ -279,6 +279,29 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }
 }
 
+- (id)copyWithCanonicalization {
+    GTWTree* copy       = [[[self class] alloc] init];
+    copy.leaf           = self.leaf;
+    copy.type           = self.type;
+    NSMutableArray* args    = [NSMutableArray array];
+    for (id<GTWTree> a in self.arguments) {
+        id<GTWTree> c   = [a copyWithCanonicalization];
+        [args addObject:c];
+    }
+    copy.arguments      = args;
+    if ([self.value conformsToProtocol:@protocol(GTWRewriteable)]) {
+        id<GTWRewriteable> value    = self.value;
+        copy.value          = [value copyWithCanonicalization];
+    } else {
+        copy.value          = [self.value copy];
+    }
+    id tv               = self.treeValue;
+    copy.treeValue      = [tv copyWithCanonicalization];
+    copy.ptr            = self.ptr;
+    copy.annotations    = [NSMutableDictionary dictionaryWithDictionary:self.annotations];
+    return copy;
+}
+
 - (id)copyWithZone:(NSZone *)zone {
     return [self copy];
 }

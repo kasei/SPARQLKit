@@ -2437,7 +2437,7 @@ cleanup:
         } else if ([kw isEqual:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
             [self nextNonCommentToken];
-            id<GTWTree> silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
+            GTWSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
             id<GTWTree> varOrIRI    = [self parseVarOrIRIWithErrors: errors];
             ASSERT_EMPTY(errors);
             if (!varOrIRI)

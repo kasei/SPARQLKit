@@ -9,7 +9,7 @@
 #import "NSDate+W3CDTFSupport.h"
 
 // Private
-@interface NSDate ()
+@interface NSDate (W3CDTFSupportPrivate)
 +(NSDictionary*) W3CDTF_timeDictionaryWithString:(NSString*)timeString range:(NSRange)range;
 @end
 

@@ -97,7 +97,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                 GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-                [store addQuad:[renamer renameObject:q inContext:ctx] error:&error];
+                [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
             } error:&error];
         });
  
@@ -157,7 +157,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
                 [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                     GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-                    [store addQuad:[renamer renameObject:q inContext:ctx] error:&error];
+                    [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
                     count++;
                 } error:&error];
             });
@@ -318,7 +318,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
             count++;
             GTWQuad* q   = [GTWQuad quadFromTriple:t withGraph:graph];
-            [store addQuad:[renamer renameObject:q inContext:ctx] error:nil];
+            [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
         } error:&error];
         if (error) {
             NSLog(@"parser error: %@", error);
@@ -334,7 +334,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
                 count++;
                 GTWQuad* q   = [GTWQuad quadFromTriple:t withGraph:graph];
-                [store addQuad:[renamer renameObject:q inContext:ctx] error:nil];
+                [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
             } error:&error];
             //  NSLog(@"%lu total quads\n", count);
             if (error) {
@@ -488,7 +488,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        GTWTree* algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
+        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
@@ -566,7 +566,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWMemoryQuadStore* testStore   = [[GTWMemoryQuadStore alloc] init];
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
+    GTWTree<GTWTree,GTWQueryPlan>* plan   = (GTWTree<GTWTree,GTWQueryPlan>*) [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
@@ -735,7 +735,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
     for (id<GTWTriple> t in triples) {
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:defaultGraph];
-        [store addQuad:[renamer renameObject:q inContext:ctx] error:nil];
+        [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
     }
     GTWQuadModel* model = [[GTWQuadModel alloc] initWithQuadStore:store];
     id<GTWTerm> rs      = [model anySubjectForPredicate:type object:resultset graph:nil];

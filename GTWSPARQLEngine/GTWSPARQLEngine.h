@@ -26,7 +26,7 @@
 
 #pragma mark -
 
-@protocol GTWTree<NSObject>
+@protocol GTWTree<NSObject,GTWRewriteable>
 typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL* stop);
 typedef NSString* GTWTreeType;
 

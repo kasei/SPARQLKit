@@ -12,6 +12,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
 
 
 @implementation GTWTurtleParser
+@synthesize baseURI;
 
 - (GTWTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base {
     if (self = [self init]) {
@@ -309,11 +310,9 @@ cleanup:
     GTWIRI* rdfnil      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
 
     GTWSPARQLToken* t     = [self peekNextNonCommentToken];
-    NSMutableArray* objects = [NSMutableArray array];
     id<GTWTerm> head        = subject;
-    id<GTWTerm> previous    = nil;
     while (t.type != RPAREN) {
-        id<GTWTerm> object  = [self parseObjectForSubject:head predicate:rdffirst errors:errors];
+        [self parseObjectForSubject:head predicate:rdffirst errors:errors];
         ASSERT_EMPTY(errors);
         t     = [self peekNextNonCommentToken];
         if (t.type == RPAREN) {
