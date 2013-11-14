@@ -240,12 +240,30 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 - (BOOL) runTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model {
     GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     GTWIRI* dtapproval      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#approval"];
+    GTWIRI* mfrequires      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#requires"];
     NSArray* testtypes      = [model objectsForSubject:test predicate:type graph:nil];
     if (testtypes && [testtypes count]) {
         id<GTWTerm> approval    = [model anyObjectForSubject:test predicate:dtapproval graph:nil];
+        NSArray* requires       = [model objectsForSubject:test predicate:mfrequires graph:nil];
         if (!approval) {
-            NSLog(@"no approval value for test %@", test);
+            if (self.verbose)
+                NSLog(@"No approval value for test %@", test);
             return NO;
+        }
+        
+        if ([requires count]) {
+            NSMutableSet* reqs  = [NSMutableSet set];
+            for (GTWIRI* req in requires) {
+                [reqs addObject:req.value];
+            }
+            [reqs removeObject:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#LangTagAwareness"];
+            [reqs removeObject:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#KnownTypesDefault2Neq"];
+            [reqs removeObject:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#StringSimpleLiteralCmp"];
+            if ([reqs count]) {
+                if (self.verbose)
+                    NSLog(@"Test requirements not satisfied: %@", reqs);
+                return NO;
+            }
         }
         
         if ([approval.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"]) {
