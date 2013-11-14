@@ -221,13 +221,10 @@ cleanup:
 
 //[10]	subject	::=	iri | BlankNode | collection
 - (id<GTWTerm>) parseSubjectWithErrors: (NSMutableArray*) errors {
-    // TODO:
     GTWSPARQLToken* t     = [self peekNextNonCommentToken];
     if (t.type == LPAREN) {
         id<GTWTerm> subject = [self parseCollectionWithErrors: errors];
         return subject;
-    } else if (t.type == LBRACKET) {
-        
     } else {
         id<GTWTerm> subject = [self parseTermWithErrors:errors];
         ASSERT_EMPTY(errors);

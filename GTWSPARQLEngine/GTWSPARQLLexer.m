@@ -415,7 +415,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSRange range	= [self.buffer rangeOfString:@"a\\b" options:NSRegularExpressionSearch];
 	if (range.location == 0) {
 		[self _readLength:1];
-		// TODO: make sure there is a word boundary after true/false (a|true|false)\b
 		return [self newTokenOfType:KEYWORD withArgs:@[@"A"]];
 	} else if ([self.buffer hasPrefix:@"true"]) {
 		[self _readLength:4];
