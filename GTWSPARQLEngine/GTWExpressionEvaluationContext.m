@@ -274,6 +274,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 reopt   |= NSRegularExpressionCaseInsensitive;
             }
             NSError* error;
+            // TODO: Replace with RegexKitLite for correct unicode support
             NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:pattern.value options:reopt error:&error];
             NSString* replaced  = [regex stringByReplacingMatchesInString:string options:0 range:NSMakeRange(0, [string length]) withTemplate:replace.value];
             
@@ -296,6 +297,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             if (args && [args.value isEqual:@"i"]) {
                 opt |= NSCaseInsensitiveSearch;
             }
+            // TODO: Replace with RegexKitLite for correct unicode support
             NSRange range       = [string rangeOfString:pattern.value options:opt];
             if (range.location == NSNotFound) {
                 return [GTWLiteral falseLiteral];
