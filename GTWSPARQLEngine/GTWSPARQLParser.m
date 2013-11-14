@@ -1367,38 +1367,6 @@ cleanup:
     }
 }
 
-// [77]  	PropertyListNotEmpty	  ::=  	Verb ObjectList ( ';' ( Verb ObjectList )? )*
-- (NSArray*) propertyObjectPairsByParsingPropertyListNotEmptyWithErrors: (NSMutableArray*) errors {
-    NSMutableArray* plist   = [NSMutableArray array];
-    id<GTWTree> verb    = [self parseVerbWithErrors: errors];
-    ASSERT_EMPTY(errors);
-    id<GTWTree> objectList  = [self parseObjectListWithErrors:errors];
-    ASSERT_EMPTY(errors);
-    for (id<GTWTree> o in objectList.arguments) {
-        id<GTWTree> pair  = [[GTWTree alloc] initWithType:kTreeList arguments:@[ verb, o ]];
-        [plist addObject:pair];
-    }
-    
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    while (t && t.type == SEMICOLON) {
-        [self nextNonCommentToken];
-        t   = [self peekNextNonCommentToken];
-        if (t.type == VAR || t.type == IRI || (t.type == KEYWORD && [t.value isEqual: @"A"])) {
-            id<GTWTree> verb    = [self parseVerbWithErrors: errors];
-            ASSERT_EMPTY(errors);
-            id<GTWTree> objectList  = [self parseObjectListWithErrors:errors];
-            ASSERT_EMPTY(errors);
-            for (id<GTWTree> o in objectList.arguments) {
-                id<GTWTree> pair  = [[GTWTree alloc] initWithType:kTreeList arguments:@[ verb, o ]];
-                [plist addObject:pair];
-            }
-            t   = [self peekNextNonCommentToken];
-        }
-    }
-    
-    return plist;
-}
-
 // [78]  	Verb	  ::=  	VarOrIri | 'a'
 - (id<GTWTree>) parseVerbWithErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -1410,30 +1378,6 @@ cleanup:
     } else {
         return [self parseVarOrIRIWithErrors:errors];
     }
-}
-
-// [79]  	ObjectList	  ::=  	Object ( ',' Object )*
-- (id<GTWTree>) parseObjectListWithErrors: (NSMutableArray*) errors {
-    id<GTWTree> object  = [self parseObjectWithErrors: errors];
-    ASSERT_EMPTY(errors);
-    NSMutableArray* objects = [NSMutableArray arrayWithObject:object];
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    while (t && t.type == COMMA) {
-        [self nextNonCommentToken];
-        id<GTWTree> object  = [self parseObjectWithErrors: errors];
-        ASSERT_EMPTY(errors);
-        [objects addObject:object];
-    }
-    return [[GTWTree alloc] initWithType:kTreeList arguments:objects];
-}
-
-// [80]  	Object	  ::=  	GraphNode
-- (id<GTWTree>) parseObjectWithErrors: (NSMutableArray*) errors {
-    id<GTWTree> node   = nil;
-    id<GTWTree> triples = [self parseGraphNodeAsNode:&node withErrors:errors];
-    ASSERT_EMPTY(errors);
-    // TODO: the triples parsed in graphnode go missing here
-    return node;
 }
 
 // [82]  	PropertyListPath	  ::=  	PropertyListPathNotEmpty?
@@ -1693,32 +1637,6 @@ cleanup:
     }
 }
 
-// [98]  	TriplesNode	  ::=  	Collection |	BlankNodePropertyList
-- (id<GTWTree>) parseTriplesNodeAsNode: (id<GTWTree>*) node withErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    if (t.type == LPAREN) {
-        return [self triplesByParsingCollectionAsNode: (id<GTWTree>*) node withErrors: errors];
-    } else {
-        NSArray* plist  = [self propertyObjectPairsByParsingBlankNodePropertyListAsNode:node WithErrors:errors];
-        ASSERT_EMPTY(errors);
-        return [[GTWTree alloc] initWithType:kTreeList arguments:plist];
-    }
-}
-
-// [99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
-- (NSArray*) propertyObjectPairsByParsingBlankNodePropertyListAsNode: (id<GTWTree>*) node WithErrors: (NSMutableArray*) errors {
-    // need to handle bnode generation
-    GTWBlank* subj  = self.bnodeIDGenerator(nil);
-    *node   = [[GTWTree alloc] initWithType:kTreeNode value: subj arguments:nil];
-    [self parseExpectedTokenOfType:LBRACKET withErrors:errors];
-    ASSERT_EMPTY(errors);
-    NSArray* plist    = [self propertyObjectPairsByParsingPropertyListNotEmptyWithErrors: errors];
-    ASSERT_EMPTY(errors);
-    [self parseExpectedTokenOfType:RBRACKET withErrors:errors];
-    ASSERT_EMPTY(errors);
-    return plist;
-}
-
 // [100]  	TriplesNodePath	  ::=  	CollectionPath |	BlankNodePropertyListPath
 - (id<GTWTree>) parseTriplesNodePathAsNode: (id<GTWTree>*) node withErrors: (NSMutableArray*) errors {
     GTWSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -1741,57 +1659,6 @@ cleanup:
     return path;
 }
 
-//[102]  	Collection	  ::=  	'(' GraphNode+ ')'
-- (id<GTWTree>) triplesByParsingCollectionAsNode: (id<GTWTree>*) node withErrors: (NSMutableArray*) errors {
-    [self parseExpectedTokenOfType:LPAREN withErrors:errors];
-    ASSERT_EMPTY(errors);
-    id<GTWTree> graphNodePath    = [self parseGraphNodeAsNode: node withErrors:errors];
-    NSMutableArray* triples = [NSMutableArray arrayWithArray:graphNodePath.arguments];
-    NSMutableArray* nodes   = [NSMutableArray arrayWithObject:*node];
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    while (t.type != RPAREN) {
-        id<GTWTree> graphNodePath    = [self parseGraphNodeAsNode: node withErrors:errors];
-        ASSERT_EMPTY(errors);
-        [triples addObjectsFromArray:graphNodePath.arguments];
-        [nodes addObject:*node];
-        t   = [self peekNextNonCommentToken];
-    }
-    [self parseExpectedTokenOfType:RPAREN withErrors:errors];
-    ASSERT_EMPTY(errors);
-    
-    
-    GTWBlank* bnode  = self.bnodeIDGenerator(nil);
-    id<GTWTree> list    = [[GTWTree alloc] initWithType:kTreeNode value: bnode arguments:nil];
-    *node   = list;
-    
-    
-    GTWIRI* rdffirst    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"];
-    GTWIRI* rdfrest    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
-    GTWIRI* rdfnil    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
-    
-    if ([nodes count]) {
-        for (NSUInteger i = 0; i < [nodes count]; i++) {
-            id<GTWTree> o   = [nodes objectAtIndex:i];
-            GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:o.value];
-            [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil]];
-            if (i == [nodes count]-1) {
-                GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:rdfnil];
-                [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil]];
-            } else {
-                GTWBlank* newbnode  = self.bnodeIDGenerator(nil);
-                id<GTWTree> newlist = [[GTWTree alloc] initWithType:kTreeNode value: newbnode arguments:nil];
-                GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:newlist.value];
-                [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil]];
-                list    = newlist;
-            }
-        }
-    } else {
-        GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:rdfnil];
-        [triples addObject:[[GTWTree alloc] initWithType:kTreeTriple value:triple arguments:nil]];
-    }
-    
-    return [[GTWTree alloc] initWithType:kTreeList arguments:triples];
-}
 
 // [103]  	CollectionPath	  ::=  	'(' GraphNodePath+ ')'
 - (id<GTWTree>) triplesByParsingCollectionPathAsNode: (id<GTWTree>*) node withErrors: (NSMutableArray*) errors {
@@ -1863,18 +1730,6 @@ cleanup:
     }
     
     return [[GTWTree alloc] initWithType:kTreeList arguments:triples];
-}
-
-// [104]  	GraphNode	  ::=  	VarOrTerm |	TriplesNode
-- (id<GTWTree>) parseGraphNodeAsNode: (id<GTWTree>*) node withErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
-    if ([self tokenIsVarOrTerm:t]) {
-        *node   = [self parseVarOrTermWithErrors: errors];
-        ASSERT_EMPTY(errors);
-        return [[GTWTree alloc] initWithType:kTreeList arguments:@[]];
-    } else {
-        return [self parseTriplesNodeAsNode:node withErrors:errors];
-    }
 }
 
 // [105]  	GraphNodePath	  ::=  	VarOrTerm |	TriplesNodePath
@@ -2577,16 +2432,7 @@ cleanup:
             if (!ggp)
                 return nil;
             id<GTWTree> graph   = [[GTWTree alloc] initWithType:kTreeNode value:g arguments:nil];
-            
-            NSMutableArray* list    = [NSMutableArray arrayWithObject:graph];
-            if (ggp.type == kAlgebraFilter) {
-                id<GTWTree> filterExpr  = ggp.treeValue;
-                [list addObject:filterExpr];
-                ggp     = ggp.arguments[0];
-            }
-            
-            id<GTWTree> graphAndFilter   = [[GTWTree alloc] initWithType:kTreeList arguments:list];
-            id<GTWTree> graphPattern    = [[GTWTree alloc] initWithType:kAlgebraGraph treeValue: graphAndFilter arguments:@[ggp]];
+            id<GTWTree> graphPattern    = [[GTWTree alloc] initWithType:kAlgebraGraph treeValue: graph arguments:@[ggp]];
             return graphPattern;
         } else if ([kw isEqual:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
@@ -2840,3 +2686,13 @@ cleanup:
 
 
 @end
+
+
+// Grammar rules whose implementation was removed because they weren't being used (all of them are the data-only rules that are meant to be called from things like the CONSTRUCT pattern path):
+// [77]  	PropertyListNotEmpty	  ::=  	Verb ObjectList ( ';' ( Verb ObjectList )? )*
+// [79]  	ObjectList	  ::=  	Object ( ',' Object )*
+// [80]  	Object	  ::=  	GraphNode
+// [98]  	TriplesNode	  ::=  	Collection |	BlankNodePropertyList
+// [99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
+// [102]  	Collection	  ::=  	'(' GraphNode+ ')'
+// [104]  	GraphNode	  ::=  	VarOrTerm |	TriplesNode

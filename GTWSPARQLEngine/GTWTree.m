@@ -370,8 +370,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         return set;
     } else if (self.type == kAlgebraGraph) {
         NSMutableSet* set   = [[self.arguments[0] inScopeNodesOfClass:types] mutableCopy];
-        id<GTWTree> pair    = self.treeValue;
-        id<GTWTree> tn      = pair.arguments[0];
+        id<GTWTree> tn      = self.treeValue;
         id<GTWTerm> term    = tn.value;
         for (id type in types) {
             if ([term isKindOfClass:type]) {
@@ -554,7 +553,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         for (NSUInteger i = 0; i < level; i++) {
             [indent appendFormat:@"  "];
         }
-        //        [s appendFormat: @"%@%s\n", indent, gtw_tree_type_name(node.type)];
         if (node.leaf) {
             [s appendFormat: @"%@%@", indent, [node treeTypeName]];
             if (node.treeValue) {
