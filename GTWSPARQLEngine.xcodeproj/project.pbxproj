@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		370C9A5C172E2F2A00575D09 /* GTWErrorLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A5B172E2F2A00575D09 /* GTWErrorLogger.m */; };
 		370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */; };
-		370C9A66172E336C00575D09 /* GTWTurtleLexer.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A61172E336C00575D09 /* GTWTurtleLexer.m */; };
 		370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A63172E336C00575D09 /* GTWTurtleParser.m */; };
+		371676BB182C702E00F4EA2D /* GTWBlankNodeRenamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 371676BA182C702E00F4EA2D /* GTWBlankNodeRenamer.m */; };
 		37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */; };
 		37186E18173BFE460089CD3B /* GTWTripleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E17173BFE460089CD3B /* GTWTripleModel.m */; };
 		37186E1C173C00530089CD3B /* GTWQuadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E1B173C00530089CD3B /* GTWQuadModel.m */; };
@@ -61,10 +61,10 @@
 		370C9A5B172E2F2A00575D09 /* GTWErrorLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWErrorLogger.m; sourceTree = "<group>"; };
 		370C9A5D172E300200575D09 /* GTWMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWMemoryQuadStore.h; sourceTree = "<group>"; };
 		370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWMemoryQuadStore.m; sourceTree = "<group>"; };
-		370C9A60172E336C00575D09 /* GTWTurtleLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTurtleLexer.h; sourceTree = "<group>"; };
-		370C9A61172E336C00575D09 /* GTWTurtleLexer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTurtleLexer.m; sourceTree = "<group>"; };
 		370C9A62172E336C00575D09 /* GTWTurtleParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTurtleParser.h; sourceTree = "<group>"; };
 		370C9A63172E336C00575D09 /* GTWTurtleParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTurtleParser.m; sourceTree = "<group>"; };
+		371676B9182C702E00F4EA2D /* GTWBlankNodeRenamer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWBlankNodeRenamer.h; sourceTree = "<group>"; };
+		371676BA182C702E00F4EA2D /* GTWBlankNodeRenamer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWBlankNodeRenamer.m; sourceTree = "<group>"; };
 		37186E16173BFE460089CD3B /* GTWTripleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTripleModel.h; sourceTree = "<group>"; };
 		37186E17173BFE460089CD3B /* GTWTripleModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTripleModel.m; sourceTree = "<group>"; };
 		37186E1A173C00530089CD3B /* GTWQuadModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQuadModel.h; sourceTree = "<group>"; };
@@ -146,8 +146,6 @@
 			children = (
 				370C9A62172E336C00575D09 /* GTWTurtleParser.h */,
 				370C9A63172E336C00575D09 /* GTWTurtleParser.m */,
-				370C9A60172E336C00575D09 /* GTWTurtleLexer.h */,
-				370C9A61172E336C00575D09 /* GTWTurtleLexer.m */,
 			);
 			name = "Turtle Parser";
 			sourceTree = "<group>";
@@ -334,6 +332,8 @@
 				37E85A5417EA7E5600C06F10 /* Query Engines */,
 				37E85A5817EA9C1700C06F10 /* Serializers */,
 				3786AA1917F0EA83008663E9 /* Plugin Framework */,
+				371676B9182C702E00F4EA2D /* GTWBlankNodeRenamer.h */,
+				371676BA182C702E00F4EA2D /* GTWBlankNodeRenamer.m */,
 			);
 			path = GTWSPARQLEngine;
 			sourceTree = "<group>";
@@ -422,7 +422,6 @@
 				370C9A5C172E2F2A00575D09 /* GTWErrorLogger.m in Sources */,
 				370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */,
 				37ADB281182326DF00351D59 /* GTWNQuadsSerializer.m in Sources */,
-				370C9A66172E336C00575D09 /* GTWTurtleLexer.m in Sources */,
 				370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */,
 				37C37A511738ED320078C98F /* GTWTree.m in Sources */,
 				37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */,
@@ -436,6 +435,7 @@
 				3798887A173E842A0094B897 /* NSObject+NSDictionary_QueryBindings.m in Sources */,
 				3798887D173E8A2F0094B897 /* GTWQueryPlanner.m in Sources */,
 				37E198501741F49B00AB3D97 /* GTWRedlandParser.m in Sources */,
+				371676BB182C702E00F4EA2D /* GTWBlankNodeRenamer.m in Sources */,
 				378A4078174F60FD00D4AC13 /* GTWExpression.m in Sources */,
 				37669CF71815037500A6B06D /* NSDate+W3CDTFSupport.m in Sources */,
 				37A91BFB17F4DB4B00AE6848 /* GTWSPARQLParser.m in Sources */,
@@ -474,6 +474,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -497,10 +498,12 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
@@ -516,6 +519,8 @@
 					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/GTWSWBase-bpvpvhggcugdjxddhvalusjqdjts/Build/Products/Debug\"",
 					"\"$(SRCROOT)\"",
 				);
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/include/raptor2,
@@ -530,6 +535,8 @@
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
 				PRODUCT_NAME = GTWSPARQLEngine;
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
 				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
@@ -543,7 +550,9 @@
 					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/GTWSWBase-bpvpvhggcugdjxddhvalusjqdjts/Build/Products/Debug\"",
 					"\"$(SRCROOT)\"",
 				);
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/include/raptor2,
@@ -558,6 +567,8 @@
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
 				PRODUCT_NAME = GTWSPARQLEngine;
+				RUN_CLANG_STATIC_ANALYZER = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
 				VALID_ARCHS = x86_64;
 			};
 			name = Release;
