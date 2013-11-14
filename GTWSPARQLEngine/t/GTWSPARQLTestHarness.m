@@ -18,7 +18,6 @@
 #import "GTWTripleModel.h"
 #import "GTWQuadModel.h"
 #import "GTWRedlandParser.h"
-//#import "GTWRasqalSPARQLParser.h"
 #import "GTWQueryPlanner.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
@@ -29,7 +28,6 @@
 #import "GTWNTriplesSerializer.h"
 
 extern raptor_world* raptor_world_ptr;
-//extern rasqal_world* rasqal_world_ptr;
 static const NSString* kFailingSyntaxTests  = @"Failing Syntax Tests";
 static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
@@ -420,7 +418,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
         
         
-//        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
         id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
         
         if (self.verbose)
@@ -483,7 +480,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
         
         
-//        id<GTWSPARQLParser> parser  = [[GTWRasqalSPARQLParser alloc] initWithRasqalWorld:rasqal_world_ptr];
         id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
         
         

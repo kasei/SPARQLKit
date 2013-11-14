@@ -10,7 +10,6 @@
 #import "GTWMemoryQuadStore.h"
 #import "GTWRedlandTripleStore.h"
 #import "GTWTurtleParser.h"
-#import "GTWRasqalSPARQLParser.h"
 #import "GTWSPARQLParser.h"
 #import "GTWQuadModel.h"
 #import "GTWTripleModel.h"
@@ -28,7 +27,6 @@
 #import "GTWNTriplesSerializer.h"
 #import "GTWNQuadsSerializer.h"
 
-rasqal_world* rasqal_world_ptr;
 librdf_world* librdf_world_ptr;
 raptor_world* raptor_world_ptr;
 
@@ -343,14 +341,8 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
 
 int main(int argc, const char * argv[]) {
     srand([[NSDate date] timeIntervalSince1970]);
-	rasqal_world_ptr	= rasqal_new_world();
-	if(!rasqal_world_ptr || rasqal_world_open(rasqal_world_ptr)) {
-		fprintf(stderr, "*** rasqal_world init failed\n");
-		return(1);
-	}
 	librdf_world_ptr	= librdf_new_world();
-    //	librdf_world_set_error(librdf_world_ptr, NULL, _librdf_error_cb);
-	raptor_world_ptr = rasqal_world_get_raptor(rasqal_world_ptr);
+    raptor_world_ptr    = raptor_new_world();
     
     // ------------------------------------------------------------------------------------------------------------------------
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];

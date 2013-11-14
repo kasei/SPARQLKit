@@ -11,7 +11,6 @@
 		370C9A5F172E300200575D09 /* GTWMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A5E172E300200575D09 /* GTWMemoryQuadStore.m */; };
 		370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C9A63172E336C00575D09 /* GTWTurtleParser.m */; };
 		371676BB182C702E00F4EA2D /* GTWBlankNodeRenamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 371676BA182C702E00F4EA2D /* GTWBlankNodeRenamer.m */; };
-		37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */; };
 		37186E18173BFE460089CD3B /* GTWTripleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E17173BFE460089CD3B /* GTWTripleModel.m */; };
 		37186E1C173C00530089CD3B /* GTWQuadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37186E1B173C00530089CD3B /* GTWQuadModel.m */; };
 		372BA86818199F4A00D63599 /* GTWExpressionEvaluationContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 372BA86718199F4A00D63599 /* GTWExpressionEvaluationContext.m */; };
@@ -104,8 +103,6 @@
 		37C37A4F1738ED320078C98F /* GTWTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTree.h; sourceTree = "<group>"; };
 		37C37A501738ED320078C98F /* GTWTree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWTree.m; sourceTree = "<group>"; };
 		37C37A521739472A0078C98F /* librasqal.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librasqal.3.dylib; path = ../../../../../../../../usr/local/Cellar/rasqal/0.9.30/lib/librasqal.3.dylib; sourceTree = "<group>"; };
-		37C37A54173947640078C98F /* GTWRasqalSPARQLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRasqalSPARQLParser.h; sourceTree = "<group>"; };
-		37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRasqalSPARQLParser.m; sourceTree = "<group>"; };
 		37E1984E1741F49B00AB3D97 /* GTWRedlandParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandParser.h; sourceTree = "<group>"; };
 		37E1984F1741F49B00AB3D97 /* GTWRedlandParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandParser.m; sourceTree = "<group>"; };
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -163,7 +160,6 @@
 			isa = PBXGroup;
 			children = (
 				37A91BF817F4DB3300AE6848 /* Native */,
-				37A91BF717F4DB2A00AE6848 /* Rasqal */,
 			);
 			name = "SPARQL Parser";
 			sourceTree = "<group>";
@@ -244,15 +240,6 @@
 				376A92711821C18200732160 /* GTWSPARQLTestHarnessURLProtocol.m */,
 			);
 			name = "SPARQL Test Harness";
-			sourceTree = "<group>";
-		};
-		37A91BF717F4DB2A00AE6848 /* Rasqal */ = {
-			isa = PBXGroup;
-			children = (
-				37C37A54173947640078C98F /* GTWRasqalSPARQLParser.h */,
-				37C37A55173947640078C98F /* GTWRasqalSPARQLParser.m */,
-			);
-			name = Rasqal;
 			sourceTree = "<group>";
 		};
 		37A91BF817F4DB3300AE6848 /* Native */ = {
@@ -424,7 +411,6 @@
 				37ADB281182326DF00351D59 /* GTWNQuadsSerializer.m in Sources */,
 				370C9A67172E336C00575D09 /* GTWTurtleParser.m in Sources */,
 				37C37A511738ED320078C98F /* GTWTree.m in Sources */,
-				37186E12173B9AAF0089CD3B /* GTWRasqalSPARQLParser.m in Sources */,
 				37E85A5717EA9C1100C06F10 /* GTWSPARQLResultsXMLSerializer.m in Sources */,
 				37E85A5B17EAA0FB00C06F10 /* GTWSPARQLResultsTextTableSerializer.m in Sources */,
 				37186E18173BFE460089CD3B /* GTWTripleModel.m in Sources */,
@@ -524,8 +510,8 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/include/raptor2,
-					/usr/local/include/rasqal,
 					/usr/include/libxml2,
+					/usr/local/include/rasqal,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -556,8 +542,8 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					/usr/local/include/raptor2,
-					/usr/local/include/rasqal,
 					/usr/include/libxml2,
+					/usr/local/include/rasqal,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
