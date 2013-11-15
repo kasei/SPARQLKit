@@ -186,14 +186,14 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return l;
     } else if (expr.type == kExprAbs) {
         id<GTWLiteral,GTWTerm> term = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        if ([term isNumeric]) {
-            if ([term isInteger]) {
+        if ([term isNumericLiteral]) {
+            if ([term isIntegerLiteral]) {
                 NSInteger value  = [term integerValue];
                 if (value < 0) {
                     value = -value;
                 }
                 return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat: @"%lld", (long long) value] datatype:term.datatype];
-            } else if ([term isDouble]) {
+            } else if ([term isDoubleLiteral]) {
                 double value  = [term doubleValue];
                 if (value < 0.0) {
                     value = -value;
@@ -929,10 +929,10 @@ static BOOL isNumeric(id<GTWTerm> term) {
 
 - (id<GTWTerm>) evaluateNumericExpressionOfType: (GTWTreeType) type lhs: (id<GTWLiteral,GTWTerm>) lhs rhs: (id<GTWLiteral,GTWTerm>) rhs {
     if (lhs && rhs) {
-        if (![lhs isKindOfClass:[GTWLiteral class]] || ![lhs isNumeric]) {
+        if (![lhs isKindOfClass:[GTWLiteral class]] || ![lhs isNumericLiteral]) {
             return nil;
         }
-        if (![rhs isKindOfClass:[GTWLiteral class]] || ![rhs isNumeric]) {
+        if (![rhs isKindOfClass:[GTWLiteral class]] || ![rhs isNumericLiteral]) {
             return nil;
         }
         NSString* promotedtype  = [GTWLiteral promotedTypeForNumericTypes:lhs.datatype and:rhs.datatype];

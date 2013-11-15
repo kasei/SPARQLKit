@@ -21,7 +21,7 @@
         return @"";
     if ([term isKindOfClass:[GTWLiteral class]]) {
         id<GTWLiteral> l    = (id<GTWLiteral>) term;
-        if ([l isNumeric]) {
+        if ([l isNumericLiteral]) {
             if ([l.datatype isEqualToString:@"http://www.w3.org/2001/XMLSchema#integer"]) {
                 return [NSString stringWithFormat:@"%lld", (long long) [l integerValue]];
             }

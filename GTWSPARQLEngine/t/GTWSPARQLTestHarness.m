@@ -562,7 +562,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWMemoryQuadStore* testStore   = [[GTWMemoryQuadStore alloc] init];
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
-    GTWTree<GTWTree,GTWQueryPlan>* plan   = (GTWTree<GTWTree,GTWQueryPlan>*) [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
+    id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];

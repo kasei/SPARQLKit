@@ -170,7 +170,7 @@ static NSString* OSVersionNumber ( void ) {
     for (NSDictionary* result in results) {
         NSMutableDictionary* testResult = [NSMutableDictionary dictionaryWithDictionary:result];
         NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
-        for (GTWTree* treenode in list) {
+        for (id<GTWTree> treenode in list) {
             if (treenode.type == kTreeNode) {
                 GTWVariable* v  = treenode.value;
                 NSString* name  = [v value];
@@ -205,8 +205,8 @@ static NSString* OSVersionNumber ( void ) {
     NSMutableArray* orderTerms  = [NSMutableArray array];
     NSInteger i;
     for (i = 0; i < [list.arguments count]; i+=2) {
-        GTWTree* vtree  = list.arguments[i];
-        GTWTree* dtree  = list.arguments[i+1];
+        id<GTWTree> vtree  = list.arguments[i];
+        id<GTWTree> dtree  = list.arguments[i+1];
         id<GTWTerm> dirterm     = dtree.value;
         NSInteger direction     = [[dirterm value] integerValue];
         [orderTerms addObject:@{ @"expr": vtree, @"direction": @(direction) }];
@@ -262,12 +262,12 @@ static NSString* OSVersionNumber ( void ) {
                 id<GTWTree> expr    = list.arguments[0];
                 id<GTWTree> tn      = list.arguments[1];
                 id<GTWTerm> var = tn.value;
-                id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr withResult:result usingModel: model];
+                id<GTWTerm> t   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
                 if (t)
                     groupKeyDict[var.value]   = t;
             } else {
                 id<GTWTerm> var = g.value;
-                id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)g withResult:result usingModel: model];
+                id<GTWTerm> t   = [self.evalctx evaluateExpression:g withResult:result usingModel: model];
                 if (t)
                     groupKeyDict[var.value]   = t;
             }
@@ -309,7 +309,7 @@ static NSString* OSVersionNumber ( void ) {
         id counter  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
         for (NSDictionary* result in results) {
             if ([expr.arguments count]) {
-                id<GTWTerm> f   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+                id<GTWTerm> f   = [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
                 [counter addObject:f];
             } else {
                 [counter addObject:@(1)];
@@ -322,7 +322,7 @@ static NSString* OSVersionNumber ( void ) {
         id container  = ([distinct integerValue]) ? [NSMutableSet set] : [NSMutableArray array];
         NSString* separator = a[1];
         for (NSDictionary* result in results) {
-            id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            id<GTWTerm> t   = [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             if (t)
                 [container addObject:t.value];
         }
@@ -332,7 +332,7 @@ static NSString* OSVersionNumber ( void ) {
         NSComparisonResult cmpResult    = (expr.type == kExprMax) ? NSOrderedDescending : NSOrderedAscending;
         id<GTWTerm> extrema = nil;
         for (NSDictionary* result in results) {
-            id<GTWTerm> t   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            id<GTWTerm> t   = [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             if (!extrema || [t compare:extrema] == cmpResult) {
                 extrema = t;
             }
@@ -342,7 +342,7 @@ static NSString* OSVersionNumber ( void ) {
         NSInteger count = 0;
         id<GTWLiteral> sum    = [GTWLiteral integerLiteralWithValue:0];
         for (NSDictionary* result in results) {
-            id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            id<GTWLiteral,GTWTerm> t   = (id<GTWLiteral,GTWTerm>) [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             sum = (id<GTWLiteral>) [self.evalctx evaluateNumericExpressionOfType:kExprPlus lhs:sum rhs:t];
             if (!sum)
                 break;
@@ -360,7 +360,7 @@ static NSString* OSVersionNumber ( void ) {
     } else if (expr.type == kExprSample) {
         id<GTWTerm> term = nil;
         for (NSDictionary* result in results) {
-            term   = [self.evalctx evaluateExpression:(GTWTree*)expr.arguments[0] withResult:result usingModel: model];
+            term   = [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
             break;
         }
         return term;

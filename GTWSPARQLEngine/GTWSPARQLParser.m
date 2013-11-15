@@ -1,6 +1,7 @@
 #import "GTWSPARQLParser.h"
 #import "GTWSPARQLToken.h"
 #import "GTWTree.h"
+#import "NSObject+GTWTree.h"
 #import <GTWSWBase/GTWVariable.h>
 
 #define ASSERT_EMPTY(e) if ([e count] > 0) return nil;
@@ -504,7 +505,7 @@ cleanup:
     ASSERT_EMPTY(errors);
     
     if ([self currentQuerySeenAggregates]) {
-        NSSet* groupVars    = [(GTWTree*)algebra projectableAggregateVariables];
+        NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
         
         NSMutableSet* newProjection = [NSMutableSet set];
         for (id<GTWTree> v in plist) {
@@ -880,7 +881,7 @@ cleanup:
             if (proj.type == kAlgebraExtend) {
                 if ([self currentQuerySeenAggregates]) {
                     NSSet* nonAggVars   = [proj nonAggregatedVariables];
-                    NSSet* groupVars    = [(GTWTree*)algebra projectableAggregateVariables];
+                    NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
                     for (id<GTWTerm> var in nonAggVars) {
                         if (![groupVars containsObject:nonAggVars]) {
                             return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", var] withErrors:errors];

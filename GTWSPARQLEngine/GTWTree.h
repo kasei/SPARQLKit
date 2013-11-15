@@ -197,7 +197,6 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
 - (id) annotationForKey: (NSString*) key;
 - (NSSet*) nonAggregatedVariables;
-- (NSSet*) projectableAggregateVariables;
 - (Class) planResultClass;
 
 + (NSString*) sparqlForAlgebra: (id<GTWTree>) algebra;
