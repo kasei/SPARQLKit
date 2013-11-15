@@ -514,7 +514,7 @@ cleanup:
                 if (![groupVars containsObject:t]) {
                     if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
                         if (![newProjection containsObject:t]) {
-                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed (1)", t] withErrors:errors];
                         }
                     }
                 }
@@ -524,7 +524,7 @@ cleanup:
                     if (![groupVars containsObject:t]) {
                         if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
                             if (![newProjection containsObject:t]) {
-                                return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", t] withErrors:errors];
+                                return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed (2)", t] withErrors:errors];
                             }
                         }
                     }
@@ -878,13 +878,16 @@ cleanup:
         NSSet* scopeVars    = [algebra inScopeVariables];
         NSMutableArray* nonExtends  = [NSMutableArray array];
         for (id<GTWTree> proj in project) {
+//            NSLog(@"checking projected expression: %@", [proj conciseDescription]);
             if (proj.type == kAlgebraExtend) {
                 if ([self currentQuerySeenAggregates]) {
                     NSSet* nonAggVars   = [proj nonAggregatedVariables];
                     NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
+//                    NSLog(@"group variables: %@", groupVars);
+//                    NSLog(@"non-aggregated variables: %@", nonAggVars);
                     for (id<GTWTerm> var in nonAggVars) {
-                        if (![groupVars containsObject:nonAggVars]) {
-                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed", var] withErrors:errors];
+                        if (![groupVars containsObject:var]) {
+                            return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed (3)", var] withErrors:errors];
                         }
                     }
                 }

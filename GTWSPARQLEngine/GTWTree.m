@@ -453,6 +453,12 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
     }
 }
 
+/**
+ Called on a projection tree (representing a single projected variable or expression),
+ returns the set of variables used in the projection that are not used inside of an
+ aggregate oepration. For example, the expression (MAX(?x) AS ?y) would return the empty set,
+ while the expressions ?y, (COUNT(?x) + ?y), and FLOOR(?y) would all return the set { ?y }.
+ */
 - (NSSet*) nonAggregatedVariables {
     if (self.type == kTreeNode) {
         id<GTWTerm> t   = self.value;
@@ -463,12 +469,8 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
     } else if (self.type == kAlgebraExtend) {
         id<GTWTree> list    = self.treeValue;
-        NSMutableSet* set   = [NSMutableSet setWithSet:[list.arguments[0] nonAggregatedVariables]];
-        for (id<GTWTree> pattern in self.arguments) {
-            NSSet* patvars      = [pattern nonAggregatedVariables];
-            [set addObjectsFromArray:[patvars allObjects]];
-        }
-        return set;
+        id<GTWTree> expr    = list.arguments[0];
+        return [expr nonAggregatedVariables];
     } else if (self.type == kExprCount || self.type == kExprSum || self.type == kExprMin || self.type == kExprMax || self.type == kExprAvg || self.type == kExprSample || self.type == kExprGroupConcat) {
         return [NSSet set];
     } else {
@@ -476,7 +478,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         for (id<GTWTree> n in self.arguments) {
             [set addObjectsFromArray:[[n nonAggregatedVariables] allObjects]];
         }
-        return set;
+        return [set copy];
     }
 }
 
