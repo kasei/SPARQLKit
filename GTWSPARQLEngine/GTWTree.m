@@ -35,6 +35,7 @@ GTWTreeType __strong const kPlanOneOrMorePath           = @"PlanOneOrMorePath";
 GTWTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
 GTWTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
 GTWTreeType __strong const kPlanConstruct               = @"PlanConstruct";
+GTWTreeType __strong const kPlanCustom                  = @"PlanCustom";
 
 // Algebras
 GTWTreeType __strong const kAlgebraAsk                  = @"AlgebraAsk";
@@ -214,7 +215,7 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
                 return nil;
             }
             
-            if (![n isKindOfClass:[GTWTree class]]) {
+            if (![n conformsToProtocol:@protocol(GTWTree)]) {
                 NSLog(@"argument object isn't a tree object: %@", n);
             }
             
@@ -338,10 +339,6 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix {
     return [self _applyPrefixBlock:prefix postfixBlock:postfix withParent: nil level:0];
-}
-
-- (id) annotationForKey: (NSString*) key {
-    return (self.annotations)[key];
 }
 
 - (NSSet*) referencedBlanks {
@@ -491,7 +488,8 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         if (node.treeValue) {
             [s appendFormat:@"%@", node.treeValue];
         } else if (node.value) {
-            [s appendFormat:@"%@", node.value];
+            NSString* description = [[[node.value description] stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+            [s appendFormat:@"%@", description];
         }
         if (node.ptr) {
             [s appendFormat:@"<%p>", node.ptr];
@@ -502,7 +500,8 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
         if (node.treeValue) {
             [s appendFormat:@"[%@]", node.treeValue];
         } else if (node.value) {
-            [s appendFormat:@"[%@]", node.value];
+            NSString* description = [[[node.value description] stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+            [s appendFormat:@"[%@]", description];
         }
         int i;
         NSUInteger count    = [node.arguments count];
@@ -530,7 +529,8 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             if (node.treeValue) {
                 [s appendFormat:@" %@", node.treeValue];
             } else if (node.value) {
-                [s appendFormat:@" %@", node.value];
+                NSString* description = [[[node.value description] stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+                [s appendFormat:@" %@", description];
             }
             if (node.ptr) {
                 [s appendFormat:@"<%p>", node.ptr];
@@ -541,10 +541,11 @@ GTWTreeType __strong const kTreeResultSet				= @"ResultSet";
             if (node.treeValue) {
                 [s appendFormat:@" %@", [node.treeValue conciseDescription]];
             } else if (node.value) {
-                if ([node.value isKindOfClass:[GTWTree class]]) {
+                if ([node.value conformsToProtocol:@protocol(GTWTree)]) {
                     [s appendFormat:@" %@", [node.value conciseDescription]];
                 } else {
-                    [s appendFormat:@" %@", node.value];
+                    NSString* description = [[[node.value description] stringByReplacingOccurrencesOfString:@"\n" withString:@" "] stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+                    [s appendFormat:@" %@", description];
                 }
             }
             if (node.ptr) {

@@ -36,6 +36,7 @@ extern GTWTreeType __strong const kPlanOneOrMorePath;
 extern GTWTreeType __strong const kPlanZeroOrOnePath;
 extern GTWTreeType __strong const kPlanNPSPath;
 extern GTWTreeType __strong const kPlanConstruct;
+extern GTWTreeType __strong const kPlanCustom;
 
 // algebra tree nodes:
 extern GTWTreeType __strong const kAlgebraAsk;
@@ -195,7 +196,6 @@ extern GTWTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 - (GTWTree*) initWithType: (GTWTreeType) type treeValue: (id<GTWTree>) treeValue arguments: (NSArray*) args;
 - (NSString*) treeTypeName;
 - (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
-- (id) annotationForKey: (NSString*) key;
 - (NSSet*) nonAggregatedVariables;
 - (Class) planResultClass;
 

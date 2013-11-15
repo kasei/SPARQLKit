@@ -162,7 +162,7 @@ cleanup:
             if (name && iri) {
                 [self.namespaces setValue:iri.value forKey:name.value];
             } else {
-                [self errorMessage:@"Failed to parse PREFIX declaration" withErrors:errors];
+                [self errorMessage:[NSString stringWithFormat:@"Failed to parse PREFIX declaration (name: %@; iri: %@)", name, iri] withErrors:errors];
                 return;
             }
         } else if ([t.value isEqual:@"BASE"]) {

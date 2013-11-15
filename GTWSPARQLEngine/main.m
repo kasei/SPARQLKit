@@ -199,12 +199,15 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
     NSError* error;
     id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base error:&error];
+    if (error) {
+        NSLog(@"parser error: %@", error);
+    }
     if (verbose) {
         NSLog(@"query:\n%@", algebra);
     }
     
     GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
-    id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
+    id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
     if (verbose) {
         NSLog(@"plan:\n%@", plan);
     }
@@ -240,7 +243,7 @@ int parseQuery(NSString* query, NSString* base) {
     id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
     id<GTWModel> model          = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
-    id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize: YES];
+    id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
     NSLog(@"Query plan:\n%@\n\n", plan);
     return 0;
 }

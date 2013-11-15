@@ -449,7 +449,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel optimize: YES];
+        id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel options:nil];
         if (!plan) {
 //            NSLog(@"failed to plan query: %@", query.value);
             return nil;

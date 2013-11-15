@@ -809,6 +809,9 @@ MORE_LOOP:
             [results addObject:result];
         }
         return [results objectEnumerator];
+    } else if ([plan.treeTypeName isEqualToString:@"PlanCustom"]) {
+        NSEnumerator*(^impl)(id<GTWTree, GTWQueryPlan> plan, id<GTWModel> model)    = plan.value;
+        return impl(plan, model);
     } else {
         NSLog(@"Cannot evaluate query plan type %@", [plan treeTypeName]);
     }

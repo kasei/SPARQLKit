@@ -7,8 +7,6 @@
 
 - (GTWTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph {
     if (self = [self init]) {
-//        self.store  = store;
-//        self.graph  = graph;
         self.graphs = [NSMutableDictionary dictionary];
         (self.graphs)[graph.value] = store;
     }
@@ -100,6 +98,28 @@
         }
     }
     return YES;
+}
+
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+    NSArray* graphs = [self.graphs allKeys];
+    NSString* graph = [graphs firstObject];
+    if (graph) {
+        id<GTWTripleStore> store    = self.graphs[graph];
+        if (store) {
+            if ([store conformsToProtocol:@protocol(GTWQueryPlanner)]) {
+                NSMutableDictionary* dict    = [NSMutableDictionary dictionary];
+                if (options) {
+                    [dict addEntriesFromDictionary:options];
+                }
+                dict[@"tripleStoreIdentifier"]   = graph;
+                id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:dict];
+                if (plan) {
+                    return plan;
+                }
+            }
+        }
+    }
+    return nil;
 }
 
 @end

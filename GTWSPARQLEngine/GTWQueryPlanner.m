@@ -16,11 +16,6 @@
     return self;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize: (BOOL) opt {
-    id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
-    return plan;
-}
-
 - (NSArray*) statementsForTemplateAlgebra: (id<GTWTree>) algebra {
     if (algebra.type == kTreeList || algebra.type == kAlgebraBGP) {
         NSMutableArray* triples = [NSMutableArray array];
@@ -59,14 +54,10 @@
     }
     
     
-    if (lhs.type == kTreeQuad) {
-        lhsVars   = [lhs inScopeVariables];
-    } else if (lhs.type == kPlanHashJoin) {
+    if (lhs.type == kTreeQuad || lhs.type == kPlanHashJoin || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         lhsVars   = [lhs inScopeVariables];
     }
-    if (rhs.type == kTreeQuad) {
-        rhsVars   = [rhs inScopeVariables];
-    } else if (rhs.type == kPlanHashJoin) {
+    if (rhs.type == kTreeQuad || rhs.type == kPlanHashJoin || [rhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         rhsVars   = [rhs inScopeVariables];
     }
     if (lhsVars && rhsVars) {
@@ -81,7 +72,14 @@
     return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+    if ([model conformsToProtocol:@protocol(GTWQueryPlanner)]) {
+        id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:options];
+        if (plan) {
+            return plan;
+        }
+    }
+    
     if (algebra == nil) {
         NSLog(@"trying to plan nil algebra");
         return nil;
@@ -96,12 +94,12 @@
             NSLog(@"DISTINCT/REDUCED must be 1-ary");
             return nil;
         }
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[plan]];
     } else if (algebra.type == kAlgebraConstruct) {
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         NSArray* st = [self statementsForTemplateAlgebra: algebra.arguments[0]];
         return [[GTWQueryPlan alloc] initWithType:kPlanConstruct value: st arguments:@[plan]];
     } else if (algebra.type == kAlgebraAsk) {
@@ -109,7 +107,7 @@
             NSLog(@"ASK must be 1-ary");
             return nil;
         }
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanAsk arguments:@[plan]];
@@ -118,7 +116,7 @@
             NSLog(@"Group must be 1-ary");
             return nil;
         }
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
         return [[GTWQueryPlan alloc] initWithType:kPlanGroup treeValue: algebra.treeValue arguments:@[plan]];
@@ -129,7 +127,7 @@
         NSSet* defaultGraphs    = defSet.value;
         NSSet* namedGraphs      = namedSet.value;
         GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:[defaultGraphs allObjects] restrictedToGraphs:[namedGraphs allObjects]];
-        return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
+        return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model options:options];
     } else if (algebra.type == kAlgebraService) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"SERVICE must be 1-ary");
@@ -161,7 +159,7 @@
         id<GTWTerm> graph       = graphtree.value;
         if ([graph isKindOfClass:[GTWIRI class]]) {
             GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
-            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
+            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model options:options];
             if (!plan) {
                 NSLog(@"Failed to plan child of GRAPH <iri> pattern");
                 return nil;
@@ -175,7 +173,7 @@
             id<GTWTree,GTWQueryPlan> gplan     = nil;
             for (id<GTWTerm> g in graphs) {
                 GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[g]];
-                id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model];
+                id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model options:options];
                 if (!plan) {
                     NSLog(@"Failed to plan child of GRAPH ?var pattern");
                     return nil;
@@ -198,8 +196,8 @@
             return gplan;
         }
     } else if (algebra.type == kAlgebraUnion) {
-        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
-        id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
+        id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         if (!(lhs && rhs)) {
             NSLog(@"Failed to plan both sides of UNION");
             return nil;
@@ -210,21 +208,21 @@
             NSLog(@"PROJECT must be 1-ary");
             return nil;
         }
-        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!lhs) {
             NSLog(@"Failed to plan PROJECT sub-plan");
             return nil;
         }
-        id<GTWTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
+        id<GTWTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[GTWQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
         if ([algebra.arguments count] == 0) {
             return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if ([algebra.arguments count] == 1) {
-            return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+            return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         } else if ([algebra.arguments count] == 2) {
-            id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
-            id<GTWTree,GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
+            id<GTWTree,GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
             if (!lhs || !rhs) {
                 NSLog(@"Failed to plan both sides of JOIN");
                 return nil;
@@ -232,10 +230,10 @@
             return [self joinPlanForPlans: lhs and: rhs];
         } else {
             NSMutableArray* args    = [NSMutableArray arrayWithArray:algebra.arguments];
-            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model options:options];
             [args removeLastObject];
             while ([args count] > 0) {
-                id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model];
+                id<GTWTree,GTWQueryPlan> lhs    = [self queryPlanForAlgebra:[args lastObject] usingDataset:dataset withModel:model options:options];
                 [args removeLastObject];
                 if (!lhs) {
                     NSLog(@"Failed to plan both sides of %lu-way JOIN", [algebra.arguments count]);
@@ -251,14 +249,14 @@
             return nil;
         }
         // should probably have a new plan type for MINUS blocks
-        return [[GTWQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model]]];
+        return [[GTWQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options]]];
     } else if (algebra.type == kAlgebraLeftJoin) {
         if ([algebra.arguments count] != 2) {
             NSLog(@"LEFT JOIN must be 2-ary");
             return nil;
         }
-        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
-        id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model];
+        id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
+        id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         id<GTWTree> expr        = algebra.treeValue;
         if (!lhs || !rhs) {
             NSLog(@"Failed to plan both sides of LEFT JOIN");
@@ -268,16 +266,16 @@
         id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLLeftJoin treeValue:expr arguments:@[lhs, rhs]];
         return plan;
     } else if (algebra.type == kAlgebraBGP) {
-        return [self planBGP: algebra.arguments usingDataset: dataset withModel:model];
+        return [self planBGP: algebra.arguments usingDataset: dataset withModel:model options:nil];
     } else if (algebra.type == kAlgebraFilter) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"FILTER must be 1-ary");
             return nil;
         }
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
-        id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
+        id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[GTWQueryPlan alloc] initWithType:kPlanFilter treeValue: expr arguments:@[plan]];
     } else if (algebra.type == kAlgebraExtend) {
         if ([algebra.arguments count] != 1) {
@@ -286,21 +284,21 @@
             return nil;
         }
         id<GTWTree> pat = algebra.arguments[0];
-        id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:pat usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> p   = [self queryPlanForAlgebra:pat usingDataset:dataset withModel:model options:options];
         if (!p)
             return nil;
-        id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
+        id<GTWTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
     } else if (algebra.type == kAlgebraSlice) {
-        id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         id<GTWTree> offset      = algebra.arguments[1];
         id<GTWTree> limit       = algebra.arguments[2];
         return [[GTWQueryPlan alloc] initWithType:kPlanSlice arguments:@[plan, offset, limit]];
     } else if (algebra.type == kAlgebraOrderBy) {
         if ([algebra.arguments count] != 1)
             return nil;
-        id<GTWTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model];
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model];
+        id<GTWTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
         
@@ -348,24 +346,24 @@
     return nil;
 }
 
-- (id<GTWTree>) treeByPlanningSubTreesOf: (id<GTWTree>) expr usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
+- (id<GTWTree>) treeByPlanningSubTreesOf: (id<GTWTree>) expr usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     if (!expr)
         return nil;
     if (expr.type == kExprExists) {
         id<GTWTree> algebra = expr.arguments[0];
-        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
+        id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
         return [[GTWTree alloc] initWithType:kExprExists arguments:@[plan]];
     } else if (expr.type == kExprNotExists) {
             id<GTWTree> algebra = expr.arguments[0];
-            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
             return [[GTWTree alloc] initWithType:kExprNotExists arguments:@[plan]];
     } else {
         NSMutableArray* arguments   = [NSMutableArray array];
         for (id<GTWTree> t in expr.arguments) {
-            id<GTWTree> newt    = [self treeByPlanningSubTreesOf:t usingDataset:dataset withModel:model];
+            id<GTWTree> newt    = [self treeByPlanningSubTreesOf:t usingDataset:dataset withModel:model options:options];
             [arguments addObject:newt];
         }
-        id<GTWTree> tv  = [self treeByPlanningSubTreesOf:expr.treeValue usingDataset:dataset withModel:model];
+        id<GTWTree> tv  = [self treeByPlanningSubTreesOf:expr.treeValue usingDataset:dataset withModel:model options:options];
         return [[[expr class] alloc] initWithType:expr.type value:expr.value treeValue:tv arguments:arguments];
     }
 }
@@ -491,17 +489,12 @@
         id<GTWTerm> obj     = o.value;
         GTWTriple* t        = [[GTWTriple alloc] initWithSubject:subj predicate:pred object:obj];
         id<GTWTree> triple  = [[GTWTree alloc] initWithType:kTreeTriple value: t arguments:nil];
-        return [self queryPlanForAlgebra:triple usingDataset:dataset withModel:model];
+        return [self queryPlanForAlgebra:triple usingDataset:dataset withModel:model options:nil];
     } else {
         NSLog(@"Cannot plan property path <%@ %@>: %@", s, o, path);
         return nil;
     }
     return nil;
-}
-
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra withModel: (id<GTWModel>) model {
-    GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[]];
-    return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model];
 }
 
 - (NSArray*) reorderBGPTriples: (NSArray*) triples {
@@ -605,7 +598,7 @@
     return reordered;
 }
 
-- (id<GTWTree,GTWQueryPlan>) planBGP: (NSArray*) triples usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model {
+- (id<GTWTree,GTWQueryPlan>) planBGP: (NSArray*) triples usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     NSArray* defaultGraphs  = [dataset defaultGraphs];
     NSInteger graphCount    = [defaultGraphs count];
     NSInteger i;
@@ -615,12 +608,12 @@
     } else if ([triples count] == 0) {
         return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
     } else if ([triples count] == 1) {
-        return [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model];
+        return [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model options:options];
     } else {
         NSArray* orderedTriples = [self reorderBGPTriples:triples];
-        plan   = [self queryPlanForAlgebra:orderedTriples[0] usingDataset:dataset withModel:model];
+        plan   = [self queryPlanForAlgebra:orderedTriples[0] usingDataset:dataset withModel:model options:options];
         for (i = 1; i < [orderedTriples count]; i++) {
-            id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:orderedTriples[i] usingDataset:dataset withModel:model];
+            id<GTWTree,GTWQueryPlan> quad    = [self queryPlanForAlgebra:orderedTriples[i] usingDataset:dataset withModel:model options:options];
             plan   = [self joinPlanForPlans:plan and:quad];
         }
     }

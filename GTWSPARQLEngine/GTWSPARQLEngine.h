@@ -29,13 +29,6 @@
 @protocol GTWTree<NSObject,GTWRewriteable>
 typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL* stop);
 typedef NSString* GTWTreeType;
-
-typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
-    GTWTreePrefixOrder  = -1,
-    GTWTreeInfixOrder   = 0,
-    GTWTreePostfixOrder = 1
-};
-
 @property BOOL leaf;
 @property GTWTreeType type;
 @property NSArray* arguments;
@@ -53,8 +46,6 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
  */
 - (id) copyReplacingValues: (NSDictionary*) map;
 - (NSString*) treeTypeName;
-- (id) applyPrefixBlock: (GTWTreeAccessorBlock)prefix postfixBlock: (GTWTreeAccessorBlock) postfix;
-- (id) annotationForKey: (NSString*) key;
 - (NSSet*) nonAggregatedVariables;
 - (NSSet*) referencedBlanks;
 - (NSSet*) inScopeVariables;
@@ -81,15 +72,9 @@ typedef NS_ENUM(NSInteger, GTWTreeTraversalOrder) {
 
 #pragma mark -
 
-@protocol GTWQueryDataset
-- (NSArray*) defaultGraphs;
-- (NSArray*) availableGraphsFromModel: (id<GTWModel>) model;
-@end
-
 @protocol GTWQueryPlanner
 @property id<GTWLogger> logger;
-- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWQueryDataset>) dataset withModel: (id<GTWModel>) model optimize: (BOOL) opt;
-//- (id<GTWQueryPlan>) queryPlanForAlgebra: (id<GTWQueryAlgebra>) algebra withDefaultDataSource: (id<GTWDataSource>) source usingCostModel: (id<GTWCostModel>) cm error:(NSError **)error;
+- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
 @end
 
 
