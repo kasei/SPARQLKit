@@ -878,13 +878,10 @@ cleanup:
         NSSet* scopeVars    = [algebra inScopeVariables];
         NSMutableArray* nonExtends  = [NSMutableArray array];
         for (id<GTWTree> proj in project) {
-//            NSLog(@"checking projected expression: %@", [proj conciseDescription]);
             if (proj.type == kAlgebraExtend) {
                 if ([self currentQuerySeenAggregates]) {
                     NSSet* nonAggVars   = [proj nonAggregatedVariables];
                     NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
-//                    NSLog(@"group variables: %@", groupVars);
-//                    NSLog(@"non-aggregated variables: %@", nonAggVars);
                     for (id<GTWTerm> var in nonAggVars) {
                         if (![groupVars containsObject:var]) {
                             return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed (3)", var] withErrors:errors];
