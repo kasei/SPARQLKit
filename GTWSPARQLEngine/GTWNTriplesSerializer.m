@@ -12,7 +12,7 @@
 
 + (NSString*) nTriplesEncodingOfString: (NSString*) value {
     NSUInteger length   = [value length];
-    unichar* string = alloca(10*length);
+    unichar* string = alloca(1+10*length);
     NSUInteger src  = 0;
     NSUInteger dst  = 0;
     char* buffer    = alloca(9);
@@ -20,8 +20,19 @@
     for (src = 0; src < length; src++) {
         uint32_t c = [value characterAtIndex:src];
         if ((c & 0xFC00) == 0xD800) {
-            unichar c2  = [value characterAtIndex:++src];
-            c = (((c & 0x3FF) << 10) | (c2 & 0x3FF)) + 0x10000;
+            if ((1+src) < length) {
+                unichar c2  = [value characterAtIndex:++src];
+                c = (((c & 0x3FF) << 10) | (c2 & 0x3FF)) + 0x10000;
+            } else {
+                string[dst++]   = '\\';
+                string[dst++]   = 'u';
+                string[dst++]   = 'F';
+                string[dst++]   = 'F';
+                string[dst++]   = 'F';
+                string[dst++]   = 'D';
+                NSLog(@"inserting replacement character");
+                break;
+            }
         }
         
         switch (c) {
