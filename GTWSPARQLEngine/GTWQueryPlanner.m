@@ -53,7 +53,6 @@
 //        }
     }
     
-    
     if (lhs.type == kTreeQuad || lhs.type == kPlanHashJoin || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         lhsVars   = [lhs inScopeVariables];
     }
@@ -74,7 +73,9 @@
 
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     if ([model conformsToProtocol:@protocol(GTWQueryPlanner)]) {
-        id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:options];
+        NSMutableDictionary* opt    = [NSMutableDictionary dictionaryWithDictionary:options];
+        opt[@"queryPlanner"]    = self;
+        id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:opt];
         if (plan) {
             return plan;
         }
