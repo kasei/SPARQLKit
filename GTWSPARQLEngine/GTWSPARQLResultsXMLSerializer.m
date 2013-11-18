@@ -30,7 +30,7 @@
             if ([term language]) {
                 return [[NSString stringWithFormat:@"<literal xml:lang=\"%@\">%@</literal>", [self xmlSimpleEscapeString:[term language]], value] dataUsingEncoding:NSUTF8StringEncoding];
             } else if ([term datatype]) {
-                return [[NSString stringWithFormat:@"<literaldatatype=\"%@\">%@</literal>", [self xmlSimpleEscapeString:[term datatype]], value] dataUsingEncoding:NSUTF8StringEncoding];
+                return [[NSString stringWithFormat:@"<literal datatype=\"%@\">%@</literal>", [self xmlSimpleEscapeString:[term datatype]], value] dataUsingEncoding:NSUTF8StringEncoding];
             } else {
                 return [[NSString stringWithFormat:@"<literal>%@</literal>", value] dataUsingEncoding:NSUTF8StringEncoding];
             }
