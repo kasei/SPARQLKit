@@ -26,6 +26,12 @@
 #import "GTWSPARQLParser.h"
 #import "GTWNTriplesSerializer.h"
 #import "GTWNQuadsSerializer.h"
+#import "GTWSPARQLConnection.h"
+#import "GTWSPARQLServer.h"
+
+#import "HTTPServer.h"
+#import "DDLog.h"
+#import "DDTTYLogger.h"
 
 librdf_world* librdf_world_ptr;
 raptor_world* raptor_world_ptr;
@@ -281,6 +287,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
 
 int usage(int argc, const char * argv[]) {
     fprintf(stderr, "Usage:\n");
+    fprintf(stderr, "    %s endpoint config-json-string\n", argv[0]);
     fprintf(stderr, "    %s qparse QUERY-FILE\n", argv[0]);
     fprintf(stderr, "    %s dparse DATA-FILE\n", argv[0]);
     fprintf(stderr, "    %s query config-json-string QUERY-STRING\n", argv[0]);
@@ -404,6 +411,55 @@ int main(int argc, const char * argv[]) {
         id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
+    } else if ([op isEqual: @"endpoint"]) {
+        if (argc < (argi+1)) {
+            NSLog(@"endpoint operation must be supplied with a data source configuration string.");
+            return 1;
+        }
+        Class c;
+        NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
+        GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
+        id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
+        // Configure our logging framework.
+        // To keep things simple and fast, we're just going to log to the Xcode console.
+        [DDLog addLogger:[DDTTYLogger sharedInstance]];
+        
+        // Initalize our http server
+        GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
+        
+        // Tell server to use our custom MyHTTPConnection class.
+        [httpServer setConnectionClass:[GTWSPARQLConnection class]];
+        
+        // Tell the server to broadcast its presence via Bonjour.
+        // This allows browsers such as Safari to automatically discover our service.
+        [httpServer setType:@"_http._tcp."];
+        
+        // Normally there's no need to run our server on any specific port.
+        // Technologies like Bonjour allow clients to dynamically discover the server's port at runtime.
+        // However, for easy testing you may want force a certain port so you can just hit the refresh button.
+        [httpServer setPort:12345];
+        
+        // Serve files from our embedded Web folder
+//        NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Web"];
+        NSString *webPath = @"/Users/greg/Sites/kasei.us/";
+        NSLog(@"Setting document root: %@", webPath);
+        
+        [httpServer setDocumentRoot:webPath];
+        
+        // Start the server (and check for problems)
+        
+        NSError *error;
+        BOOL success = [httpServer start:&error];
+        
+        if(!success)
+        {
+            NSLog(@"Error starting HTTP Server: %@", error);
+        }
+        
+        while (YES) {
+            sleep(1);
+        }
     } else if ([op isEqual: @"dparse"]) {
         NSString* filename      = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* base          = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;

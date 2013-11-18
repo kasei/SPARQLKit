@@ -71,7 +71,22 @@
     return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
 }
 
+- (id<GTWTree>) replaceBlanksWithVariables: (id<GTWTree>) algebra {
+    NSSet* blanks   = [algebra referencedBlanks];
+    if ([blanks count]) {
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (id<GTWTerm> b in blanks) {
+            NSUInteger vid  = ++(self.varID);
+            id<GTWTerm> v   = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".b%lu", vid]];
+            mapping[b]      = v;
+        }
+        return [algebra copyReplacingValues:mapping];
+    }
+    return algebra;
+}
+
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+    algebra = [self replaceBlanksWithVariables:algebra];
     if ([model conformsToProtocol:@protocol(GTWQueryPlanner)]) {
         NSMutableDictionary* opt    = [NSMutableDictionary dictionaryWithDictionary:options];
         opt[@"queryPlanner"]    = self;
@@ -308,30 +323,15 @@
         t   = algebra.value;
         defaultGraphs   = [dataset defaultGraphs];
         count   = [defaultGraphs count];
-        NSMutableDictionary* bnodeMap   = self.bnodeMap;
-        id<GTWTerm> (^mapBnodes)(id<GTWTerm> t) = ^id<GTWTerm>(id<GTWTerm> t){
-            if ([t isKindOfClass:[GTWBlank class]]) {
-                if ([bnodeMap objectForKey:t]) {
-                    return [bnodeMap objectForKey:t];
-                } else {
-                    NSUInteger vid  = ++(self.varID);
-                    id<GTWTerm> v   = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".b%lu", vid]];
-                    [bnodeMap setObject:v forKey:t];
-                    return v;
-                }
-            } else {
-                return t;
-            }
-        };
         if (count == 0) {
             return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if (count == 1) {
-            return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]]];
+            return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
         } else {
-            id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[0]]];
+            id<GTWTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
             NSInteger i;
             for (i = 1; i < count; i++) {
-                plan    = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:mapBnodes(t.subject) predicate:mapBnodes(t.predicate) object:mapBnodes(t.object) graph:defaultGraphs[i]]]]];
+                plan    = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]]]]];
             }
             return plan;
         }
