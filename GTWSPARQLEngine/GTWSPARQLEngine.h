@@ -75,6 +75,8 @@ typedef NSString* GTWTreeType;
 @protocol GTWQueryPlanner
 @property id<GTWLogger> logger;
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
+@optional
+- (id<GTWTree,GTWQueryPlan>) joinPlanForPlans: (id<GTWTree>) lhs and: (id<GTWTree>) rhs;
 @end
 
 
