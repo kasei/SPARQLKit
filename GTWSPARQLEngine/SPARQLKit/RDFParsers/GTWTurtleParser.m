@@ -127,6 +127,10 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
         if (self.verbose)
             NSLog(@"last token: %@", t);
     }
+    
+    if ([errors count] && error) {
+        *error  = [errors firstObject];
+    }
     return YES;
     
 cleanup:
