@@ -36,27 +36,27 @@ static NSDictionary* SPARQLCharTokens() {
     return _SPARQLCharTokens;
 }
 
-static NSDictionary* SPARQLMethodTokens() {
-	static NSDictionary *_SPARQLMethodTokens = nil;
-	static dispatch_once_t methodOnceToken;
-	dispatch_once(&methodOnceToken, ^{
-		_SPARQLMethodTokens = @{
-                                @"@": [NSValue valueWithPointer:@selector(getLanguage)],
-                                @"<": [NSValue valueWithPointer:@selector(getIRIRefOrRelational)],
-                                @"?": [NSValue valueWithPointer:@selector(getVariable)],
-                                @"$": [NSValue valueWithPointer:@selector(getVariable)],
-                                @"!": [NSValue valueWithPointer:@selector(getBang)],
-                                @">": [NSValue valueWithPointer:@selector(getRelational)],
-                                @"|": [NSValue valueWithPointer:@selector(getOr)],
-                                @"'": [NSValue valueWithPointer:@selector(getSingleLiteral)],
-                                @"\"": [NSValue valueWithPointer:@selector(getDoubleLiteral)],
-                                @"_": [NSValue valueWithPointer:@selector(getBnode)],
-                                @":": [NSValue valueWithPointer:@selector(getPName)]
-                                };
-	});
-	
-    return _SPARQLMethodTokens;
-}
+//static NSDictionary* SPARQLMethodTokens() {
+//	static NSDictionary *_SPARQLMethodTokens = nil;
+//	static dispatch_once_t methodOnceToken;
+//	dispatch_once(&methodOnceToken, ^{
+//		_SPARQLMethodTokens = @{
+//                                @"@": [NSValue valueWithPointer:@selector(getLanguage)],
+//                                @"<": [NSValue valueWithPointer:@selector(getIRIRefOrRelational)],
+//                                @"?": [NSValue valueWithPointer:@selector(getVariable)],
+//                                @"$": [NSValue valueWithPointer:@selector(getVariable)],
+//                                @"!": [NSValue valueWithPointer:@selector(getBang)],
+//                                @">": [NSValue valueWithPointer:@selector(getRelational)],
+//                                @"|": [NSValue valueWithPointer:@selector(getOr)],
+//                                @"'": [NSValue valueWithPointer:@selector(getSingleLiteral)],
+//                                @"\"": [NSValue valueWithPointer:@selector(getDoubleLiteral)],
+//                                @"_": [NSValue valueWithPointer:@selector(getBnode)],
+//                                @":": [NSValue valueWithPointer:@selector(getPName)]
+//                                };
+//	});
+//	
+//    return _SPARQLMethodTokens;
+//}
 
 static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	static NSCharacterSet *_SPARQLPrefixNameStartChar = nil;
