@@ -55,9 +55,19 @@
     
     if (lhs.type == kTreeQuad || lhs.type == kPlanHashJoin || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         lhsVars   = [lhs inScopeVariables];
+    } else if (lhs.type == kPlanUnion) {
+        NSMutableSet* lhsUnionVars    = [[lhs.arguments[0] inScopeVariables] mutableCopy];
+        NSSet* rhsUnionVars    = [lhs.arguments[1] inScopeVariables];
+        [lhsUnionVars intersectSet: rhsUnionVars];
+        lhsVars = lhsUnionVars;
     }
     if (rhs.type == kTreeQuad || rhs.type == kPlanHashJoin || [rhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         rhsVars   = [rhs inScopeVariables];
+    } else if (rhs.type == kPlanUnion) {
+        NSMutableSet* lhsUnionVars    = [[rhs.arguments[0] inScopeVariables] mutableCopy];
+        NSSet* rhsUnionVars    = [rhs.arguments[1] inScopeVariables];
+        [lhsUnionVars intersectSet: rhsUnionVars];
+        rhsVars = lhsUnionVars;
     }
     if (lhsVars && rhsVars) {
         NSMutableSet* joinVars = [NSMutableSet setWithSet:lhsVars];

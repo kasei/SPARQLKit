@@ -15,7 +15,7 @@
 #import <GTWSWBase/GTWSPARQLResultsJSONParser.h>
 
 #import <SPARQLKit/SPARQLKit.h>
-#import <SPARQLKit/GTWMemoryQuadStore.h>
+#import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/GTWTripleModel.h>
 #import <SPARQLKit/GTWQuadModel.h>
 #import <SPARQLKit/GTWRedlandParser.h>
@@ -86,7 +86,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     __block NSError* error          = nil;
     for (NSString* manifest in manifestFiles) {
         GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", manifest]];
-        GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+        SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
         GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
         NSData* data                = [fh readDataToEndOfFile];
@@ -403,7 +403,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             *serviceFlag        = YES;
             id<GTWTerm> ep      = [model anyObjectForSubject:data predicate:qtendpoint graph:nil];
             NSArray* dataFiles  = [model objectsForSubject:data predicate:qtdata graph:nil];
-            id<GTWQuadStore, GTWMutableQuadStore>   epstore   = [[GTWMemoryQuadStore alloc] init];
+            id<GTWQuadStore, GTWMutableQuadStore>   epstore   = [[SPKMemoryQuadStore alloc] init];
             for (id<GTWIRI> datafile in dataFiles) {
                 [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:epstore withGraph:defaultGraph base: datafile];
             }
@@ -560,7 +560,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     [GTWSPARQLTestHarnessURLProtocol clearMockedEndpoints];
     self.testsCount++;
     self.evalTests++;
-    GTWMemoryQuadStore* testStore   = [[GTWMemoryQuadStore alloc] init];
+    SPKMemoryQuadStore* testStore   = [[SPKMemoryQuadStore alloc] init];
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
     id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
@@ -727,7 +727,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWIRI* rsvariable      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#variable"];
     GTWIRI* rsvalue         = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#value"];
     
-    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+    SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
     NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
     GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
     for (id<GTWTriple> t in triples) {

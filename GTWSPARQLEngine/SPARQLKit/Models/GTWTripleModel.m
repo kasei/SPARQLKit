@@ -7,10 +7,20 @@
 
 - (GTWTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph {
     if (self = [self init]) {
-        self.graphs = [NSMutableDictionary dictionary];
-        (self.graphs)[graph.value] = store;
+        [self addStore:store usingGraphName:graph];
     }
     return self;
+}
+
+- (GTWTripleModel*) init {
+    if (self = [super init]) {
+        self.graphs = [NSMutableDictionary dictionary];
+    }
+    return self;
+}
+
+- (void) addStore:(id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph {
+    _graphs[graph.value] = store;
 }
 
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {

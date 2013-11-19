@@ -3,8 +3,9 @@
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWDataset.h>
-#import <SPARQLKit/GTWMemoryQuadStore.h>
-#import <SPARQLKit/GTWRedlandTripleStore.h>
+
+#import <SPARQLKit/SPKMemoryQuadStore.h>
+#import <SPARQLKit/SPKRedlandTripleStore.h>
 #import <SPARQLKit/GTWTurtleParser.h>
 #import <SPARQLKit/GTWSPARQLParser.h>
 #import <SPARQLKit/GTWQuadModel.h>
@@ -74,7 +75,7 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
 }
 
 int run_memory_quad_store_example(NSString* filename, NSString* base) {
-    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+    SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
     loadRDFFromFileIntoStore(store, filename, base);
     
 //    GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
@@ -128,7 +129,7 @@ int run_memory_quad_store_example(NSString* filename, NSString* base) {
 
 int run_redland_triple_store_example (NSString* filename, NSString* base) {
 	librdf_world* librdf_world_ptr	= librdf_new_world();
-    GTWRedlandTripleStore* store    = [[GTWRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
+    SPKRedlandTripleStore* store    = [[SPKRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
     GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
     
@@ -240,7 +241,7 @@ int parseQuery(NSString* query, NSString* base) {
     }
     NSLog(@"Query algebra:\n%@\n\n", algebra);
     
-    id<GTWQuadStore> store      = [[GTWMemoryQuadStore alloc] init];
+    id<GTWQuadStore> store      = [[SPKMemoryQuadStore alloc] init];
     id<GTWModel> model          = [[GTWQuadModel alloc] initWithQuadStore:store];
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
@@ -262,7 +263,7 @@ int lexQuery(NSString* query, NSString* base) {
 
 int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger verbose) {
     GTWIRI* graph = [[GTWIRI alloc] initWithValue: base];
-    GTWMemoryQuadStore* store   = [[GTWMemoryQuadStore alloc] init];
+    SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
 
     {
         NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
@@ -298,6 +299,33 @@ int usage(int argc, const char * argv[]) {
     return 0;
 }
 
+id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasources, NSDictionary* dict, GTWIRI* defaultGraph, Class* class) {
+    NSString* sourceName    = dict[@"storetype"];
+    Class c = [datasources objectForKey:sourceName];
+    *class  = c;
+    if (!c) {
+        NSLog(@"No data source class found with config: %@", dict);
+        return nil;
+    }
+    
+    NSSet* protocols    = [c implementedProtocols];
+    if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
+        if (!store) {
+            NSLog(@"Failed to create triple store from source '%@'", c);
+            return nil;
+        }
+        return store;
+    } else {
+        id<GTWQuadStore> store = [[c alloc] initWithDictionary:dict];
+        if (!store) {
+            NSLog(@"Failed to create triple store from source '%@'", c);
+            return nil;
+        }
+        return store;
+    }
+}
+
 id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, NSString* config, GTWIRI* defaultGraph, Class* class) {
     NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
     NSError* error      = nil;
@@ -318,28 +346,33 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
     if (!sourceName)
         sourceName  = dict[@"storetype"];
     
-    Class c = [datasources objectForKey:sourceName];
-    *class  = c;
-    if (!c) {
-        NSLog(@"No data source class found with ID '%@'", sourceName);
-        return nil;
-    }
-    
-    NSSet* protocols    = [c implementedProtocols];
-    if ([protocols containsObject:@protocol(GTWTripleStore)]) {
-        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
-        if (!store) {
-            NSLog(@"Failed to create triple store from source '%@'", c);
-            return nil;
+    if ([sourceName isEqualToString:@"GTWQuadModel"]) {
+        NSDictionary* data  = dict[@"graphs"];
+        GTWTripleModel* model  = [[GTWTripleModel alloc] init];
+        for (NSString* graphName in data) {
+            NSDictionary* storeDict = data[graphName];
+            GTWIRI* iri = [[GTWIRI alloc] initWithValue:graphName];
+            id<GTWDataSource> store = storeFromSourceWithConfigurationString(datasources, storeDict, defaultGraph, class);
+            if (!store) {
+                NSLog(@"Failed to create triple store from config '%@'", dict);
+                return nil;
+            }
+            [model addStore:(id<GTWTripleStore>)store usingGraphName:iri];
         }
-        return [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:defaultGraph];
+        return model;
     } else {
-        id<GTWQuadStore> store = [[c alloc] initWithDictionary:dict];
+        NSMutableDictionary* storeDict  = [dict mutableCopy];
+        storeDict[@"storetype"]  = sourceName;
+        id<GTWDataSource> store = storeFromSourceWithConfigurationString(datasources, storeDict, defaultGraph, class);
         if (!store) {
-            NSLog(@"Failed to create triple store from source '%@'", c);
+            NSLog(@"Failed to create triple store from config '%@'", storeDict);
             return nil;
         }
-        return [[GTWQuadModel alloc] initWithQuadStore:store];
+        if ([store conformsToProtocol:@protocol(GTWTripleStore)]) {
+            return [[GTWTripleModel alloc] initWithTripleStore:(id<GTWTripleStore>)store usingGraphName:defaultGraph];
+        } else {
+            return [[GTWQuadModel alloc] initWithQuadStore:(id<GTWQuadStore>)store];
+        }
     }
 }
 
@@ -352,7 +385,7 @@ int main(int argc, const char * argv[]) {
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
     NSArray* plugins    = [GTWSPARQLDataSourcePlugin loadAllPlugins];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
-    [datasourcelist addObject:[GTWMemoryQuadStore class]];
+    [datasourcelist addObject:[SPKMemoryQuadStore class]];
     
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
@@ -403,6 +436,10 @@ int main(int argc, const char * argv[]) {
         Class c;
         GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
         id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        if (!model) {
+            NSLog(@"Failed to construct model for query");
+            return 1;
+        }
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"endpoint"]) {
@@ -414,6 +451,10 @@ int main(int argc, const char * argv[]) {
         NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
         GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
         id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        if (!model) {
+            NSLog(@"Failed to construct model for query");
+            return 1;
+        }
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         // Configure our logging framework.
         // To keep things simple and fast, we're just going to log to the Xcode console.
@@ -511,6 +552,10 @@ int main(int argc, const char * argv[]) {
         Class c;
         GTWIRI* defaultGraph   = [[GTWIRI alloc] initWithValue: kDefaultBase];
         id<GTWModel> model  = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        if (!model) {
+            NSLog(@"Failed to construct model for query");
+            return 1;
+        }
 
         GTWVariable* s  = [[GTWVariable alloc] initWithValue:@"s"];
         GTWVariable* p  = [[GTWVariable alloc] initWithValue:@"p"];
@@ -627,8 +672,8 @@ int main(int argc, const char * argv[]) {
         NSString* filenamea  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* filenameb  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* base      = [NSString stringWithFormat:@"%s", argv[argi++]];
-        GTWMemoryQuadStore* storea   = [[GTWMemoryQuadStore alloc] init];
-        GTWMemoryQuadStore* storeb   = [[GTWMemoryQuadStore alloc] init];
+        SPKMemoryQuadStore* storea   = [[SPKMemoryQuadStore alloc] init];
+        SPKMemoryQuadStore* storeb   = [[SPKMemoryQuadStore alloc] init];
         loadRDFFromFileIntoStore(storea, filenamea, base);
         loadRDFFromFileIntoStore(storeb, filenameb, base);
         GTWQuadModel* modela         = [[GTWQuadModel alloc] initWithQuadStore:storea];

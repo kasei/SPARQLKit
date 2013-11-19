@@ -1,9 +1,9 @@
-#import "GTWRedlandTripleStore.h"
+#import "SPKRedlandTripleStore.h"
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWLiteral.h>
 
-@implementation GTWRedlandTripleStore
+@implementation SPKRedlandTripleStore
 
 + (unsigned)interfaceVersion {
     return 0;
@@ -17,7 +17,7 @@
     return [NSSet setWithObjects:@protocol(GTWTripleStore), @protocol(GTWMutableTripleStore), nil];
 }
 
-- (GTWRedlandTripleStore*) initWithName: (NSString*) name redlandPtr: (librdf_world*) librdf_world_ptr {
+- (SPKRedlandTripleStore*) initWithName: (NSString*) name redlandPtr: (librdf_world*) librdf_world_ptr {
     if (self = [self init]) {
         librdf_storage* storage     = librdf_new_storage(librdf_world_ptr, "trees", [name UTF8String], "new='yes'");
         self.librdf_world_ptr       = librdf_world_ptr;
@@ -27,7 +27,7 @@
     return self;
 }
 
-- (GTWRedlandTripleStore*) initWithStore: (librdf_storage*) storage redlandPtr: (librdf_world*) librdf_world_ptr {
+- (SPKRedlandTripleStore*) initWithStore: (librdf_storage*) storage redlandPtr: (librdf_world*) librdf_world_ptr {
     if (self = [self init]) {
         self.librdf_world_ptr       = librdf_world_ptr;
         self.model                  = librdf_new_model(librdf_world_ptr, storage, NULL);

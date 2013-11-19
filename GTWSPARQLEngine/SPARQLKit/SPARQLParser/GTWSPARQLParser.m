@@ -993,6 +993,10 @@ cleanup:
                           [[GTWTree alloc] initLeafWithType:kTreeNode value: limit],
                       ]];
         }
+    } else {
+        if (distinct) {
+            algebra = [[GTWTree alloc] initWithType:kAlgebraDistinct arguments:@[algebra]];
+        }
     }
     
     return algebra;

@@ -1,9 +1,9 @@
-#import "GTWMemoryQuadStore.h"
+#import "SPKMemoryQuadStore.h"
 #import "GTWTurtleParser.h"
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 
-@implementation GTWMemoryQuadStore
+@implementation SPKMemoryQuadStore
 
 + (unsigned)interfaceVersion {
     return 0;
@@ -59,7 +59,7 @@
     }
 }
 
-- (GTWMemoryQuadStore*) init {
+- (SPKMemoryQuadStore*) init {
     if (self = [super init]) {
         self.quads      = [[NSMutableSet alloc] init];
         self.queue      = dispatch_queue_create("us.kasei.sparql.quadstore", DISPATCH_QUEUE_CONCURRENT);

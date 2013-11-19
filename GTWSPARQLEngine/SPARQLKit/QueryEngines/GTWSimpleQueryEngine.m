@@ -453,6 +453,7 @@ static NSString* OSVersionNumber ( void ) {
     [model enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
         [graphs addObject: g];
     } error:nil];
+    NSLog(@"GRAPHs: %@", graphs);
     if ([graphs count]) {
         NSMutableArray* results = [NSMutableArray array];
         for (id<GTWTerm> g in graphs) {

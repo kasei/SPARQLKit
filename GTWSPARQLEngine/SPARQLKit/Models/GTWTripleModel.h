@@ -9,5 +9,6 @@
 @property id<GTWLogger> logger;
 
 - (GTWTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph;
+- (void) addStore:(id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph;
 
 @end

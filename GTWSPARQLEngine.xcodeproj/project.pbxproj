@@ -17,8 +17,6 @@
 		3700DD95183AD39300AF79C7 /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 379247E217ADA46200597746 /* librdf.0.dylib */; };
 		3700DD96183AD39700AF79C7 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37BF086E176718A2008B11F8 /* System.framework */; };
 		3700DD97183AD3A000AF79C7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD6B183AD32800AF79C7 /* Foundation.framework */; };
-		3700DD98183AD41300AF79C7 /* GTWMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD01183ACFC300AF79C7 /* GTWMemoryQuadStore.m */; };
-		3700DD99183AD43400AF79C7 /* GTWRedlandTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD03183ACFC300AF79C7 /* GTWRedlandTripleStore.m */; };
 		3700DD9A183AD43400AF79C7 /* GTWErrorLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD06183ACFC300AF79C7 /* GTWErrorLogger.m */; };
 		3700DD9B183AD43400AF79C7 /* GTWQuadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD09183ACFC300AF79C7 /* GTWQuadModel.m */; };
 		3700DD9C183AD43400AF79C7 /* GTWTripleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD0B183ACFC300AF79C7 /* GTWTripleModel.m */; };
@@ -41,8 +39,6 @@
 		3700DDAD183AD43400AF79C7 /* GTWBlankNodeRenamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD35183ACFC300AF79C7 /* GTWBlankNodeRenamer.m */; };
 		3700DDAF183AD43400AF79C7 /* NSDate+W3CDTFSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD39183ACFC300AF79C7 /* NSDate+W3CDTFSupport.m */; };
 		3700DDB0183AD43400AF79C7 /* NSObject+NSDictionary_QueryBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD3B183ACFC300AF79C7 /* NSObject+NSDictionary_QueryBindings.m */; };
-		3700DDB2183AD46100AF79C7 /* GTWMemoryQuadStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD00183ACFC300AF79C7 /* GTWMemoryQuadStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3700DDB3183AD46100AF79C7 /* GTWRedlandTripleStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD02183ACFC300AF79C7 /* GTWRedlandTripleStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDB4183AD46100AF79C7 /* GTWErrorLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD05183ACFC300AF79C7 /* GTWErrorLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDB5183AD46100AF79C7 /* GTWQuadModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD08183ACFC300AF79C7 /* GTWQuadModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDB6183AD46100AF79C7 /* GTWTripleModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD0A183ACFC300AF79C7 /* GTWTripleModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -105,6 +101,10 @@
 		37A6A02A18386B22002604B0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
 		37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
+		37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37E0FE6C183C2D9A00377B1D /* SPKRedlandTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */; };
+		37E0FE6F183C2E0100377B1D /* SPKMemoryQuadStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37E0FE70183C2E0100377B1D /* SPKMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */; };
 		37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
 		37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F96DD517AD5CBF00235009 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
@@ -126,10 +126,6 @@
 		3700DCF8183ACF8500AF79C7 /* GTWSPARQLTestHarness.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLTestHarness.m; sourceTree = "<group>"; };
 		3700DCF9183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLTestHarnessURLProtocol.h; sourceTree = "<group>"; };
 		3700DCFA183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLTestHarnessURLProtocol.m; sourceTree = "<group>"; };
-		3700DD00183ACFC300AF79C7 /* GTWMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWMemoryQuadStore.h; sourceTree = "<group>"; };
-		3700DD01183ACFC300AF79C7 /* GTWMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWMemoryQuadStore.m; sourceTree = "<group>"; };
-		3700DD02183ACFC300AF79C7 /* GTWRedlandTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWRedlandTripleStore.h; sourceTree = "<group>"; };
-		3700DD03183ACFC300AF79C7 /* GTWRedlandTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWRedlandTripleStore.m; sourceTree = "<group>"; };
 		3700DD05183ACFC300AF79C7 /* GTWErrorLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWErrorLogger.h; sourceTree = "<group>"; };
 		3700DD06183ACFC300AF79C7 /* GTWErrorLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWErrorLogger.m; sourceTree = "<group>"; };
 		3700DD08183ACFC300AF79C7 /* GTWQuadModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWQuadModel.h; sourceTree = "<group>"; };
@@ -253,6 +249,10 @@
 		37BF086E176718A2008B11F8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = ../../../../../../../System/Library/Frameworks/System.framework; sourceTree = "<group>"; };
 		37C37A4D1738089E0078C98F /* libraptor2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libraptor2.0.dylib; path = ../../../../../../../../usr/local/Cellar/raptor/2.0.9/lib/libraptor2.0.dylib; sourceTree = "<group>"; };
 		37C37A521739472A0078C98F /* librasqal.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librasqal.3.dylib; path = ../../../../../../../../usr/local/Cellar/rasqal/0.9.30/lib/librasqal.3.dylib; sourceTree = "<group>"; };
+		37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKRedlandTripleStore.h; sourceTree = "<group>"; };
+		37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKRedlandTripleStore.m; sourceTree = "<group>"; };
+		37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKMemoryQuadStore.h; sourceTree = "<group>"; };
+		37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKMemoryQuadStore.m; sourceTree = "<group>"; };
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -310,10 +310,10 @@
 		3700DCFD183ACFC300AF79C7 /* DataSources */ = {
 			isa = PBXGroup;
 			children = (
-				3700DD00183ACFC300AF79C7 /* GTWMemoryQuadStore.h */,
-				3700DD01183ACFC300AF79C7 /* GTWMemoryQuadStore.m */,
-				3700DD02183ACFC300AF79C7 /* GTWRedlandTripleStore.h */,
-				3700DD03183ACFC300AF79C7 /* GTWRedlandTripleStore.m */,
+				37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */,
+				37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */,
+				37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */,
+				37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */,
 			);
 			name = DataSources;
 			path = SPARQLKit/DataSources;
@@ -404,10 +404,10 @@
 		3700DD25183ACFC300AF79C7 /* SPARQLParser */ = {
 			isa = PBXGroup;
 			children = (
-				3700DD26183ACFC300AF79C7 /* GTWSPARQLLexer.h */,
-				3700DD27183ACFC300AF79C7 /* GTWSPARQLLexer.m */,
 				3700DD28183ACFC300AF79C7 /* GTWSPARQLParser.h */,
 				3700DD29183ACFC300AF79C7 /* GTWSPARQLParser.m */,
+				3700DD26183ACFC300AF79C7 /* GTWSPARQLLexer.h */,
+				3700DD27183ACFC300AF79C7 /* GTWSPARQLLexer.m */,
 				3700DD2A183ACFC300AF79C7 /* GTWSPARQLToken.h */,
 				3700DD2B183ACFC300AF79C7 /* GTWSPARQLToken.m */,
 			);
@@ -670,8 +670,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				3700DDCD183B111300AF79C7 /* SPARQLKit.h in Headers */,
-				3700DDB2183AD46100AF79C7 /* GTWMemoryQuadStore.h in Headers */,
-				3700DDB3183AD46100AF79C7 /* GTWRedlandTripleStore.h in Headers */,
 				3700DDB4183AD46100AF79C7 /* GTWErrorLogger.h in Headers */,
 				3700DDB5183AD46100AF79C7 /* GTWQuadModel.h in Headers */,
 				3700DDB6183AD46100AF79C7 /* GTWTripleModel.h in Headers */,
@@ -692,6 +690,8 @@
 				3700DDC5183AD46100AF79C7 /* GTWTree.h in Headers */,
 				3700DDC6183AD46100AF79C7 /* NSObject+GTWTree.h in Headers */,
 				3700DDC7183AD46100AF79C7 /* GTWBlankNodeRenamer.h in Headers */,
+				37E0FE6F183C2E0100377B1D /* SPKMemoryQuadStore.h in Headers */,
+				37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */,
 				3700DDC9183AD46100AF79C7 /* NSDate+W3CDTFSupport.h in Headers */,
 				3700DDCA183AD46100AF79C7 /* NSObject+NSDictionary_QueryBindings.h in Headers */,
 			);
@@ -778,7 +778,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3700DD99183AD43400AF79C7 /* GTWRedlandTripleStore.m in Sources */,
 				3700DD9A183AD43400AF79C7 /* GTWErrorLogger.m in Sources */,
 				3700DD9B183AD43400AF79C7 /* GTWQuadModel.m in Sources */,
 				3700DD9C183AD43400AF79C7 /* GTWTripleModel.m in Sources */,
@@ -801,7 +800,8 @@
 				3700DDAD183AD43400AF79C7 /* GTWBlankNodeRenamer.m in Sources */,
 				3700DDAF183AD43400AF79C7 /* NSDate+W3CDTFSupport.m in Sources */,
 				3700DDB0183AD43400AF79C7 /* NSObject+NSDictionary_QueryBindings.m in Sources */,
-				3700DD98183AD41300AF79C7 /* GTWMemoryQuadStore.m in Sources */,
+				37E0FE70183C2E0100377B1D /* SPKMemoryQuadStore.m in Sources */,
+				37E0FE6C183C2D9A00377B1D /* SPKRedlandTripleStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1101,6 +1101,7 @@
 				3700DD8C183AD32900AF79C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "GTWSPARQLEngine" */ = {
 			isa = XCConfigurationList;
