@@ -116,13 +116,13 @@
     if (graph) {
         id<GTWTripleStore> store    = self.graphs[graph];
         if (store) {
-            if ([store conformsToProtocol:@protocol(GTWQueryPlanner)]) {
+            if ([store conformsToProtocol:@protocol(SPKQueryPlanner)]) {
                 NSMutableDictionary* dict    = [NSMutableDictionary dictionary];
                 if (options) {
                     [dict addEntriesFromDictionary:options];
                 }
                 dict[@"tripleStoreIdentifier"]   = graph;
-                id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:dict];
+                id<GTWTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:dict];
                 if (plan) {
                     return plan;
                 }

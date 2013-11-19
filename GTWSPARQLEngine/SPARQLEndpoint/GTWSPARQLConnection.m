@@ -13,7 +13,7 @@
 #import "GTWSPARQLConfig.h"
 #import "SPKSPARQLParser.h"
 #import "SPARQLKit.h"
-#import "GTWQueryPlanner.h"
+#import "SPKQueryPlanner.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "HTTPMessage.h"
@@ -59,7 +59,7 @@
             NSLog(@"query:\n%@", algebra);
         }
         
-        GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
+        SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
         if (verbose) {
             NSLog(@"plan:\n%@", plan);

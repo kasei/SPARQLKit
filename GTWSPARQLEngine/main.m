@@ -10,7 +10,7 @@
 #import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKTripleModel.h>
-#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/GTWSPARQLDataSourcePlugin.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
@@ -207,7 +207,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
         NSLog(@"query:\n%@", algebra);
     }
     
-    GTWQueryPlanner* planner        = [[GTWQueryPlanner alloc] init];
+    SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
     id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
     if (verbose) {
         NSLog(@"plan:\n%@", plan);
@@ -243,7 +243,7 @@ int parseQuery(NSString* query, NSString* base) {
     
     id<GTWQuadStore> store      = [[SPKMemoryQuadStore alloc] init];
     id<GTWModel> model          = [[SPKQuadModel alloc] initWithQuadStore:store];
-    GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+    SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
     id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
     NSLog(@"Query plan:\n%@\n\n", plan);
     return 0;

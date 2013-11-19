@@ -1,13 +1,13 @@
-#import "GTWQueryPlanner.h"
+#import "SPKQueryPlanner.h"
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import "SPARQLKit.h"
 
-@implementation GTWQueryPlanner
+@implementation SPKQueryPlanner
 
-- (GTWQueryPlanner*) init {
+- (SPKQueryPlanner*) init {
     if (self = [super init]) {
         self.bnodeCounter   = 0;
         self.varID          = 0;
@@ -97,10 +97,10 @@
 
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     algebra = [self replaceBlanksWithVariables:algebra];
-    if ([model conformsToProtocol:@protocol(GTWQueryPlanner)]) {
+    if ([model conformsToProtocol:@protocol(SPKQueryPlanner)]) {
         NSMutableDictionary* opt    = [NSMutableDictionary dictionaryWithDictionary:options];
         opt[@"queryPlanner"]    = self;
-        id<GTWTree,GTWQueryPlan> plan   = [(id<GTWQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:opt];
+        id<GTWTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:opt];
         if (plan) {
             return plan;
         }

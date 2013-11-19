@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWDataset.h>
 
-@interface GTWQueryPlanner : NSObject<GTWQueryPlanner>
+@interface SPKQueryPlanner : NSObject<SPKQueryPlanner>
 
 @property id<GTWLogger> logger;
 @property NSUInteger bnodeCounter;

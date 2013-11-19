@@ -19,7 +19,7 @@
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKRedlandParser.h>
-#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKTurtleParser.h>
@@ -448,7 +448,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         if (self.verbose)
             NSLog(@"query:\n%@", algebra);
         
-        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+        SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel options:nil];
         if (!plan) {
@@ -494,7 +494,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         return algebra;
         
 //        GTWIRI* data    = [[GTWIRI alloc] initWithValue:@"http://base.example.org/"];
-//        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+//        SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
 //        GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[data.value]];
 //        id<GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset optimize: YES];
 //        if (!plan) {

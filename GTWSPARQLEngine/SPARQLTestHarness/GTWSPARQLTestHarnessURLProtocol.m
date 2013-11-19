@@ -8,7 +8,7 @@
 
 #import "GTWSPARQLTestHarnessURLProtocol.h"
 #import <SPARQLKit/SPKSPARQLParser.h>
-#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWTree.h>
 #import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
@@ -92,7 +92,7 @@ static dispatch_once_t mockToken;
         id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
         id<GTWTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
-        GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
+        SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];

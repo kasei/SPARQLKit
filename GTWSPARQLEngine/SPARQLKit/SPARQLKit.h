@@ -72,7 +72,7 @@ typedef NSString* GTWTreeType;
 
 #pragma mark -
 
-@protocol GTWQueryPlanner
+@protocol SPKQueryPlanner
 @property id<GTWLogger> logger;
 - (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
 @optional
