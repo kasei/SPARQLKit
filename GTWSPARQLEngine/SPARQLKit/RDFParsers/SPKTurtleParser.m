@@ -1,4 +1,4 @@
-#import "GTWTurtleParser.h"
+#import "SPKTurtleParser.h"
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWIRI.h>
@@ -6,15 +6,15 @@
 
 #define ASSERT_EMPTY(e) if ([e count] > 0) return NO;
 
-typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
-    GTWTurtleParserInSubject,
+typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
+    SPKTurtleParserInSubject,
 };
 
 
-@implementation GTWTurtleParser
+@implementation SPKTurtleParser
 @synthesize baseURI;
 
-- (GTWTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base {
+- (SPKTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base {
     if (self = [self init]) {
         self.lexer  = lex;
         self.baseIRI   = base;
@@ -22,7 +22,7 @@ typedef NS_ENUM(NSInteger, GTWTurtleParserState) {
     return self;
 }
 
-- (GTWTurtleParser*) init {
+- (SPKTurtleParser*) init {
     if (self = [super init]) {
         self.stack  = [[NSMutableArray alloc] init];
         self.namespaces = [[NSMutableDictionary alloc] init];

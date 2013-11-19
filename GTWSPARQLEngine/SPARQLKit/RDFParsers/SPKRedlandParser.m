@@ -1,4 +1,4 @@
-#import "GTWRedlandParser.h"
+#import "SPKRedlandParser.h"
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWLiteral.h>
@@ -43,9 +43,9 @@ static void statement_handler(void* user_data, raptor_statement* statement) {
     /* do something with the statement */
 }
 
-@implementation GTWRedlandParser
+@implementation SPKRedlandParser
 
-- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr {
+- (SPKRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr {
     if (self = [super init]) {
         if (!base) {
             base    = [[GTWIRI alloc] initWithValue:@"http://base.example.com/"];

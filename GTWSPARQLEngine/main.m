@@ -6,12 +6,12 @@
 
 #import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/SPKRedlandTripleStore.h>
-#import <SPARQLKit/GTWTurtleParser.h>
+#import <SPARQLKit/SPKTurtleParser.h>
 #import <SPARQLKit/GTWSPARQLParser.h>
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/GTWQueryPlanner.h>
-#import <SPARQLKit/GTWRedlandParser.h>
+#import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/GTWSPARQLDataSourcePlugin.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
@@ -58,7 +58,7 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     
     GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
-    GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+    SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
     if (p) {
         //    NSLog(@"parser: %p\n", p);
         [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
@@ -135,7 +135,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     
 //    GTWIRI* graph       = [[GTWIRI alloc] initWithValue:@"http://graph.kasei.us/"];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
-    GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+    SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
     //    NSLog(@"parser: %p\n", p);
     if (p) {
         [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
@@ -178,7 +178,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 int run_redland_parser_example (NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data            = [fh readDataToEndOfFile];
-    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"turtle" base: nil WithRaptorWorld:raptor_world_ptr];
+    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"turtle" base: nil WithRaptorWorld:raptor_world_ptr];
     {
         __block NSUInteger count    = 0;
         NSError* error  = nil;
@@ -268,7 +268,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
     {
         NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
         NSData* data            = [fh readDataToEndOfFile];
-        id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
+        id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
         [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
             GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
             [store addQuad:q error:nil];
@@ -502,7 +502,7 @@ int main(int argc, const char * argv[]) {
         GTWSPARQLLexer* l       = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
 //        GTWIRI* graph         = [[GTWIRI alloc] initWithValue:base];
         GTWIRI* baseuri         = [[GTWIRI alloc] initWithValue:base];
-        GTWTurtleParser* p      = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+        SPKTurtleParser* p      = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
         if (p) {
             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
 //                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];

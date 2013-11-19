@@ -18,11 +18,11 @@
 #import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKQuadModel.h>
-#import <SPARQLKit/GTWRedlandParser.h>
+#import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/GTWQueryPlanner.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
-#import <SPARQLKit/GTWTurtleParser.h>
+#import <SPARQLKit/SPKTurtleParser.h>
 #import <SPARQLKit/GTWSPARQLParser.h>
 #import <SPARQLKit/GTWNTriplesSerializer.h>
 #import "GTWSPARQLTestHarness.h"
@@ -91,7 +91,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
         NSData* data                = [fh readDataToEndOfFile];
         dispatch_sync(self.raptor_queue, ^{
-            id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
+            id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
             NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
             GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
@@ -150,7 +150,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
             NSData* data                = [fh readDataToEndOfFile];
             dispatch_sync(self.raptor_queue, ^{
-                id<GTWRDFParser> parser     = [[GTWRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
+                id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
                 __block NSUInteger count    = 0;
                 NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
                 GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
@@ -310,7 +310,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
 //      GTWIRI* base     = [[GTWIRI alloc] initWithValue:filename];
         GTWSPARQLLexer* lexer   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
-        id<GTWRDFParser> parser  = [[GTWTurtleParser alloc] initWithLexer:lexer base:base];
+        id<GTWRDFParser> parser  = [[SPKTurtleParser alloc] initWithLexer:lexer base:base];
         //  NSLog(@"parsing data with %@", parser);
         __block NSUInteger count    = 0;
         NSError* error  = nil;
@@ -327,7 +327,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSData* data            = [fh readDataToEndOfFile];
         dispatch_sync(self.raptor_queue, ^{
             NSError* error  = nil;
-            id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
+            id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
             //  NSLog(@"parsing data with %@", parser);
             __block NSUInteger count    = 0;
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
@@ -607,7 +607,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             __block BOOL sparqlResults  = NO;
             if ([resultsFilename hasSuffix:@".ttl"]) {
                 GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
-                id<GTWRDFParser> parser = [[GTWTurtleParser alloc] initWithLexer:l base:base];
+                id<GTWRDFParser> parser = [[SPKTurtleParser alloc] initWithLexer:l base:base];
                 NSError* error;
                 [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                     if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
@@ -618,7 +618,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             } else {
                 NSData* data            = [fh readDataToEndOfFile];
                 dispatch_sync(self.raptor_queue, ^{
-                    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
+                    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
                     NSError* error;
                     [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                         if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {

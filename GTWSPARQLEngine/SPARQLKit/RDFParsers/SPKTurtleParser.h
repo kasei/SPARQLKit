@@ -6,10 +6,10 @@
 #import <GTWSWBase/GTWIRI.h>
 
 /**
- @description The GTWTurtleParser class provides a @c GTWRDFParser that parses Turtle data
+ @description The SPKTurtleParser class provides a @c GTWRDFParser that parses Turtle data
               into a set of @c GTWTriple objects.
  */
-@interface GTWTurtleParser : NSObject<GTWRDFParser>
+@interface SPKTurtleParser : NSObject<GTWRDFParser>
 
 @property GTWSPARQLLexer* lexer;
 @property NSMutableArray* stack;
@@ -25,7 +25,7 @@
  @param base
  A @c GTWIRI specifying the base URI to be used during parsing.
  */
-- (GTWTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
+- (SPKTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 
 @end

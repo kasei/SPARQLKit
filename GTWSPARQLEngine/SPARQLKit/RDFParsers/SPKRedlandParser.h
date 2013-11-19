@@ -2,7 +2,7 @@
 #import "SPARQLKit.h"
 #include <raptor2.h>
 
-@interface GTWRedlandParser : NSObject<GTWRDFParser>
+@interface SPKRedlandParser : NSObject<GTWRDFParser>
 
 @property raptor_world* raptor_world_ptr;
 @property raptor_parser* parser;
@@ -11,6 +11,6 @@
 @property (retain, readwrite) GTWIRI* baseURI;
 //@property (copy) void(^handler)(id<Triple>t);
 
-- (GTWRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr;
+- (SPKRedlandParser*) initWithData: (NSData*) data inFormat: (NSString*) format base: (id<GTWIRI>) base WithRaptorWorld: (raptor_world*) raptor_world_ptr;
 
 @end

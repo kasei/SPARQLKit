@@ -1,5 +1,5 @@
 #import "SPKMemoryQuadStore.h"
-#import "GTWTurtleParser.h"
+#import "SPKTurtleParser.h"
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 
@@ -93,7 +93,7 @@
                         GTWIRI* graph       = [[GTWIRI alloc] initWithValue:(graphName ? graphName : base)];
                         NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:file];
                         GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
-                        GTWTurtleParser* p  = [[GTWTurtleParser alloc] initWithLexer:l base: baseuri];
+                        SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
                         if (p) {
                             //    NSLog(@"parser: %p\n", p);
                             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
