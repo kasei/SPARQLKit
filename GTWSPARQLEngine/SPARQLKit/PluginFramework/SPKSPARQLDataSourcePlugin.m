@@ -1,5 +1,5 @@
 //
-//  GTWSPARQLDataSourcePlugin.m
+//  SPKSPARQLDataSourcePlugin.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 8/3/13.
@@ -7,9 +7,9 @@
 //
 
 #import <GTWSWBase/GTWSWBase.h>
-#import "GTWSPARQLDataSourcePlugin.h"
+#import "SPKSPARQLDataSourcePlugin.h"
 
-@implementation GTWSPARQLDataSourcePlugin
+@implementation SPKSPARQLDataSourcePlugin
 
 NSString *ext = @"plugin";
 NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";

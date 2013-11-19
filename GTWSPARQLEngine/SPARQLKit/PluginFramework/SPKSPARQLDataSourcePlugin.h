@@ -1,5 +1,5 @@
 //
-//  GTWSPARQLDataSourcePlugin.h
+//  SPKSPARQLDataSourcePlugin.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 8/3/13.
@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
 
-@interface GTWSPARQLDataSourcePlugin : NSObject
+@interface SPKSPARQLDataSourcePlugin : NSObject
 
 + (NSArray*) loadAllPlugins;
 

@@ -12,7 +12,7 @@
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKRedlandParser.h>
-#import <SPARQLKit/GTWSPARQLDataSourcePlugin.h>
+#import <SPARQLKit/SPKSPARQLDataSourcePlugin.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
@@ -383,7 +383,7 @@ int main(int argc, const char * argv[]) {
     
     // ------------------------------------------------------------------------------------------------------------------------
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
-    NSArray* plugins    = [GTWSPARQLDataSourcePlugin loadAllPlugins];
+    NSArray* plugins    = [SPKSPARQLDataSourcePlugin loadAllPlugins];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
     [datasourcelist addObject:[SPKMemoryQuadStore class]];
     
