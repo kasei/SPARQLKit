@@ -1,5 +1,5 @@
 //
-//  GTWSimpleQueryEngine.h
+//  SPKSimpleQueryEngine.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 9/18/13.
@@ -8,11 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
-#import "GTWExpressionEvaluationContext.h"
+#import "SPKExpressionEvaluationContext.h"
 
-@interface GTWSimpleQueryEngine : NSObject<GTWQueryEngine>
+@interface SPKSimpleQueryEngine : NSObject<GTWQueryEngine>
 
-@property GTWExpressionEvaluationContext* evalctx;
+@property SPKExpressionEvaluationContext* evalctx;
 @property NSUInteger bnodeCounter;
 
 @end

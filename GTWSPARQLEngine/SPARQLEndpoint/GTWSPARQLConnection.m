@@ -8,7 +8,7 @@
 
 #import "GTWSPARQLConnection.h"
 #import <GTWSWBase/GTWSWBase.h>
-#import "GTWSimpleQueryEngine.h"
+#import "SPKSimpleQueryEngine.h"
 #import "HTTPDataResponse.h"
 #import "GTWSPARQLConfig.h"
 #import "SPKSPARQLParser.h"
@@ -69,7 +69,7 @@
         if (verbose) {
             NSLog(@"executing query...");
         }
-        id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
+        id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
 //        id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
         id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];

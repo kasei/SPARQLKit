@@ -13,7 +13,7 @@
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/SPKSPARQLDataSourcePlugin.h>
-#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
 #import <SPARQLKit/GTWNTriplesSerializer.h>
@@ -217,7 +217,7 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     if (verbose) {
         NSLog(@"executing query...");
     }
-    id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
+    id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
     NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
     id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
 //    id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];

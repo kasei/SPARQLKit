@@ -9,7 +9,7 @@
 #import "GTWSPARQLTestHarnessURLProtocol.h"
 #import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
-#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/GTWTree.h>
 #import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
 
@@ -95,7 +95,7 @@ static dispatch_once_t mockToken;
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
-        id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
+        id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         
         if (NO) {
             NSLog(@"MOCKED model ------------------->\n");

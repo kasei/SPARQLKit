@@ -20,7 +20,7 @@
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
-#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKTurtleParser.h>
 #import <SPARQLKit/SPKSPARQLParser.h>
@@ -566,7 +566,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     SPKQuadModel* testModel         = [[SPKQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
-        id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
+        id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         
         if (NO) {
             __block NSUInteger count    = 0;

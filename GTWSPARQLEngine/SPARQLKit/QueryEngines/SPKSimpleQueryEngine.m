@@ -1,5 +1,5 @@
 //
-//  GTWSimpleQueryEngine.m
+//  SPKSimpleQueryEngine.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 9/18/13.
@@ -7,7 +7,7 @@
 //
 
 #import "SPARQLKit.h"
-#import "GTWSimpleQueryEngine.h"
+#import "SPKSimpleQueryEngine.h"
 #import "GTWTree.h"
 #import "NSObject+NSDictionary_QueryBindings.h"
 #import <GTWSWBase/GTWSWBase.h>
@@ -23,7 +23,7 @@ static NSString* OSVersionNumber ( void ) {
     return productVersion;
 }
 
-@implementation GTWSimpleQueryEngine
+@implementation SPKSimpleQueryEngine
 
 - (NSEnumerator*) evaluateHashJoin:(id<GTWTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSMutableArray* results = [NSMutableArray array];
@@ -820,7 +820,7 @@ MORE_LOOP:
 }
 
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
-    self.evalctx    = [[GTWExpressionEvaluationContext alloc] init];
+    self.evalctx    = [[SPKExpressionEvaluationContext alloc] init];
     self.evalctx.queryengine    = self;
     return [self _evaluateQueryPlan:plan withModel:model];
 }

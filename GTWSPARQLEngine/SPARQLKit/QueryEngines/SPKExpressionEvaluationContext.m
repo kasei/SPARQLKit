@@ -1,12 +1,12 @@
 //
-//  GTWExpressionEvaluationContext.m
+//  SPKExpressionEvaluationContext.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 10/24/13.
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWExpressionEvaluationContext.h"
+#import "SPKExpressionEvaluationContext.h"
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWBlank.h>
@@ -28,7 +28,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
     }
 }
 
-@implementation GTWExpressionEvaluationContext
+@implementation SPKExpressionEvaluationContext
 
 - (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
     return [self evaluateExpression:expr withResult:result usingModel:model resultIdentity:result];

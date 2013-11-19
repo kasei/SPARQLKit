@@ -1,5 +1,5 @@
 //
-//  GTWExpressionEvaluationContext.h
+//  SPKExpressionEvaluationContext.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 10/24/13.
@@ -10,7 +10,7 @@
 #import "GTWExpression.h"
 #import "SPARQLKit.h"
 
-@interface GTWExpressionEvaluationContext : NSObject
+@interface SPKExpressionEvaluationContext : NSObject
 
 @property NSUInteger bnodeID;
 @property __weak id<GTWQueryEngine> queryengine;
