@@ -2,10 +2,10 @@
 #import "SPARQLKit.h"
 #import <GTWSWBase/GTWModelBase.h>
 
-@interface GTWQuadModel : GTWModelBase<GTWModel>
+@interface SPKQuadModel : GTWModelBase<GTWModel>
 
 @property id<GTWQuadStore> store;
 
-- (GTWQuadModel*) initWithQuadStore: (id<GTWQuadStore>) store;
+- (SPKQuadModel*) initWithQuadStore: (id<GTWQuadStore>) store;
 
 @end

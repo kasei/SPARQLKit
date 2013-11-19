@@ -16,8 +16,8 @@
 
 #import <SPARQLKit/SPARQLKit.h>
 #import <SPARQLKit/SPKMemoryQuadStore.h>
-#import <SPARQLKit/GTWTripleModel.h>
-#import <SPARQLKit/GTWQuadModel.h>
+#import <SPARQLKit/SPKTripleModel.h>
+#import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/GTWRedlandParser.h>
 #import <SPARQLKit/GTWQueryPlanner.h>
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
@@ -87,7 +87,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     for (NSString* manifest in manifestFiles) {
         GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", manifest]];
         SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
-        GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+        SPKQuadModel* model         = [[SPKQuadModel alloc] initWithQuadStore:store];
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
         NSData* data                = [fh readDataToEndOfFile];
         dispatch_sync(self.raptor_queue, ^{
@@ -408,7 +408,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:epstore withGraph:defaultGraph base: datafile];
             }
             NSURL* endpoint     = [NSURL URLWithString:ep.value];
-            id<GTWModel> model  = [[GTWQuadModel alloc] initWithQuadStore:epstore];
+            id<GTWModel> model  = [[SPKQuadModel alloc] initWithQuadStore:epstore];
             [GTWSPARQLTestHarnessURLProtocol mockEndpoint:endpoint withModel:model defaultGraph: defaultGraph];
         }
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:query.value] error:nil];
@@ -443,7 +443,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSLog(@"<------------------- test model\n");
         }
         
-        id<GTWModel> testModel  = [[GTWQuadModel alloc] initWithQuadStore:testStore];
+        id<GTWModel> testModel  = [[SPKQuadModel alloc] initWithQuadStore:testStore];
         
         if (self.verbose)
             NSLog(@"query:\n%@", algebra);
@@ -564,7 +564,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
     id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
-    GTWQuadModel* testModel         = [[GTWQuadModel alloc] initWithQuadStore:testStore];
+    SPKQuadModel* testModel         = [[SPKQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
         id<GTWQueryEngine> engine   = [[GTWSimpleQueryEngine alloc] init];
         
@@ -734,7 +734,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:defaultGraph];
         [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
     }
-    GTWQuadModel* model = [[GTWQuadModel alloc] initWithQuadStore:store];
+    SPKQuadModel* model = [[SPKQuadModel alloc] initWithQuadStore:store];
     id<GTWTerm> rs      = [model anySubjectForPredicate:type object:resultset graph:nil];
     if (!rs)
         return nil;

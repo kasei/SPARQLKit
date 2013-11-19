@@ -1,18 +1,18 @@
-#import "GTWTripleModel.h"
+#import "SPKTripleModel.h"
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 
-@implementation GTWTripleModel
+@implementation SPKTripleModel
 
-- (GTWTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph {
+- (SPKTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph {
     if (self = [self init]) {
         [self addStore:store usingGraphName:graph];
     }
     return self;
 }
 
-- (GTWTripleModel*) init {
+- (SPKTripleModel*) init {
     if (self = [super init]) {
         self.graphs = [NSMutableDictionary dictionary];
     }

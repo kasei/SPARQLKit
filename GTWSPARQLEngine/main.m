@@ -8,8 +8,8 @@
 #import <SPARQLKit/SPKRedlandTripleStore.h>
 #import <SPARQLKit/GTWTurtleParser.h>
 #import <SPARQLKit/GTWSPARQLParser.h>
-#import <SPARQLKit/GTWQuadModel.h>
-#import <SPARQLKit/GTWTripleModel.h>
+#import <SPARQLKit/SPKQuadModel.h>
+#import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/GTWQueryPlanner.h>
 #import <SPARQLKit/GTWRedlandParser.h>
 #import <SPARQLKit/GTWSPARQLDataSourcePlugin.h>
@@ -148,7 +148,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     
     
     GTWIRI* g = [[GTWIRI alloc] initWithValue:@"http://example.org/"];
-    GTWTripleModel* model = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:g];
+    SPKTripleModel* model = [[SPKTripleModel alloc] initWithTripleStore:store usingGraphName:g];
     id<GTWTriplesSerializer> s    = [[GTWNTriplesSerializer alloc] init];
 //    NSLog(@"model: %@\n--------------\n", model);
     NSEnumerator* e = [model quadsMatchingSubject:nil predicate:nil object:nil graph:nil error:nil];
@@ -242,7 +242,7 @@ int parseQuery(NSString* query, NSString* base) {
     NSLog(@"Query algebra:\n%@\n\n", algebra);
     
     id<GTWQuadStore> store      = [[SPKMemoryQuadStore alloc] init];
-    id<GTWModel> model          = [[GTWQuadModel alloc] initWithQuadStore:store];
+    id<GTWModel> model          = [[SPKQuadModel alloc] initWithQuadStore:store];
     GTWQueryPlanner* planner    = [[GTWQueryPlanner alloc] init];
     id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
     NSLog(@"Query plan:\n%@\n\n", plan);
@@ -275,7 +275,7 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
         } error:nil];
     }
     
-    GTWQuadModel* model         = [[GTWQuadModel alloc] initWithQuadStore:store];
+    SPKQuadModel* model         = [[SPKQuadModel alloc] initWithQuadStore:store];
     GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     return runQueryWithModelAndDataset(query, base, model, dataset, verbose);
 }
@@ -346,9 +346,9 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
     if (!sourceName)
         sourceName  = dict[@"storetype"];
     
-    if ([sourceName isEqualToString:@"GTWQuadModel"]) {
+    if ([sourceName isEqualToString:@"SPKQuadModel"]) {
         NSDictionary* data  = dict[@"graphs"];
-        GTWTripleModel* model  = [[GTWTripleModel alloc] init];
+        SPKTripleModel* model  = [[SPKTripleModel alloc] init];
         for (NSString* graphName in data) {
             NSDictionary* storeDict = data[graphName];
             GTWIRI* iri = [[GTWIRI alloc] initWithValue:graphName];
@@ -369,9 +369,9 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
             return nil;
         }
         if ([store conformsToProtocol:@protocol(GTWTripleStore)]) {
-            return [[GTWTripleModel alloc] initWithTripleStore:(id<GTWTripleStore>)store usingGraphName:defaultGraph];
+            return [[SPKTripleModel alloc] initWithTripleStore:(id<GTWTripleStore>)store usingGraphName:defaultGraph];
         } else {
-            return [[GTWQuadModel alloc] initWithQuadStore:(id<GTWQuadStore>)store];
+            return [[SPKQuadModel alloc] initWithQuadStore:(id<GTWQuadStore>)store];
         }
     }
 }
@@ -618,7 +618,7 @@ int main(int argc, const char * argv[]) {
             NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
             id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
             GTWIRI* graph = [[GTWIRI alloc] initWithValue: kDefaultBase];
-            GTWTripleModel* model           = [[GTWTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
+            SPKTripleModel* model           = [[SPKTripleModel alloc] initWithTripleStore:store usingGraphName:graph];
             GTWVariable* s  = [[GTWVariable alloc] initWithValue:@"s"];
             GTWVariable* o  = [[GTWVariable alloc] initWithValue:@"o"];
             GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
@@ -676,8 +676,8 @@ int main(int argc, const char * argv[]) {
         SPKMemoryQuadStore* storeb   = [[SPKMemoryQuadStore alloc] init];
         loadRDFFromFileIntoStore(storea, filenamea, base);
         loadRDFFromFileIntoStore(storeb, filenameb, base);
-        GTWQuadModel* modela         = [[GTWQuadModel alloc] initWithQuadStore:storea];
-        GTWQuadModel* modelb         = [[GTWQuadModel alloc] initWithQuadStore:storeb];
+        SPKQuadModel* modela         = [[SPKQuadModel alloc] initWithQuadStore:storea];
+        SPKQuadModel* modelb         = [[SPKQuadModel alloc] initWithQuadStore:storeb];
         [modela isEqual:modelb];
     }
 }

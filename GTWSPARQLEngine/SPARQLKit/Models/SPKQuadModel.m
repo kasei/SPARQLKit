@@ -1,9 +1,9 @@
-#import "GTWQuadModel.h"
+#import "SPKQuadModel.h"
 #import <GTWSWBase/GTWVariable.h>
 
-@implementation GTWQuadModel
+@implementation SPKQuadModel
 
-- (GTWQuadModel*) initWithQuadStore: (id<GTWQuadStore>) store {
+- (SPKQuadModel*) initWithQuadStore: (id<GTWQuadStore>) store {
     if (self = [self init]) {
         self.store  = store;
     }
@@ -11,7 +11,7 @@
 }
 
 - (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
-//    NSLog(@"GTWQuadModel enumerateQuadsMatching...");
+//    NSLog(@"SPKQuadModel enumerateQuadsMatching...");
     return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:block error:error];
 }
 

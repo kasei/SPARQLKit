@@ -3,12 +3,12 @@
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWModelBase.h>
 
-@interface GTWTripleModel : GTWModelBase<GTWModel,GTWQueryPlanner>
+@interface SPKTripleModel : GTWModelBase<GTWModel,GTWQueryPlanner>
 
 @property NSMutableDictionary* graphs;
 @property id<GTWLogger> logger;
 
-- (GTWTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph;
+- (SPKTripleModel*) initWithTripleStore: (id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph;
 - (void) addStore:(id<GTWTripleStore>) store usingGraphName: (GTWIRI*) graph;
 
 @end
