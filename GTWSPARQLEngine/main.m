@@ -1,12 +1,8 @@
-#include <pthread.h>
-#include <librdf.h>
-#include <CoreFoundation/CoreFoundation.h>
 #import <objc/runtime.h>
+#import "GTWSPARQLEngine.h"
 #import <GTWSWBase/GTWQuad.h>
-#import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWDataset.h>
-#import "GTWSPARQLEngine.h"
 #import "GTWMemoryQuadStore.h"
 #import "GTWRedlandTripleStore.h"
 #import "GTWTurtleParser.h"
@@ -15,20 +11,17 @@
 #import "GTWTripleModel.h"
 #import "GTWQueryPlanner.h"
 #import "GTWRedlandParser.h"
-#import "GTWExpression.h"
-#import "NSObject+NSDictionary_QueryBindings.h"
 #import "GTWSPARQLTestHarness.h"
-#import "GTWSPARQLDataSourcePlugin.h"
 #import "GTWSPARQLDataSourcePlugin.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
-#import "GTWSPARQLParser.h"
 #import "GTWNTriplesSerializer.h"
 #import "GTWNQuadsSerializer.h"
+
+// SPARQL Endpoint
 #import "GTWSPARQLConnection.h"
 #import "GTWSPARQLServer.h"
-
 #import "HTTPServer.h"
 #import "DDLog.h"
 #import "DDTTYLogger.h"
