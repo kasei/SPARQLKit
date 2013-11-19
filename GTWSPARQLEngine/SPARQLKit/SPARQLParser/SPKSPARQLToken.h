@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWLiteral.h>
 
-typedef NS_ENUM(NSInteger, GTWSPARQLTokenType) {
+typedef NS_ENUM(NSInteger, SPKSPARQLTokenType) {
 	WS,
 	COMMENT,
 	NIL,
@@ -52,18 +52,18 @@ typedef NS_ENUM(NSInteger, GTWSPARQLTokenType) {
 	IRI,
 };
 
-@interface GTWSPARQLToken : NSObject {
-	GTWSPARQLTokenType _type;
+@interface SPKSPARQLToken : NSObject {
+	SPKSPARQLTokenType _type;
 	NSRange _range;
 	NSArray* _args;
 }
 
-@property GTWSPARQLTokenType type;
+@property SPKSPARQLTokenType type;
 @property NSRange range;
 @property (strong) NSArray* args;
 
-+ (NSString*) nameOfSPARQLTokenOfType: (GTWSPARQLTokenType) type;
-- (GTWSPARQLToken*) initTokenOfType: (GTWSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range;
++ (NSString*) nameOfSPARQLTokenOfType: (SPKSPARQLTokenType) type;
+- (SPKSPARQLToken*) initTokenOfType: (SPKSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range;
 - (id) value;
 - (BOOL) isTerm;
 - (BOOL) isTermOrVar;

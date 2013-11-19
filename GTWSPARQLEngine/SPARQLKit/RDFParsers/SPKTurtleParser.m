@@ -14,7 +14,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
 @implementation SPKTurtleParser
 @synthesize baseURI;
 
-- (SPKTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base {
+- (SPKTurtleParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base {
     if (self = [self init]) {
         self.lexer  = lex;
         self.baseIRI   = base;
@@ -46,9 +46,9 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
     return [self parseWithError:error];
 }
 
-- (GTWSPARQLToken*) peekNextNonCommentToken {
+- (SPKSPARQLToken*) peekNextNonCommentToken {
     while (YES) {
-        GTWSPARQLToken* t   = [self.lexer peekToken];
+        SPKSPARQLToken* t   = [self.lexer peekToken];
         if (!t)
             return nil;
         if (t.type == COMMENT) {
@@ -59,8 +59,8 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
     }
 }
 
-- (GTWSPARQLToken*) nextNonCommentToken {
-    GTWSPARQLToken* t   = [self.lexer getToken];
+- (SPKSPARQLToken*) nextNonCommentToken {
+    SPKSPARQLToken* t   = [self.lexer getToken];
     while (t.type == COMMENT) {
         t   = [self.lexer getToken];
     }
@@ -77,19 +77,19 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
 - (BOOL) parseWithError: (NSError**) error {
     NSMutableArray* errors  = [NSMutableArray array];
     @autoreleasepool {
-        GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+        SPKSPARQLToken* t   = [self peekNextNonCommentToken];
         while (t) {
             if (t.type == KEYWORD) {
                 if ([t.value isEqual:@"PREFIX"]) {
                     [self parseExpectedTokenOfType:KEYWORD withValue:@"PREFIX" withErrors:errors];
                     if ([errors count]) goto cleanup;
                     
-                    GTWSPARQLToken* name    = [self nextNonCommentToken];
+                    SPKSPARQLToken* name    = [self nextNonCommentToken];
                     if ([name.args count] > 2 || ([name.args count] == 2 && ![[name.args objectAtIndex:1] isEqual: @""])) {
                         [self errorMessage:[NSString stringWithFormat: @"Expecting PNAME_NS in PREFIX declaration, but found PNAME_LN %@", [name.args componentsJoinedByString:@":"]] withErrors:errors];
                         return NO;
                     }
-                    GTWSPARQLToken* iri     = [self nextNonCommentToken];
+                    SPKSPARQLToken* iri     = [self nextNonCommentToken];
                     if (name && iri) {
                         if (self.verbose)
                             NSLog(@"-> prefix %@ -> %@", name, iri);
@@ -101,7 +101,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
                     //            NSLog(@"PREFIX %@: %@\n", name.value, iri.value);
                 } else if ([t.value isEqual:@"BASE"]) {
                     [self nextNonCommentToken];
-                    GTWSPARQLToken* iri     = [self nextNonCommentToken];
+                    SPKSPARQLToken* iri     = [self nextNonCommentToken];
                     if (iri) {
                         self.baseIRI   = (id<GTWIRI>) [self tokenAsTerm:iri withErrors:errors];
                     } else {
@@ -141,7 +141,7 @@ cleanup:
 
 //[6]	triples	::=	subject predicateObjectList | blankNodePropertyList predicateObjectList?
 - (BOOL) parseTriplesWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (self.verbose)
         NSLog(@"-> parseTriplesWithErrors: %@", t);
     if (t.type == LBRACKET) {
@@ -168,7 +168,7 @@ cleanup:
     [self parseObjectListForSubject: subject predicate: verb errors: errors];
     ASSERT_EMPTY(errors);
     
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     while (t.type == SEMICOLON) {
         [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
         t   = [self peekNextNonCommentToken];
@@ -197,7 +197,7 @@ cleanup:
     if (self.verbose)
         NSLog(@"-> object: %@", object);
     
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     while (t.type == COMMA) {
         [self parseExpectedTokenOfType:COMMA withErrors:errors];
         ASSERT_EMPTY(errors);
@@ -214,7 +214,7 @@ cleanup:
 
 //[9]	verb	::=	predicate | 'a'
 - (id<GTWTerm>) parseVerbWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t     = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t     = [self peekNextNonCommentToken];
     if (t.type == KEYWORD && [t.value isEqualToString:@"A"]) {
         [self parseExpectedTokenOfType:KEYWORD withErrors:errors];
         ASSERT_EMPTY(errors);
@@ -226,7 +226,7 @@ cleanup:
 
 //[10]	subject	::=	iri | BlankNode | collection
 - (id<GTWTerm>) parseSubjectWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t     = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t     = [self peekNextNonCommentToken];
     if (t.type == LPAREN) {
         id<GTWTerm> subject = [self parseCollectionWithErrors: errors];
         return subject;
@@ -239,7 +239,7 @@ cleanup:
 
 //[11]	predicate	::=	iri
 - (id<GTWTerm>) parsePredicateWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* token     = [self nextNonCommentToken];
+    SPKSPARQLToken* token     = [self nextNonCommentToken];
     id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
     if ([t termType] == GTWTermIRI) {
         return t;
@@ -259,7 +259,7 @@ cleanup:
 //[136s]	PrefixedName	::=	PNAME_LN | PNAME_NS
 //[137s]	BlankNode	::=	BLANK_NODE_LABEL | ANON
 - (id<GTWTerm>) parseObjectForSubject: (id<GTWTerm>) subject predicate: (id<GTWTerm>) predicate errors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t     = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t     = [self peekNextNonCommentToken];
     if ([self tokenIsTerm:t]) {
         [self nextNonCommentToken];
         id<GTWTerm> object    = [self tokenAsTerm:t withErrors:errors];
@@ -313,7 +313,7 @@ cleanup:
     GTWIRI* rdfrest     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
     GTWIRI* rdfnil      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
 
-    GTWSPARQLToken* t     = [self peekNextNonCommentToken];
+    SPKSPARQLToken* t     = [self peekNextNonCommentToken];
     id<GTWTerm> head        = subject;
     while (t.type != RPAREN) {
         [self parseObjectForSubject:head predicate:rdffirst errors:errors];
@@ -342,7 +342,7 @@ cleanup:
 }
 
 - (id<GTWTerm>) parseTermWithErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* token     = [self nextNonCommentToken];
+    SPKSPARQLToken* token     = [self nextNonCommentToken];
     id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
     ASSERT_EMPTY(errors);
     return t;
@@ -351,12 +351,12 @@ cleanup:
 #pragma mark -
 
 
-- (GTWSPARQLToken*) parseExpectedTokenOfType: (GTWSPARQLTokenType) type withErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self nextNonCommentToken];
+- (SPKSPARQLToken*) parseExpectedTokenOfType: (SPKSPARQLTokenType) type withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self nextNonCommentToken];
     if (!t)
         return nil;
     if (t.type != type) {
-        NSString* reason    = [NSString stringWithFormat:@"Expecting %@ but found %@", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], t];
+        NSString* reason    = [NSString stringWithFormat:@"Expecting %@ but found %@", [SPKSPARQLToken nameOfSPARQLTokenOfType:type], t];
         return [self errorMessage:reason withErrors:errors];
         //        NSException* e  = [NSException exceptionWithName:@"us.kasei.sparql.parse-error" reason:reason userInfo:@{}];
         //        NSLog(@"%@; %@", reason, [e callStackSymbols]);
@@ -368,8 +368,8 @@ cleanup:
     }
 }
 
-- (GTWSPARQLToken*) parseOptionalTokenOfType: (GTWSPARQLTokenType) type {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (!t)
         return nil;
     if (t.type != type) {
@@ -380,23 +380,23 @@ cleanup:
     }
 }
 
-- (GTWSPARQLToken*) parseExpectedTokenOfType: (GTWSPARQLTokenType) type withValue: (NSString*) string withErrors: (NSMutableArray*) errors {
-    GTWSPARQLToken* t   = [self nextNonCommentToken];
+- (SPKSPARQLToken*) parseExpectedTokenOfType: (SPKSPARQLTokenType) type withValue: (NSString*) string withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self nextNonCommentToken];
     if (!t)
         return nil;
     if (t.type != type) {
-        return [self errorMessage:[NSString stringWithFormat:@"Expecting %@['%@'] but found %@", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], string, t] withErrors:errors];
+        return [self errorMessage:[NSString stringWithFormat:@"Expecting %@['%@'] but found %@", [SPKSPARQLToken nameOfSPARQLTokenOfType:type], string, t] withErrors:errors];
     } else {
         if ([t.value isEqual: string]) {
             return t;
         } else {
-            return [self errorMessage:[NSString stringWithFormat:@"Expecting %@ value '%@' but found '%@'", [GTWSPARQLToken nameOfSPARQLTokenOfType:type], string, t.value] withErrors:errors];
+            return [self errorMessage:[NSString stringWithFormat:@"Expecting %@ value '%@' but found '%@'", [SPKSPARQLToken nameOfSPARQLTokenOfType:type], string, t.value] withErrors:errors];
         }
     }
 }
 
-- (GTWSPARQLToken*) parseOptionalTokenOfType: (GTWSPARQLTokenType) type withValue: (NSString*) string {
-    GTWSPARQLToken* t   = [self peekNextNonCommentToken];
+- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type withValue: (NSString*) string {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (t.type != type) {
         return nil;
     } else {
@@ -411,7 +411,7 @@ cleanup:
 
 #pragma mark -
 
-- (BOOL) tokenIsTerm: (GTWSPARQLToken*) t {
+- (BOOL) tokenIsTerm: (SPKSPARQLToken*) t {
     switch (t.type) {
         case NIL:
         case IRI:
@@ -442,7 +442,7 @@ cleanup:
     return NO;
 }
 
-- (id<GTWTerm>) tokenAsTerm: (GTWSPARQLToken*) t withErrors: (NSMutableArray*) errors {
+- (id<GTWTerm>) tokenAsTerm: (SPKSPARQLToken*) t withErrors: (NSMutableArray*) errors {
     if (t.type == NIL) {
         return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
     } else if (t.type == VAR) {
@@ -485,21 +485,21 @@ cleanup:
         //        return [[GTWBlank alloc] initWithID:t.value];
     } else if (t.type == STRING1D || t.type == STRING1S) {
         NSString* value = t.value;
-        GTWSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
+        SPKSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
         if (hh) {
             t   = [self nextNonCommentToken];
             id<GTWTerm> dt  = [self tokenAsTerm:t withErrors:errors];
             ASSERT_EMPTY(errors);
             return [[GTWLiteral alloc] initWithValue:value datatype:dt.value];
         }
-        GTWSPARQLToken* lang  = [self parseOptionalTokenOfType:LANG];
+        SPKSPARQLToken* lang  = [self parseOptionalTokenOfType:LANG];
         if (lang) {
             return [[GTWLiteral alloc] initWithValue:value language:lang.value];
         }
         return [[GTWLiteral alloc] initWithValue:value];
     } else if (t.type == STRING3D || t.type == STRING3S) {
         NSString* value = t.value;
-        GTWSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
+        SPKSPARQLToken* hh  = [self parseOptionalTokenOfType:HATHAT];
         if (hh) {
             t   = [self nextNonCommentToken];
             id<GTWTerm> dt  = [self tokenAsTerm:t withErrors:errors];

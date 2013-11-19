@@ -26,9 +26,6 @@
 		3700DDA4183AD43400AF79C7 /* GTWNTriplesSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD20183ACFC300AF79C7 /* GTWNTriplesSerializer.m */; };
 		3700DDA5183AD43400AF79C7 /* GTWSPARQLResultsTextTableSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD22183ACFC300AF79C7 /* GTWSPARQLResultsTextTableSerializer.m */; };
 		3700DDA6183AD43400AF79C7 /* GTWSPARQLResultsXMLSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD24183ACFC300AF79C7 /* GTWSPARQLResultsXMLSerializer.m */; };
-		3700DDA7183AD43400AF79C7 /* GTWSPARQLLexer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD27183ACFC300AF79C7 /* GTWSPARQLLexer.m */; };
-		3700DDA8183AD43400AF79C7 /* GTWSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD29183ACFC300AF79C7 /* GTWSPARQLParser.m */; };
-		3700DDA9183AD43400AF79C7 /* GTWSPARQLToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD2B183ACFC300AF79C7 /* GTWSPARQLToken.m */; };
 		3700DDAA183AD43400AF79C7 /* GTWExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD2E183ACFC300AF79C7 /* GTWExpression.m */; };
 		3700DDAB183AD43400AF79C7 /* GTWTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD30183ACFC300AF79C7 /* GTWTree.m */; };
 		3700DDAC183AD43400AF79C7 /* NSObject+GTWTree.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD32183ACFC300AF79C7 /* NSObject+GTWTree.m */; };
@@ -44,9 +41,6 @@
 		3700DDBE183AD46100AF79C7 /* GTWNTriplesSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD1F183ACFC300AF79C7 /* GTWNTriplesSerializer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDBF183AD46100AF79C7 /* GTWSPARQLResultsTextTableSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD21183ACFC300AF79C7 /* GTWSPARQLResultsTextTableSerializer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDC0183AD46100AF79C7 /* GTWSPARQLResultsXMLSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD23183ACFC300AF79C7 /* GTWSPARQLResultsXMLSerializer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3700DDC1183AD46100AF79C7 /* GTWSPARQLLexer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD26183ACFC300AF79C7 /* GTWSPARQLLexer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3700DDC2183AD46100AF79C7 /* GTWSPARQLParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD28183ACFC300AF79C7 /* GTWSPARQLParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3700DDC3183AD46100AF79C7 /* GTWSPARQLToken.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD2A183ACFC300AF79C7 /* GTWSPARQLToken.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDC4183AD46100AF79C7 /* GTWExpression.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD2D183ACFC300AF79C7 /* GTWExpression.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDC5183AD46100AF79C7 /* GTWTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD2F183ACFC300AF79C7 /* GTWTree.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3700DDC6183AD46100AF79C7 /* NSObject+GTWTree.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD31183ACFC300AF79C7 /* NSObject+GTWTree.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -105,6 +99,12 @@
 		37E0FE7C183C302C00377B1D /* SPKRedlandParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE7A183C302C00377B1D /* SPKRedlandParser.m */; };
 		37E0FE7F183C307E00377B1D /* SPKTurtleParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE7D183C307E00377B1D /* SPKTurtleParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE80183C307E00377B1D /* SPKTurtleParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE7E183C307E00377B1D /* SPKTurtleParser.m */; };
+		37E0FE83183C30EE00377B1D /* SPKSPARQLLexer.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE81183C30EE00377B1D /* SPKSPARQLLexer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37E0FE84183C30EE00377B1D /* SPKSPARQLLexer.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE82183C30EE00377B1D /* SPKSPARQLLexer.m */; };
+		37E0FE87183C312000377B1D /* SPKSPARQLToken.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE85183C312000377B1D /* SPKSPARQLToken.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37E0FE88183C312000377B1D /* SPKSPARQLToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE86183C312000377B1D /* SPKSPARQLToken.m */; };
+		37E0FE8B183C315700377B1D /* SPKSPARQLParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE89183C315700377B1D /* SPKSPARQLParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37E0FE8C183C315700377B1D /* SPKSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE8A183C315700377B1D /* SPKSPARQLParser.m */; };
 		37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
 		37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F96DD517AD5CBF00235009 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
@@ -144,12 +144,6 @@
 		3700DD22183ACFC300AF79C7 /* GTWSPARQLResultsTextTableSerializer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLResultsTextTableSerializer.m; sourceTree = "<group>"; };
 		3700DD23183ACFC300AF79C7 /* GTWSPARQLResultsXMLSerializer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLResultsXMLSerializer.h; sourceTree = "<group>"; };
 		3700DD24183ACFC300AF79C7 /* GTWSPARQLResultsXMLSerializer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLResultsXMLSerializer.m; sourceTree = "<group>"; };
-		3700DD26183ACFC300AF79C7 /* GTWSPARQLLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLLexer.h; sourceTree = "<group>"; };
-		3700DD27183ACFC300AF79C7 /* GTWSPARQLLexer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLLexer.m; sourceTree = "<group>"; };
-		3700DD28183ACFC300AF79C7 /* GTWSPARQLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLParser.h; sourceTree = "<group>"; };
-		3700DD29183ACFC300AF79C7 /* GTWSPARQLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLParser.m; sourceTree = "<group>"; };
-		3700DD2A183ACFC300AF79C7 /* GTWSPARQLToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLToken.h; sourceTree = "<group>"; };
-		3700DD2B183ACFC300AF79C7 /* GTWSPARQLToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLToken.m; sourceTree = "<group>"; };
 		3700DD2D183ACFC300AF79C7 /* GTWExpression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWExpression.h; sourceTree = "<group>"; };
 		3700DD2E183ACFC300AF79C7 /* GTWExpression.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWExpression.m; sourceTree = "<group>"; };
 		3700DD2F183ACFC300AF79C7 /* GTWTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWTree.h; sourceTree = "<group>"; };
@@ -253,6 +247,12 @@
 		37E0FE7A183C302C00377B1D /* SPKRedlandParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKRedlandParser.m; sourceTree = "<group>"; };
 		37E0FE7D183C307E00377B1D /* SPKTurtleParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKTurtleParser.h; sourceTree = "<group>"; };
 		37E0FE7E183C307E00377B1D /* SPKTurtleParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKTurtleParser.m; sourceTree = "<group>"; };
+		37E0FE81183C30EE00377B1D /* SPKSPARQLLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLLexer.h; sourceTree = "<group>"; };
+		37E0FE82183C30EE00377B1D /* SPKSPARQLLexer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLLexer.m; sourceTree = "<group>"; };
+		37E0FE85183C312000377B1D /* SPKSPARQLToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLToken.h; sourceTree = "<group>"; };
+		37E0FE86183C312000377B1D /* SPKSPARQLToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLToken.m; sourceTree = "<group>"; };
+		37E0FE89183C315700377B1D /* SPKSPARQLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLParser.h; sourceTree = "<group>"; };
+		37E0FE8A183C315700377B1D /* SPKSPARQLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLParser.m; sourceTree = "<group>"; };
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -404,12 +404,12 @@
 		3700DD25183ACFC300AF79C7 /* SPARQLParser */ = {
 			isa = PBXGroup;
 			children = (
-				3700DD28183ACFC300AF79C7 /* GTWSPARQLParser.h */,
-				3700DD29183ACFC300AF79C7 /* GTWSPARQLParser.m */,
-				3700DD26183ACFC300AF79C7 /* GTWSPARQLLexer.h */,
-				3700DD27183ACFC300AF79C7 /* GTWSPARQLLexer.m */,
-				3700DD2A183ACFC300AF79C7 /* GTWSPARQLToken.h */,
-				3700DD2B183ACFC300AF79C7 /* GTWSPARQLToken.m */,
+				37E0FE89183C315700377B1D /* SPKSPARQLParser.h */,
+				37E0FE8A183C315700377B1D /* SPKSPARQLParser.m */,
+				37E0FE81183C30EE00377B1D /* SPKSPARQLLexer.h */,
+				37E0FE82183C30EE00377B1D /* SPKSPARQLLexer.m */,
+				37E0FE85183C312000377B1D /* SPKSPARQLToken.h */,
+				37E0FE86183C312000377B1D /* SPKSPARQLToken.m */,
 			);
 			name = SPARQLParser;
 			path = SPARQLKit/SPARQLParser;
@@ -679,9 +679,6 @@
 				3700DDBE183AD46100AF79C7 /* GTWNTriplesSerializer.h in Headers */,
 				3700DDBF183AD46100AF79C7 /* GTWSPARQLResultsTextTableSerializer.h in Headers */,
 				3700DDC0183AD46100AF79C7 /* GTWSPARQLResultsXMLSerializer.h in Headers */,
-				3700DDC1183AD46100AF79C7 /* GTWSPARQLLexer.h in Headers */,
-				3700DDC2183AD46100AF79C7 /* GTWSPARQLParser.h in Headers */,
-				3700DDC3183AD46100AF79C7 /* GTWSPARQLToken.h in Headers */,
 				3700DDC4183AD46100AF79C7 /* GTWExpression.h in Headers */,
 				3700DDC5183AD46100AF79C7 /* GTWTree.h in Headers */,
 				3700DDC6183AD46100AF79C7 /* NSObject+GTWTree.h in Headers */,
@@ -689,6 +686,9 @@
 				37E0FE73183C2F5B00377B1D /* SPKQuadModel.h in Headers */,
 				37E0FE77183C2FAA00377B1D /* SPKTripleModel.h in Headers */,
 				37E0FE6F183C2E0100377B1D /* SPKMemoryQuadStore.h in Headers */,
+				37E0FE8B183C315700377B1D /* SPKSPARQLParser.h in Headers */,
+				37E0FE87183C312000377B1D /* SPKSPARQLToken.h in Headers */,
+				37E0FE83183C30EE00377B1D /* SPKSPARQLLexer.h in Headers */,
 				37E0FE7B183C302C00377B1D /* SPKRedlandParser.h in Headers */,
 				37E0FE7F183C307E00377B1D /* SPKTurtleParser.h in Headers */,
 				37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */,
@@ -780,8 +780,10 @@
 			files = (
 				3700DD9A183AD43400AF79C7 /* GTWErrorLogger.m in Sources */,
 				3700DD9D183AD43400AF79C7 /* GTWSPARQLDataSourcePlugin.m in Sources */,
+				37E0FE8C183C315700377B1D /* SPKSPARQLParser.m in Sources */,
 				3700DD9E183AD43400AF79C7 /* GTWExpressionEvaluationContext.m in Sources */,
 				3700DD9F183AD43400AF79C7 /* GTWSimpleQueryEngine.m in Sources */,
+				37E0FE84183C30EE00377B1D /* SPKSPARQLLexer.m in Sources */,
 				3700DDA0183AD43400AF79C7 /* GTWQueryPlanner.m in Sources */,
 				3700DDA3183AD43400AF79C7 /* GTWNQuadsSerializer.m in Sources */,
 				3700DDA4183AD43400AF79C7 /* GTWNTriplesSerializer.m in Sources */,
@@ -789,9 +791,7 @@
 				3700DDA5183AD43400AF79C7 /* GTWSPARQLResultsTextTableSerializer.m in Sources */,
 				37E0FE74183C2F5B00377B1D /* SPKQuadModel.m in Sources */,
 				3700DDA6183AD43400AF79C7 /* GTWSPARQLResultsXMLSerializer.m in Sources */,
-				3700DDA7183AD43400AF79C7 /* GTWSPARQLLexer.m in Sources */,
-				3700DDA8183AD43400AF79C7 /* GTWSPARQLParser.m in Sources */,
-				3700DDA9183AD43400AF79C7 /* GTWSPARQLToken.m in Sources */,
+				37E0FE88183C312000377B1D /* SPKSPARQLToken.m in Sources */,
 				3700DDAA183AD43400AF79C7 /* GTWExpression.m in Sources */,
 				3700DDAB183AD43400AF79C7 /* GTWTree.m in Sources */,
 				3700DDAC183AD43400AF79C7 /* NSObject+GTWTree.m in Sources */,

@@ -11,7 +11,7 @@
 #import "GTWSimpleQueryEngine.h"
 #import "HTTPDataResponse.h"
 #import "GTWSPARQLConfig.h"
-#import "GTWSPARQLParser.h"
+#import "SPKSPARQLParser.h"
 #import "SPARQLKit.h"
 #import "GTWQueryPlanner.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
@@ -49,7 +49,7 @@
         NSString* query         = params[@"query"];
         
         BOOL verbose    = NO;
-        id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
         id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:cfg.base error:&error];
         if (error) {

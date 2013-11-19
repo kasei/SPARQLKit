@@ -1,13 +1,13 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
-#import "GTWSPARQLLexer.h"
+#import "SPKSPARQLLexer.h"
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWIRI.h>
 
-@interface GTWSPARQLParser : NSObject<GTWSPARQLParser>
+@interface SPKSPARQLParser : NSObject<SPKSPARQLParser>
 
-@property GTWSPARQLLexer* lexer;
+@property SPKSPARQLLexer* lexer;
 @property NSMutableArray* stack;
 @property NSMutableDictionary* namespaces;
 @property id<GTWIRI> baseIRI;
@@ -17,6 +17,6 @@
 @property NSMutableArray* seenAggregates;
 @property NSMutableArray* aggregateSets;
 
-- (GTWSPARQLParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
+- (SPKSPARQLParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base;
 
 @end

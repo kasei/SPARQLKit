@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
-#import "GTWSPARQLLexer.h"
+#import "SPKSPARQLLexer.h"
 #import <GTWSWBase/GTWTriple.h>
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWIRI.h>
@@ -11,7 +11,7 @@
  */
 @interface SPKTurtleParser : NSObject<GTWRDFParser>
 
-@property GTWSPARQLLexer* lexer;
+@property SPKSPARQLLexer* lexer;
 @property NSMutableArray* stack;
 @property NSMutableDictionary* namespaces;
 @property id<GTWIRI> baseIRI;
@@ -21,11 +21,11 @@
 
 /**
  @param lex
- A @c GTWSPARQLLexer configured with the Turtle content to be parsed.
+ A @c SPKSPARQLLexer configured with the Turtle content to be parsed.
  @param base
  A @c GTWIRI specifying the base URI to be used during parsing.
  */
-- (SPKTurtleParser*) initWithLexer: (GTWSPARQLLexer*) lex base: (GTWIRI*) base;
+- (SPKTurtleParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base;
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
 
 @end

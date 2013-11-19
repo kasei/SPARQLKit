@@ -95,7 +95,7 @@ typedef NSString* GTWTreeType;
 
 #pragma mark -
 
-@protocol GTWSPARQLParser
+@protocol SPKSPARQLParser
 - (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
 @end
 

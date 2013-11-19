@@ -23,7 +23,7 @@
 #import <SPARQLKit/GTWSimpleQueryEngine.h>
 #import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKTurtleParser.h>
-#import <SPARQLKit/GTWSPARQLParser.h>
+#import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/GTWNTriplesSerializer.h>
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLTestHarnessURLProtocol.h"
@@ -309,7 +309,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
 //      GTWIRI* base     = [[GTWIRI alloc] initWithValue:filename];
-        GTWSPARQLLexer* lexer   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+        SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
         id<GTWRDFParser> parser  = [[SPKTurtleParser alloc] initWithLexer:lexer base:base];
         //  NSLog(@"parsing data with %@", parser);
         __block NSUInteger count    = 0;
@@ -419,7 +419,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
         
         
-        id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         
         if (self.verbose)
             NSLog(@"SPARQL:\n%@", sparql);
@@ -481,7 +481,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
         
         
-        id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         
         
         
@@ -606,7 +606,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
             __block BOOL sparqlResults  = NO;
             if ([resultsFilename hasSuffix:@".ttl"]) {
-                GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+                SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
                 id<GTWRDFParser> parser = [[SPKTurtleParser alloc] initWithLexer:l base:base];
                 NSError* error;
                 [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {

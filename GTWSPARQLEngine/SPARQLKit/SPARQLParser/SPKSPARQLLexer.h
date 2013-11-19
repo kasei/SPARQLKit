@@ -1,6 +1,6 @@
-#import "GTWSPARQLToken.h"
+#import "SPKSPARQLToken.h"
 
-@interface GTWSPARQLLexer : NSObject {
+@interface SPKSPARQLLexer : NSObject {
 	NSFileHandle* _file;
 	NSString* _string;
 	NSUInteger _stringPos;
@@ -27,11 +27,11 @@
 @property NSUInteger startLine;
 @property NSUInteger startCharacter;
 @property BOOL comments;
-@property (strong) GTWSPARQLToken* lookahead;
+@property (strong) SPKSPARQLToken* lookahead;
 
-- (GTWSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
-- (GTWSPARQLLexer*) initWithString: (NSString*) string;
-- (GTWSPARQLToken*) getToken;
-- (GTWSPARQLToken*) peekToken;
+- (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
+- (SPKSPARQLLexer*) initWithString: (NSString*) string;
+- (SPKSPARQLToken*) getToken;
+- (SPKSPARQLToken*) peekToken;
 
 @end

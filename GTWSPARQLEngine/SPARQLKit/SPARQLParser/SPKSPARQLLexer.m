@@ -1,4 +1,4 @@
-#import "GTWSPARQLLexer.h"
+#import "SPKSPARQLLexer.h"
 
 
 static NSArray* SPARQLKeywords() {
@@ -97,9 +97,9 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 
-@implementation GTWSPARQLLexer
+@implementation SPKSPARQLLexer
 
-- (GTWSPARQLLexer*) init {
+- (SPKSPARQLLexer*) init {
 	if (self = [super init]) {
 		self.file			= nil;
 		self.string			= nil;
@@ -116,7 +116,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return self;
 }
 
-- (GTWSPARQLLexer*) initWithString: (NSString*) string {
+- (SPKSPARQLLexer*) initWithString: (NSString*) string {
 	if (self = [self init]) {
 		self.file			= nil;
 		self.string			= string;
@@ -134,18 +134,18 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return self;
 }
 
-- (GTWSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle {
+- (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle {
 	if (self = [self init]) {
 		self.file			= handle;
 	}
 	return self;
 }
 
-- (GTWSPARQLToken*) newTokenOfType: (GTWSPARQLTokenType) type withArgs: (NSArray*) args {
+- (SPKSPARQLToken*) newTokenOfType: (SPKSPARQLTokenType) type withArgs: (NSArray*) args {
 	NSUInteger start	= self.startCharacter;
 	NSUInteger length	= self.character - start;
 	NSRange range	= { .location = start, .length = length };
-	return [[GTWSPARQLToken alloc] initTokenOfType:type withArguments:args fromRange:range];
+	return [[SPKSPARQLToken alloc] initTokenOfType:type withArguments:args fromRange:range];
 }
 
 - (void) _fillBuffer {
@@ -293,11 +293,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return word;
 }
 
-- (GTWSPARQLToken*) newPName: (NSArray*) pname {
+- (SPKSPARQLToken*) newPName: (NSArray*) pname {
 	return [self newTokenOfType:PREFIXNAME withArgs:pname];
 }
 
-- (GTWSPARQLToken*) getPName {
+- (SPKSPARQLToken*) getPName {
 	NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
 	NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
 	NSRange range	= [self.buffer rangeOfString:r_PNAME_LN options:NSRegularExpressionSearch];
@@ -332,7 +332,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getBnode {
+- (SPKSPARQLToken*) getBnode {
 	[self _getCharSafe:@"_"];
 	[self _getCharSafe:@":"];
     NSString* r_bnode   = @"^([0-9A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])(([A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])|([-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]))*";
@@ -345,7 +345,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) _getComment {
+- (SPKSPARQLToken*) _getComment {
 	[self _getCharSafe:@"#"];
 	NSMutableString* comment	= [NSMutableString string];
 	NSString* c	= [self _peekChar];
@@ -361,7 +361,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self newTokenOfType:COMMENT withArgs:@[comment]];
 }
 
-- (GTWSPARQLToken*) _getNumber {
+- (SPKSPARQLToken*) _getNumber {
 	NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
     NSRange double_range	= [self.buffer rangeOfString:@"[+-]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
 	if (integer_range.location == 0) {
@@ -385,7 +385,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getVariable {
+- (SPKSPARQLToken*) getVariable {
 	NSString* c	= [self _getChar];
 	NSRange range	= [self.buffer rangeOfString:@"((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9])(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])*)" options:NSRegularExpressionSearch];
     
@@ -402,7 +402,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self newTokenOfType:VAR withArgs:@[name]];
 }
 
-- (GTWSPARQLToken*) _getKeyword {
+- (SPKSPARQLToken*) _getKeyword {
 	NSArray* keywords	= SPARQLKeywords();
 	for (NSString* kw in keywords) {
 		NSRange range	= [self.buffer rangeOfString:kw options:NSAnchoredSearch|NSCaseInsensitiveSearch];
@@ -429,7 +429,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return nil;
 }
 
-- (GTWSPARQLToken*) getBang {
+- (SPKSPARQLToken*) getBang {
 	if ([self.buffer hasPrefix:@"!="]) {
 		if ([self _readWord:@"!="]) {
 			return [self newTokenOfType:NOTEQUALS withArgs:@[]];
@@ -442,7 +442,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getOr {
+- (SPKSPARQLToken*) getOr {
 	if ([self.buffer hasPrefix:@"||"]) {
 		if ([self _readWord:@"||"]) {
 			return [self newTokenOfType:OROR withArgs:@[]];
@@ -455,7 +455,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getLanguage {
+- (SPKSPARQLToken*) getLanguage {
 	[self _getCharSafe:@"@"];
 	NSRange kwrange	= [self.buffer rangeOfString:@"(prefix|base)\\b" options:NSRegularExpressionSearch];
     NSRange range	= [self.buffer rangeOfString:@"[a-zA-Z]+(-[a-zA-Z0-9]+)*\\b" options:NSRegularExpressionSearch];
@@ -471,7 +471,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getDoubleLiteral {
+- (SPKSPARQLToken*) getDoubleLiteral {
 	[self _getCharSafe: @"\""];
 	if ([self.buffer hasPrefix: @"\"\""]) {
 		// #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
@@ -630,7 +630,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getSingleLiteral {
+- (SPKSPARQLToken*) getSingleLiteral {
 	[self _getCharSafe: @"'"];
 	if ([self.buffer hasPrefix: @"''"]) {
 		if (![self _readWord:@"''"]) {
@@ -787,7 +787,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (GTWSPARQLToken*) getIRIRefOrRelational {
+- (SPKSPARQLToken*) getIRIRefOrRelational {
 	NSRange iri_range		= [self.buffer rangeOfString:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:NSRegularExpressionSearch];
 	if (iri_range.location == 0) {
 		[self _getCharSafe:@"<"];
@@ -883,24 +883,24 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (void) _lookahead {
     if (!self.lookahead) {
-        GTWSPARQLToken* t   = [self _getToken];
+        SPKSPARQLToken* t   = [self _getToken];
         self.lookahead      = t;
     }
 }
 
-- (GTWSPARQLToken*) peekToken {
+- (SPKSPARQLToken*) peekToken {
     [self _lookahead];
     return self.lookahead;
 }
 
-- (GTWSPARQLToken*) getToken {
+- (SPKSPARQLToken*) getToken {
     [self _lookahead];
-    GTWSPARQLToken* t   = self.lookahead;
+    SPKSPARQLToken* t   = self.lookahead;
     self.lookahead      = nil;
     return t;
 }
 
-- (GTWSPARQLToken*) _getToken {
+- (SPKSPARQLToken*) _getToken {
 	NSDictionary* charTokens	= SPARQLCharTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
 	while (1) {
@@ -941,7 +941,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		// COMMENT
 		if ([c isEqualToString:@"#"]) {
             // we're ignoring comment tokens, but we could return them here instead of falling through to the 'next':
-			GTWSPARQLToken* t	= [self _getComment];
+			SPKSPARQLToken* t	= [self _getComment];
 			if (self.comments) {
 				return t;
 			} else {
@@ -1049,7 +1049,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSNumber* number;
 		if ((number = charTokens[c])) {
 			[self _getChar];
-			return [self newTokenOfType:(GTWSPARQLTokenType)[number integerValue] withArgs:@[c]];
+			return [self newTokenOfType:(SPKSPARQLTokenType)[number integerValue] withArgs:@[c]];
 		}
         // - ANDAND
 		else if ([c isEqualToString:@"&"]) {
@@ -1061,7 +1061,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
         }
         // PREFIXNAME
 		else if ([pnCharSet characterIsMember:cc]) {
-			GTWSPARQLToken* t	= [self getPName];
+			SPKSPARQLToken* t	= [self getPName];
 			if (t) {
 				return t;
 			}

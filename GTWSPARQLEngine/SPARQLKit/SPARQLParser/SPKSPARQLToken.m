@@ -1,6 +1,6 @@
-#import "GTWSPARQLToken.h"
+#import "SPKSPARQLToken.h"
 
-static const char* sparql_token_type_name( GTWSPARQLTokenType t ) {
+static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
 	switch (t) {
 		case WS:
 			return "WS";
@@ -97,13 +97,13 @@ static const char* sparql_token_type_name( GTWSPARQLTokenType t ) {
 	}
 }
 
-@implementation GTWSPARQLToken
+@implementation SPKSPARQLToken
 
-+ (NSString*) nameOfSPARQLTokenOfType: (GTWSPARQLTokenType) type {
++ (NSString*) nameOfSPARQLTokenOfType: (SPKSPARQLTokenType) type {
     return [NSString stringWithFormat:@"%s", sparql_token_type_name(type)];
 }
 
-- (GTWSPARQLToken*) initTokenOfType: (GTWSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range {
+- (SPKSPARQLToken*) initTokenOfType: (SPKSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range {
 	if (self = [super init]) {
 		self.type	= type;
 		self.range	= range;

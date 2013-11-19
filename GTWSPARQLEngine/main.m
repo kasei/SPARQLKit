@@ -7,7 +7,7 @@
 #import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/SPKRedlandTripleStore.h>
 #import <SPARQLKit/SPKTurtleParser.h>
-#import <SPARQLKit/GTWSPARQLParser.h>
+#import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/GTWQueryPlanner.h>
@@ -42,10 +42,10 @@ NSString* fileContents (NSString* filename) {
 
 int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
-    GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+    SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
     
     if (NO) {
-        GTWSPARQLToken* t;
+        SPKSPARQLToken* t;
         while ((t = [l getToken])) {
             NSLog(@"token: %@\n", t);
         }
@@ -131,7 +131,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 	librdf_world* librdf_world_ptr	= librdf_new_world();
     SPKRedlandTripleStore* store    = [[SPKRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
-    GTWSPARQLLexer* l   = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+    SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
     
 //    GTWIRI* graph       = [[GTWIRI alloc] initWithValue:@"http://graph.kasei.us/"];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
@@ -197,7 +197,7 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
 }
 
 int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset, NSUInteger verbose) {
-    id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+    id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
     NSError* error;
     id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:base error:&error];
     if (error) {
@@ -232,7 +232,7 @@ int parseQuery(NSString* query, NSString* base) {
     
     GTWIRI* graph               = [[GTWIRI alloc] initWithValue: base];
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
-    id<GTWSPARQLParser> parser  = [[GTWSPARQLParser alloc] init];
+    id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
     NSError* error;
     id<GTWTree> algebra         = [parser parseSPARQL:query withBaseURI:base error:&error];
     if (error) {
@@ -251,10 +251,10 @@ int parseQuery(NSString* query, NSString* base) {
 
 int lexQuery(NSString* query, NSString* base) {
     NSLog(@"Query string:\n%@\n\n", query);
-    GTWSPARQLLexer* l           = [[GTWSPARQLLexer alloc] initWithString:query];
+    SPKSPARQLLexer* l           = [[SPKSPARQLLexer alloc] initWithString:query];
     
     NSLog(@"Query tokens:\n-----------------------\n");
-    GTWSPARQLToken* t;
+    SPKSPARQLToken* t;
     while ((t = [l getToken])) {
         NSLog(@"%@\n", t);
     }
@@ -499,7 +499,7 @@ int main(int argc, const char * argv[]) {
         NSString* filename      = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* base          = (argc > argi) ? [NSString stringWithFormat:@"%s", argv[argi++]] : kDefaultBase;
         NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
-        GTWSPARQLLexer* l       = [[GTWSPARQLLexer alloc] initWithFileHandle:fh];
+        SPKSPARQLLexer* l       = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
 //        GTWIRI* graph         = [[GTWIRI alloc] initWithValue:base];
         GTWIRI* baseuri         = [[GTWIRI alloc] initWithValue:base];
         SPKTurtleParser* p      = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
