@@ -7,11 +7,11 @@
 //
 
 #import "GTWSPARQLTestHarnessURLProtocol.h"
-#import "GTWSPARQLParser.h"
-#import "GTWQueryPlanner.h"
-#import "GTWSimpleQueryEngine.h"
-#import "GTWTree.h"
-#import "GTWSPARQLResultsXMLSerializer.h"
+#import <SPARQLKit/GTWSPARQLParser.h>
+#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/GTWTree.h>
+#import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
 
 static NSMutableDictionary *_mockedRequests;
 static dispatch_once_t mockToken;

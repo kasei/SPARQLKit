@@ -1,23 +1,24 @@
 #import <objc/runtime.h>
-#import "GTWSPARQLEngine.h"
+#import <SPARQLKit/SPARQLKit.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWDataset.h>
-#import "GTWMemoryQuadStore.h"
-#import "GTWRedlandTripleStore.h"
-#import "GTWTurtleParser.h"
-#import "GTWSPARQLParser.h"
-#import "GTWQuadModel.h"
-#import "GTWTripleModel.h"
-#import "GTWQueryPlanner.h"
-#import "GTWRedlandParser.h"
+#import <SPARQLKit/GTWMemoryQuadStore.h>
+#import <SPARQLKit/GTWRedlandTripleStore.h>
+#import <SPARQLKit/GTWTurtleParser.h>
+#import <SPARQLKit/GTWSPARQLParser.h>
+#import <SPARQLKit/GTWQuadModel.h>
+#import <SPARQLKit/GTWTripleModel.h>
+#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/GTWRedlandParser.h>
+#import <SPARQLKit/GTWSPARQLDataSourcePlugin.h>
+#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
+#import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
+#import <SPARQLKit/GTWNTriplesSerializer.h>
+#import <SPARQLKit/GTWNQuadsSerializer.h>
+
 #import "GTWSPARQLTestHarness.h"
-#import "GTWSPARQLDataSourcePlugin.h"
-#import "GTWSimpleQueryEngine.h"
-#import "GTWSPARQLResultsTextTableSerializer.h"
-#import "GTWSPARQLResultsXMLSerializer.h"
-#import "GTWNTriplesSerializer.h"
-#import "GTWNQuadsSerializer.h"
 
 // SPARQL Endpoint
 #import "GTWSPARQLConnection.h"

@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import <GTWSWBase/GTWModelBase.h>
 
 @interface GTWQuadModel : GTWModelBase<GTWModel>

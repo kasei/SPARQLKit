@@ -12,7 +12,7 @@
 #import "HTTPDataResponse.h"
 #import "GTWSPARQLConfig.h"
 #import "GTWSPARQLParser.h"
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import "GTWQueryPlanner.h"
 #import "GTWSPARQLResultsXMLSerializer.h"
 #import "GTWSPARQLResultsTextTableSerializer.h"

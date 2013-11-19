@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 
 @interface GTWSPARQLDataSourcePlugin : NSObject
 

@@ -3,7 +3,7 @@
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWLiteral.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 
 @implementation GTWQueryPlanner
 

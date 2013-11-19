@@ -12,20 +12,21 @@
 #import <GTWSWBase/GTWDataset.h>
 #import <GTWSWBase/GTWGraphIsomorphism.h>
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
-#import "GTWSPARQLTestHarness.h"
-#import "GTWSPARQLEngine.h"
-#import "GTWMemoryQuadStore.h"
-#import "GTWTripleModel.h"
-#import "GTWQuadModel.h"
-#import "GTWRedlandParser.h"
-#import "GTWQueryPlanner.h"
-#import "GTWSimpleQueryEngine.h"
-#import "GTWSPARQLResultsTextTableSerializer.h"
-#import "GTWTurtleParser.h"
-#import "GTWSPARQLParser.h"
-#import "GTWSPARQLTestHarnessURLProtocol.h"
 #import <GTWSWBase/GTWSPARQLResultsJSONParser.h>
-#import "GTWNTriplesSerializer.h"
+
+#import <SPARQLKit/SPARQLKit.h>
+#import <SPARQLKit/GTWMemoryQuadStore.h>
+#import <SPARQLKit/GTWTripleModel.h>
+#import <SPARQLKit/GTWQuadModel.h>
+#import <SPARQLKit/GTWRedlandParser.h>
+#import <SPARQLKit/GTWQueryPlanner.h>
+#import <SPARQLKit/GTWSimpleQueryEngine.h>
+#import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
+#import <SPARQLKit/GTWTurtleParser.h>
+#import <SPARQLKit/GTWSPARQLParser.h>
+#import <SPARQLKit/GTWNTriplesSerializer.h>
+#import "GTWSPARQLTestHarness.h"
+#import "GTWSPARQLTestHarnessURLProtocol.h"
 
 extern raptor_world* raptor_world_ptr;
 static const NSString* kFailingSyntaxTests  = @"Failing Syntax Tests";

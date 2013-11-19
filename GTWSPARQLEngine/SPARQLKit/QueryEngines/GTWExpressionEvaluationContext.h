@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "GTWExpression.h"
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 
 @interface GTWExpressionEvaluationContext : NSObject
 

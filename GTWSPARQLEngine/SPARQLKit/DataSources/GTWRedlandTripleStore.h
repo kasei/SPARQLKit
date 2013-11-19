@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import <GTWSWBase/GTWTriple.h>
 #include <redland.h>
 

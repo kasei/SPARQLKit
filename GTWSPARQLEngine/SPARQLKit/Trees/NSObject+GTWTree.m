@@ -7,7 +7,7 @@
 //
 
 #import "NSObject+GTWTree.h"
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import "GTWTree.h"
 
 @implementation NSObject (GTWTree)

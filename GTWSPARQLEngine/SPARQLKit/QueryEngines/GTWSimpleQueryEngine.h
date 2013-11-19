@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import "GTWExpressionEvaluationContext.h"
 
 @interface GTWSimpleQueryEngine : NSObject<GTWQueryEngine>

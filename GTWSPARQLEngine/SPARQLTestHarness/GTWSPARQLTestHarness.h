@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GTWBlankNodeRenamer.h"
+#import <SPARQLKit/GTWBlankNodeRenamer.h>
 
 @interface GTWSPARQLTestHarness : NSObject
 

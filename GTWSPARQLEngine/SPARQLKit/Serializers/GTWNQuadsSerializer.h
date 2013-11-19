@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import "GTWNTriplesSerializer.h"
 
 @interface GTWNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>

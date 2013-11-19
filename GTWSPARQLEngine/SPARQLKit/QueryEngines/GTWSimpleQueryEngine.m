@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #import "GTWSimpleQueryEngine.h"
 #import "GTWTree.h"
 #import "NSObject+NSDictionary_QueryBindings.h"

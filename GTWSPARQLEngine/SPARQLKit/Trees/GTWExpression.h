@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "GTWTree.h"
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 
 @interface GTWExpression : GTWTree
 

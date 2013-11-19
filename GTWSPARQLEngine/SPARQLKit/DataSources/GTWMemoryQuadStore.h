@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 
 @interface GTWMemoryQuadStore : NSObject<GTWQuadStore,GTWMutableQuadStore>
 

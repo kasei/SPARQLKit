@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "GTWSPARQLEngine.h"
+#import "SPARQLKit.h"
 #include <raptor2.h>
 
 @interface GTWRedlandParser : NSObject<GTWRDFParser>
