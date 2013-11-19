@@ -827,6 +827,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 NSRange frange   = [lex rangeOfString:@"(INF|-INF|NaN|[-+]?\\d+([.]\\d*)?([Ee][-+]?\\d+)?)" options:NSRegularExpressionSearch];
                 double value;
                 long long ivalue;
+                BOOL hasDecimalValue      = NO;
                 BOOL hasDoubleValue     = NO;
                 BOOL hasIntegerValue    = NO;
                 if (irange.location == 0 && irange.length == [lex length]) {
@@ -834,7 +835,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
                     ivalue  = atoll([lex UTF8String]);
                 }
                 if (drange.location == 0 && drange.length == [lex length]) {
-                    hasDoubleValue  = YES;
+                    hasDecimalValue   = YES;
                     sscanf([lex UTF8String], "%lf", &value);
                 } else if (frange.location == 0 && frange.length == [lex length]) {
                     hasDoubleValue  = YES;
@@ -844,18 +845,20 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 
                 
                 if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#double"] || [iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#float"]) {
-                    if (hasDoubleValue) {
+                    if (hasDecimalValue || hasDoubleValue) {
                         return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lE", value] datatype:iri.value];
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#decimal"]) {
-                    if (drange.location == 0 && drange.length == [lex length]) {
+                    if (hasDecimalValue) {
                         return [[GTWLiteral alloc] initWithValue:[NSString stringWithFormat:@"%lf", value] datatype:iri.value];
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#integer"]) {
                     if (hasIntegerValue) {
                         return [GTWLiteral integerLiteralWithValue:ivalue];
+                    } else {
+                        NSLog(@"no value for xsd:integer cast");
                     }
                     return nil;
                 } else if ([iri.value isEqual: @"http://www.w3.org/2001/XMLSchema#dateTime"]) {
