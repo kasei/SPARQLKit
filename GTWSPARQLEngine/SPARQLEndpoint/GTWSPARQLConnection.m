@@ -51,7 +51,7 @@
         BOOL verbose    = NO;
         id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
-        id<GTWTree> algebra    = [parser parseSPARQL:query withBaseURI:cfg.base error:&error];
+        id<SPKTree> algebra    = [parser parseSPARQL:query withBaseURI:cfg.base error:&error];
         if (error) {
             NSLog(@"parser error: %@", error);
         }
@@ -60,7 +60,7 @@
         }
         
         SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
-        id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
         if (verbose) {
             NSLog(@"plan:\n%@", plan);
         }

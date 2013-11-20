@@ -10,7 +10,7 @@
 #import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
-#import <SPARQLKit/GTWTree.h>
+#import <SPARQLKit/SPKTree.h>
 #import <SPARQLKit/SPKSPARQLResultsXMLSerializer.h>
 
 static NSMutableDictionary *_mockedRequests;
@@ -91,10 +91,10 @@ static dispatch_once_t mockToken;
         NSString* sparql = vars[@"query"];
         id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
-        id<GTWTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
+        id<SPKTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<GTWTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
         id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         
         if (NO) {

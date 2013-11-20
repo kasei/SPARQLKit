@@ -26,13 +26,13 @@
 
 #pragma mark -
 
-@protocol GTWTree<NSObject,GTWRewriteable>
-typedef id(^GTWTreeAccessorBlock)(id<GTWTree> node, id<GTWTree> parent, NSUInteger level, BOOL* stop);
-typedef NSString* GTWTreeType;
+@protocol SPKTree<NSObject,GTWRewriteable>
+typedef id(^SPKTreeAccessorBlock)(id<SPKTree> node, id<SPKTree> parent, NSUInteger level, BOOL* stop);
+typedef NSString* SPKTreeType;
 @property BOOL leaf;
-@property GTWTreeType type;
+@property SPKTreeType type;
 @property NSArray* arguments;
-@property id<GTWTree> treeValue;
+@property id<SPKTree> treeValue;
 @property id value;
 @property void* ptr;
 @property NSMutableDictionary* annotations;
@@ -74,9 +74,9 @@ typedef NSString* GTWTreeType;
 
 @protocol SPKQueryPlanner
 @property id<GTWLogger> logger;
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
 @optional
-- (id<GTWTree,GTWQueryPlan>) joinPlanForPlans: (id<GTWTree>) lhs and: (id<GTWTree>) rhs;
+- (id<SPKTree,GTWQueryPlan>) joinPlanForPlans: (id<SPKTree>) lhs and: (id<SPKTree>) rhs;
 @end
 
 
@@ -96,7 +96,7 @@ typedef NSString* GTWTreeType;
 #pragma mark -
 
 @protocol SPKSPARQLParser
-- (id<GTWTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
+- (id<SPKTree>) parseSPARQL: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
 @end
 
 #pragma mark -

@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
-#import "GTWTree.h"
+#import "SPKTree.h"
 #import "SPARQLKit.h"
 
-@interface GTWExpression : GTWTree
+@interface SPKExpression : SPKTree
 
 @end

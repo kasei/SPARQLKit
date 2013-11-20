@@ -1,5 +1,5 @@
 //
-//  NSObject+GTWTree.h
+//  NSObject+SPKTree.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 11/14/13.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSObject (GTWTree)
+@interface NSObject (SPKTree)
 
 - (NSSet*) projectableAggregateVariables;
 - (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended;

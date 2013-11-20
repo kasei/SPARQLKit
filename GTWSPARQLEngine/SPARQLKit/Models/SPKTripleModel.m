@@ -110,7 +110,7 @@
     return YES;
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForAlgebra: (id<GTWTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     NSArray* graphs = [self.graphs allKeys];
     NSString* graph = [graphs firstObject];
     if (graph) {
@@ -122,7 +122,7 @@
                     [dict addEntriesFromDictionary:options];
                 }
                 dict[@"tripleStoreIdentifier"]   = graph;
-                id<GTWTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:dict];
+                id<SPKTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:dict];
                 if (plan) {
                     return plan;
                 }

@@ -30,11 +30,11 @@ static BOOL isNumeric(id<GTWTerm> term) {
 
 @implementation SPKExpressionEvaluationContext
 
-- (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
+- (id<GTWTerm>) evaluateExpression: (id<SPKTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
     return [self evaluateExpression:expr withResult:result usingModel:model resultIdentity:result];
 }
 
-- (id<GTWTerm>) evaluateExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model resultIdentity: (id) rident {
+- (id<GTWTerm>) evaluateExpression: (id<SPKTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model resultIdentity: (id) rident {
     if (!expr)
         return nil;
     id<GTWTerm> lhs, rhs;
@@ -48,7 +48,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return value;
     } else if (expr.type == kExprOr) {
         NSArray* exprs  = expr.arguments;
-        for (id<GTWTree> expr in exprs) {
+        for (id<SPKTree> expr in exprs) {
             lhs = [self evaluateExpression:expr withResult:result usingModel: model];
             NSError* error;
             if (lhs) {
@@ -63,7 +63,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return [GTWLiteral falseLiteral];
     } else if (expr.type == kExprAnd) {
         NSArray* exprs  = expr.arguments;
-        for (id<GTWTree> expr in exprs) {
+        for (id<SPKTree> expr in exprs) {
             lhs = [self evaluateExpression:expr withResult:result usingModel: model];
             if (!lhs) {
                 return [GTWLiteral falseLiteral];
@@ -210,9 +210,9 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprUMinus) {
         id<GTWTerm> zero    = [[GTWLiteral alloc] initWithValue:@"0" datatype:@"http://www.w3.org/2001/XMLSchema#integer"];
-        id<GTWTree> lhs     = [[GTWTree alloc] initWithType:kTreeNode value:zero arguments:nil];
-        id<GTWTree> rhs     = expr.arguments[0];
-        id<GTWTree> minus   = [[GTWTree alloc] initWithType:kExprMinus arguments:@[lhs, rhs]];
+        id<SPKTree> lhs     = [[SPKTree alloc] initWithType:kTreeNode value:zero arguments:nil];
+        id<SPKTree> rhs     = expr.arguments[0];
+        id<SPKTree> minus   = [[SPKTree alloc] initWithType:kExprMinus arguments:@[lhs, rhs]];
         return [self evaluateNumericExpression:minus withResult:result usingModel:model];
     } else if (expr.type == kExprPlus || expr.type == kExprMinus || expr.type == kExprMul || expr.type == kExprDiv) {
         return [self evaluateNumericExpression:expr withResult:result usingModel:model];
@@ -606,7 +606,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             return [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
         }
     } else if (expr.type == kExprCoalesce) {
-        for (id<GTWTree> t in expr.arguments) {
+        for (id<SPKTree> t in expr.arguments) {
             id<GTWTerm> term  = [self evaluateExpression:t withResult:result usingModel: model];
             if (term)
                 return term;
@@ -617,7 +617,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         BOOL seen   = NO;
         NSString* datatype      = nil;
         NSString* language      = nil;
-        for (id<GTWTree> t in expr.arguments) {
+        for (id<SPKTree> t in expr.arguments) {
             id<GTWTerm> term  = [self evaluateExpression:t withResult:result usingModel: model];
             if ([term isKindOfClass:[GTWLiteral class]]) {
                 if (term.datatype) {
@@ -784,7 +784,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
             mapping[v]    = result[varname];
         }
-        id<GTWTree,GTWQueryPlan> plan    = expr.arguments[0];
+        id<SPKTree,GTWQueryPlan> plan    = expr.arguments[0];
         plan                            = [plan copyReplacingValues:mapping];
         NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
         id result           = [e nextObject];
@@ -795,8 +795,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
     } else if (expr.type == kExprIn) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        id<GTWTree> list    = expr.arguments[1];
-        for (id<GTWTree> t in list.arguments) {
+        id<SPKTree> list    = expr.arguments[1];
+        for (id<SPKTree> t in list.arguments) {
             id<GTWTerm> tn  = [self evaluateExpression:t withResult:result usingModel: model];
             if ([term isEqual:tn]) {
                 return [GTWLiteral trueLiteral];
@@ -805,8 +805,8 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return [GTWLiteral falseLiteral];
     } else if (expr.type == kExprNotIn) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-        id<GTWTree> list    = expr.arguments[1];
-        for (id<GTWTree> t in list.arguments) {
+        id<SPKTree> list    = expr.arguments[1];
+        for (id<SPKTree> t in list.arguments) {
             id<GTWTerm> tn  = [self evaluateExpression:t withResult:result usingModel: model];
             if ([term isEqual:tn]) {
                 return [GTWLiteral falseLiteral];
@@ -924,13 +924,13 @@ static BOOL isNumeric(id<GTWTerm> term) {
     return nil;
 }
 
-- (id<GTWTerm>) evaluateNumericExpression: (id<GTWTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
+- (id<GTWTerm>) evaluateNumericExpression: (id<SPKTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
     id<GTWLiteral,GTWTerm> lhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
     id<GTWLiteral,GTWTerm> rhs = (id<GTWLiteral>)[self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
     return [self evaluateNumericExpressionOfType:expr.type lhs:lhs rhs:rhs];
 }
 
-- (id<GTWTerm>) evaluateNumericExpressionOfType: (GTWTreeType) type lhs: (id<GTWLiteral,GTWTerm>) lhs rhs: (id<GTWLiteral,GTWTerm>) rhs {
+- (id<GTWTerm>) evaluateNumericExpressionOfType: (SPKTreeType) type lhs: (id<GTWLiteral,GTWTerm>) lhs rhs: (id<GTWLiteral,GTWTerm>) rhs {
     if (lhs && rhs) {
         if (![lhs isKindOfClass:[GTWLiteral class]] || ![lhs isNumericLiteral]) {
             return nil;

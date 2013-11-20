@@ -343,11 +343,11 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     }
 }
 
-- (void) loadDatasetFromAlgebra: (id<GTWTree>) algebra intoStore: (id<GTWQuadStore, GTWMutableQuadStore>) store defaultGraph: (GTWIRI*) defaultGraph base: (id<GTWIRI>) base {
+- (void) loadDatasetFromAlgebra: (id<SPKTree>) algebra intoStore: (id<GTWQuadStore, GTWMutableQuadStore>) store defaultGraph: (GTWIRI*) defaultGraph base: (id<GTWIRI>) base {
     if (algebra.type == kAlgebraDataset) {
-        id<GTWTree> pair        = algebra.treeValue;
-        id<GTWTree> defSet      = pair.arguments[0];
-        id<GTWTree> namedSet    = pair.arguments[1];
+        id<SPKTree> pair        = algebra.treeValue;
+        id<SPKTree> defSet      = pair.arguments[0];
+        id<SPKTree> namedSet    = pair.arguments[1];
         NSSet* defaultGraphs    = defSet.value;
         NSSet* namedGraphs      = namedSet.value;
         for (GTWIRI* g in defaultGraphs) {
@@ -361,14 +361,14 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             [self loadDatasetFromAlgebra:algebra.treeValue intoStore:store defaultGraph: defaultGraph base:base];
         }
         if (algebra.arguments) {
-            for (id<GTWTree> t in algebra.arguments) {
+            for (id<SPKTree> t in algebra.arguments) {
                 [self loadDatasetFromAlgebra:t intoStore:store defaultGraph: defaultGraph base:base];
             }
         }
     }
 }
 
-- (id<GTWTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: (GTWIRI*) defaultGraph hasService: (BOOL*) serviceFlag {
+- (id<SPKTree,GTWQueryPlan>) queryPlanForEvalTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model testStore: (id<GTWQuadStore, GTWMutableQuadStore>) testStore defaultGraph: (GTWIRI*) defaultGraph hasService: (BOOL*) serviceFlag {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     //    GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
     
@@ -425,7 +425,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSLog(@"SPARQL:\n%@", sparql);
         
         NSError* error;
-        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value error:&error];
+        id<SPKTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value error:&error];
         if (!algebra) {
             NSLog(@"failed to parse eval query: %@", query.value);
             return nil;
@@ -450,7 +450,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<GTWTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel options:nil];
+        id<SPKTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel options:nil];
         if (!plan) {
 //            NSLog(@"failed to plan query: %@", query.value);
             return nil;
@@ -467,7 +467,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return nil;
 }
 
-- (id<GTWTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError**) error {
+- (id<SPKTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError**) error {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     id<GTWTerm> action  = [model anyObjectForSubject:test predicate:mfaction graph:nil];
     if (action) {
@@ -485,7 +485,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        id<GTWTree> algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
+        id<SPKTree> algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
@@ -528,7 +528,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     self.testsCount++;
     self.syntaxTests++;
     NSError* error  = nil;
-    id<GTWTree> algebra = [self queryAlgebraForSyntaxTest: test withModel: model error:&error];
+    id<SPKTree> algebra = [self queryAlgebraForSyntaxTest: test withModel: model error:&error];
     BOOL ok = (error || algebra == nil) ? NO : YES;
     if (!expect)
         ok  = !ok;
@@ -563,7 +563,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     SPKMemoryQuadStore* testStore   = [[SPKMemoryQuadStore alloc] init];
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue:@"tag:kasei.us,2013;default-graph"];
     BOOL hasService = NO;
-    id<GTWTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
+    id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForEvalTest: test withModel: model testStore:testStore defaultGraph: defaultGraph hasService:&hasService];
     SPKQuadModel* testModel         = [[SPKQuadModel alloc] initWithQuadStore:testStore];
     if (plan) {
         id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
@@ -580,7 +580,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         NSArray* got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
         id<GTWSerializer> s;
-        Class resultsClass  = [(GTWTree*) plan planResultClass];
+        Class resultsClass  = [(SPKTree*) plan planResultClass];
         if ([resultsClass isEqual: [NSDictionary class]]) {
             s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
         } else {
