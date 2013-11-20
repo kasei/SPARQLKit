@@ -744,7 +744,7 @@
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Gregory Williams";
 			};
-			buildConfigurationList = 37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "GTWSPARQLEngine" */;
+			buildConfigurationList = 37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "SPARQLKit" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -756,8 +756,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				37E3D5E2172D647A00F54DC9 /* GTWSPARQLEngine */,
 				3700DD67183AD32800AF79C7 /* SPARQLKit */,
+				37E3D5E2172D647A00F54DC9 /* GTWSPARQLEngine */,
 			);
 		};
 /* End PBXProject section */
@@ -1103,7 +1103,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "GTWSPARQLEngine" */ = {
+		37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "SPARQLKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				37E3D5ED172D647A00F54DC9 /* Debug */,
