@@ -13,6 +13,11 @@
     return @"{}";
 }
 
++ (NSDictionary*) classesImplementingProtocols {
+    NSSet* set  = [NSSet setWithObjects:@protocol(GTWTripleStore), @protocol(GTWMutableTripleStore), nil];
+    return @{ (id)self: set };
+}
+
 + (NSSet*) implementedProtocols {
     return [NSSet setWithObjects:@protocol(GTWTripleStore), @protocol(GTWMutableTripleStore), nil];
 }
