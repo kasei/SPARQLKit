@@ -1,6 +1,6 @@
-#import "GTWErrorLogger.h"
+#import "SPKErrorLogger.h"
 
-@implementation GTWErrorLogger
+@implementation SPKErrorLogger
 
 - (void) logData: (id) data forKey: (NSString*) key {
     NSLog(@"%@: %@\n", key, data);

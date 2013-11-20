@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
 
-@interface GTWErrorLogger : NSObject<GTWLogger>
+@interface SPKErrorLogger : NSObject<GTWLogger>
 
 @end
