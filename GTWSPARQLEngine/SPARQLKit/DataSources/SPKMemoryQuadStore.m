@@ -10,7 +10,12 @@
 }
 
 + (NSString*) usage {
-    return @"{ \"sources\": [ { \"file\": <path/file>, \"syntax\": \"turtle\" } ] }";
+    return @"{ \"sources\": [ { \"file\": <path/file>, \"syntax\": \"turtle\", \"base_uri\": <base-uri>, \"graph\": <graph-uri> } ] }";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    NSSet* set  = [NSSet setWithObjects:@protocol(GTWQuadStore), @protocol(GTWMutableQuadStore), nil];
+    return @{ (id)self: set };
 }
 
 + (NSSet*) implementedProtocols {
@@ -81,19 +86,22 @@
         NSString* base      = dictionary[@"base_uri"];
         if (!base)
             base    = @"http://base.example.org/";
-        GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
         NSArray* sources    = dictionary[@"sources"];
         if (sources) {
             for (NSDictionary* source in sources) {
                 NSString* file      = source[@"file"];
                 NSString* syntax    = source[@"syntax"];
                 NSString* graphName = source[@"graph"];
+                NSString* file_base = source[@"base_uri"];
+                if (!file_base)
+                    file_base   = base;
+                GTWIRI* file_baseuri    = [[GTWIRI alloc] initWithValue:file_base];
                 if (file && syntax) {
                     if ([syntax isEqual: @"turtle"]) {
-                        GTWIRI* graph       = [[GTWIRI alloc] initWithValue:(graphName ? graphName : base)];
+                        GTWIRI* graph       = [[GTWIRI alloc] initWithValue:(graphName ? graphName : file_base)];
                         NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:file];
                         SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
-                        SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
+                        SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: file_baseuri];
                         if (p) {
                             //    NSLog(@"parser: %p\n", p);
                             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
