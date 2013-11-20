@@ -1,5 +1,5 @@
 //
-//  GTWBlankNodeRenamer.h
+//  SPKBlankNodeRenamer.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 11/7/13.
@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
 
-@interface GTWBlankNodeRenamer : NSObject
+@interface SPKBlankNodeRenamer : NSObject
 
 @property NSUInteger counter;
 @property NSMutableDictionary* mapping;

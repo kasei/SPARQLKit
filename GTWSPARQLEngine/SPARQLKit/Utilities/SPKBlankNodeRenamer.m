@@ -1,16 +1,16 @@
 //
-//  GTWBlankNodeRenamer.m
+//  SPKBlankNodeRenamer.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 11/7/13.
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWBlankNodeRenamer.h"
+#import "SPKBlankNodeRenamer.h"
 
-@implementation GTWBlankNodeRenamer
+@implementation SPKBlankNodeRenamer
 
-- (GTWBlankNodeRenamer*) init {
+- (SPKBlankNodeRenamer*) init {
     if (self = [super init]) {
         self.mapping    = [NSMutableDictionary dictionary];
         self.counter    = 0;

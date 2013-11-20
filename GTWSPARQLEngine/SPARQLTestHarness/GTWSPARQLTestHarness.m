@@ -93,7 +93,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         dispatch_sync(self.raptor_queue, ^{
             id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
             NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-            GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
+            SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                 GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
                 [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
@@ -153,7 +153,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
                 __block NSUInteger count    = 0;
                 NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-                GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
+                SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
                 [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
                     GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
                     [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
@@ -306,7 +306,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         NSLog(@"no file handle for string: %@", filename);
     }
     NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-    GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
+    SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
     if ([filename hasSuffix:@".ttl"] || [filename hasSuffix:@".nt"]) {
 //      GTWIRI* base     = [[GTWIRI alloc] initWithValue:filename];
         SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
@@ -729,7 +729,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     
     SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
     NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-    GTWBlankNodeRenamer* renamer    = [[GTWBlankNodeRenamer alloc] init];
+    SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
     for (id<GTWTriple> t in triples) {
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:defaultGraph];
         [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
