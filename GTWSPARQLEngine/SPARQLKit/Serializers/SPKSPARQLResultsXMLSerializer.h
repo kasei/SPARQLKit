@@ -1,5 +1,5 @@
 //
-//  GTWSPARQLResultsTextTableSerializer.h
+//  SPKSPARQLResultsXMLSerializer.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 9/18/13.
@@ -10,6 +10,6 @@
 #import "SPARQLKit.h"
 #import <GTWSWBase/GTWSWBase.h>
 
-@interface GTWSPARQLResultsTextTableSerializer : NSObject<GTWSerializer, GTWSPARQLResultsSerializer>
+@interface SPKSPARQLResultsXMLSerializer : NSObject<GTWSerializer, GTWSPARQLResultsSerializer>
 
 @end

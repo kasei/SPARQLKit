@@ -14,8 +14,8 @@
 #import "SPKSPARQLParser.h"
 #import "SPARQLKit.h"
 #import "SPKQueryPlanner.h"
-#import "GTWSPARQLResultsXMLSerializer.h"
-#import "GTWSPARQLResultsTextTableSerializer.h"
+#import "SPKSPARQLResultsXMLSerializer.h"
+#import "SPKSPARQLResultsTextTableSerializer.h"
 #import "HTTPMessage.h"
 
 @implementation GTWSPARQLConnection
@@ -71,8 +71,8 @@
         }
         id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-//        id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
-        id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
+//        id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+        id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
         
         NSData* data        = [s dataFromResults:e withVariables:variables];
         return [[HTTPDataResponse alloc] initWithData:data];

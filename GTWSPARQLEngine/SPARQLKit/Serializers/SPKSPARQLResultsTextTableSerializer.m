@@ -1,15 +1,15 @@
 //
-//  GTWSPARQLResultsTextTableSerializer.m
+//  SPKSPARQLResultsTextTableSerializer.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 9/18/13.
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWSPARQLResultsTextTableSerializer.h"
+#import "SPKSPARQLResultsTextTableSerializer.h"
 #import <GTWSWBase/GTWLiteral.h>
 
-@implementation GTWSPARQLResultsTextTableSerializer
+@implementation SPKSPARQLResultsTextTableSerializer
 
 - (void) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables toHandle: (NSFileHandle*) handle {
     NSData* data    = [self dataFromResults:results withVariables:variables];

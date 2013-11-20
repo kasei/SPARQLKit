@@ -1,5 +1,5 @@
 //
-//  GTWNTriplesSerializer.h
+//  SPKNTriplesSerializer.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 10/12/13.
@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <GTWSWBase/GTWSWBase.h>
 
-@interface GTWNTriplesSerializer : NSObject<GTWSerializer, GTWTriplesSerializer>
+@interface SPKNTriplesSerializer : NSObject<GTWSerializer, GTWTriplesSerializer>
 
 + (NSString*) nTriplesEncodingOfString: (NSString*) value;
 + (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term;

@@ -14,10 +14,10 @@
 #import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/SPKSPARQLDataSourcePlugin.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
-#import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
-#import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
-#import <SPARQLKit/GTWNTriplesSerializer.h>
-#import <SPARQLKit/GTWNQuadsSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsXMLSerializer.h>
+#import <SPARQLKit/SPKNTriplesSerializer.h>
+#import <SPARQLKit/SPKNQuadsSerializer.h>
 
 #import "GTWSPARQLTestHarness.h"
 
@@ -149,7 +149,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
     
     GTWIRI* g = [[GTWIRI alloc] initWithValue:@"http://example.org/"];
     SPKTripleModel* model = [[SPKTripleModel alloc] initWithTripleStore:store usingGraphName:g];
-    id<GTWTriplesSerializer> s    = [[GTWNTriplesSerializer alloc] init];
+    id<GTWTriplesSerializer> s    = [[SPKNTriplesSerializer alloc] init];
 //    NSLog(@"model: %@\n--------------\n", model);
     NSEnumerator* e = [model quadsMatchingSubject:nil predicate:nil object:nil graph:nil error:nil];
     NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
@@ -219,8 +219,8 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     }
     id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
     NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-    id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
-//    id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
+    id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+//    id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
     
     NSData* data        = [s dataFromResults:e withVariables:variables];
     fwrite([data bytes], [data length], 1, stdout);
@@ -570,7 +570,7 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"*** %@", error);
                 return 1;
             }
-            id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
+            id<GTWTriplesSerializer> ser    = [[SPKNTriplesSerializer alloc] init];
             NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
             [ser serializeTriples:e toHandle:out];
         } else {
@@ -579,7 +579,7 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"*** %@", error);
                 return 1;
             }
-            id<GTWQuadsSerializer> ser    = [[GTWNQuadsSerializer alloc] init];
+            id<GTWQuadsSerializer> ser    = [[SPKNQuadsSerializer alloc] init];
             NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
             [ser serializeQuads:e toHandle:out];
         }
@@ -624,7 +624,7 @@ int main(int argc, const char * argv[]) {
             GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
             NSError* error  = nil;
             NSEnumerator* e = [model quadsMatchingSubject:s predicate:rdftype object:o graph:graph error:&error];
-            id<GTWTriplesSerializer> ser    = [[GTWNTriplesSerializer alloc] init];
+            id<GTWTriplesSerializer> ser    = [[SPKNTriplesSerializer alloc] init];
             NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
             [ser serializeTriples:e toHandle:out];
         } else if ([testtype isEqual: @"triple"]) {

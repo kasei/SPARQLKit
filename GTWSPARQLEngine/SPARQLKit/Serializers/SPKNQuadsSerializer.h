@@ -1,5 +1,5 @@
 //
-//  GTWNQuadsSerializer.h
+//  SPKNQuadsSerializer.h
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 10/31/13.
@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import "SPARQLKit.h"
-#import "GTWNTriplesSerializer.h"
+#import "SPKNTriplesSerializer.h"
 
-@interface GTWNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>
+@interface SPKNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>
 
 @end

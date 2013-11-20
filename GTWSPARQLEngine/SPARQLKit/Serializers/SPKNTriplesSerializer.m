@@ -1,14 +1,14 @@
 //
-//  GTWNTriplesSerializer.m
+//  SPKNTriplesSerializer.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 10/12/13.
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWNTriplesSerializer.h"
+#import "SPKNTriplesSerializer.h"
 
-@implementation GTWNTriplesSerializer
+@implementation SPKNTriplesSerializer
 
 + (NSString*) nTriplesEncodingOfString: (NSString*) value {
     NSUInteger length   = [value length];

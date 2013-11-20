@@ -21,10 +21,10 @@
 #import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
-#import <SPARQLKit/GTWSPARQLResultsTextTableSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKTurtleParser.h>
 #import <SPARQLKit/SPKSPARQLParser.h>
-#import <SPARQLKit/GTWNTriplesSerializer.h>
+#import <SPARQLKit/SPKNTriplesSerializer.h>
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLTestHarnessURLProtocol.h"
 
@@ -582,9 +582,9 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         id<GTWSerializer> s;
         Class resultsClass  = [(GTWTree*) plan planResultClass];
         if ([resultsClass isEqual: [NSDictionary class]]) {
-            s    = [[GTWSPARQLResultsTextTableSerializer alloc] init];
+            s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
         } else {
-            s   = [[GTWNTriplesSerializer alloc] init];
+            s   = [[SPKNTriplesSerializer alloc] init];
         }
         
         GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];

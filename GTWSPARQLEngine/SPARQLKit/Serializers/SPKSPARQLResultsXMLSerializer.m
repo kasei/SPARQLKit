@@ -1,14 +1,14 @@
 //
-//  GTWSPARQLResultsXMLSerializer.m
+//  SPKSPARQLResultsXMLSerializer.m
 //  GTWSPARQLEngine
 //
 //  Created by Gregory Williams on 9/18/13.
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
-#import "GTWSPARQLResultsXMLSerializer.h"
+#import "SPKSPARQLResultsXMLSerializer.h"
 
-@implementation GTWSPARQLResultsXMLSerializer
+@implementation SPKSPARQLResultsXMLSerializer
 
 - (NSString*) xmlSimpleEscapeString: (NSString*) string {
     NSMutableString* value  = [NSMutableString stringWithString:string];

@@ -11,7 +11,7 @@
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/GTWTree.h>
-#import <SPARQLKit/GTWSPARQLResultsXMLSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsXMLSerializer.h>
 
 static NSMutableDictionary *_mockedRequests;
 static dispatch_once_t mockToken;
@@ -113,7 +113,7 @@ static dispatch_once_t mockToken;
 //        NSLog(@"executing query...");
         NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
 //        NSLog(@"got resutls");
-        id<GTWSPARQLResultsSerializer> s    = [[GTWSPARQLResultsXMLSerializer alloc] init];
+        id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
         NSSet* variables    = [plan inScopeVariables];
         NSData* data        = [s dataFromResults:e withVariables:variables];
 //        NSLog(@"serialized %lu bytes in SRX format", [data length]);
