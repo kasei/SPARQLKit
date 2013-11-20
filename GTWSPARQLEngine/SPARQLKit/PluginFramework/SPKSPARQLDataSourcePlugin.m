@@ -19,6 +19,8 @@ NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
         goto bad_plugin;
     if (![plugInClass respondsToSelector: @selector(implementedProtocols)])
         goto bad_plugin;
+    if (![plugInClass respondsToSelector: @selector(classesImplementingProtocols)])
+        goto bad_plugin;
     if (![plugInClass respondsToSelector: @selector(usage)])
         goto bad_plugin;
     if (![plugInClass instancesRespondToSelector: @selector(initWithDictionary:)])

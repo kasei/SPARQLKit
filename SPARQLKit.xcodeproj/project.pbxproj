@@ -7,15 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3700DD69183AD32800AF79C7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		3700DD73183AD32900AF79C7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3700DD71183AD32900AF79C7 /* InfoPlist.strings */; };
-		3700DD90183AD36700AF79C7 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
-		3700DD91183AD36E00AF79C7 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
 		3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		3700DD93183AD39300AF79C7 /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
 		3700DD94183AD39300AF79C7 /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
 		3700DD95183AD39300AF79C7 /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 379247E217ADA46200597746 /* librdf.0.dylib */; };
-		3700DD96183AD39700AF79C7 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37BF086E176718A2008B11F8 /* System.framework */; };
 		3700DD97183AD3A000AF79C7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD6B183AD32800AF79C7 /* Foundation.framework */; };
 		3700DDAF183AD43400AF79C7 /* NSDate+W3CDTFSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD39183ACFC300AF79C7 /* NSDate+W3CDTFSupport.m */; };
 		3700DDB0183AD43400AF79C7 /* NSObject+NSDictionary_QueryBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD3B183ACFC300AF79C7 /* NSObject+NSDictionary_QueryBindings.m */; };
@@ -55,10 +51,11 @@
 		3700DDF8183B160200AF79C7 /* GTWSPARQLServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5E183AD0BA00AF79C7 /* GTWSPARQLServer.m */; };
 		3700DDF9183B160200AF79C7 /* GTWSPARQLTestHarness.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCF8183ACF8500AF79C7 /* GTWSPARQLTestHarness.m */; };
 		3700DDFA183B160200AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCFA183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m */; };
+		372E8229183C7A12000349CE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
+		372E822B183C7A32000349CE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD6B183AD32800AF79C7 /* Foundation.framework */; };
+		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		379247E317ADA46200597746 /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 379247E217ADA46200597746 /* librdf.0.dylib */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		37A6A02818386B0A002604B0 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
-		37A6A02A18386B22002604B0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
 		37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
 		37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -105,7 +102,6 @@
 		37E0FEBC183C34D400377B1D /* SPKBlankNodeRenamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FEBA183C34D400377B1D /* SPKBlankNodeRenamer.m */; };
 		37E0FEBF183C357300377B1D /* SPKErrorLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FEBD183C357300377B1D /* SPKErrorLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FEC0183C357300377B1D /* SPKErrorLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FEBE183C357300377B1D /* SPKErrorLogger.m */; };
-		37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */; };
 		37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F96DD517AD5CBF00235009 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
 
@@ -268,12 +264,8 @@
 				3700DD93183AD39300AF79C7 /* librasqal.3.dylib in Frameworks */,
 				3700DD94183AD39300AF79C7 /* libraptor2.0.dylib in Frameworks */,
 				3700DD95183AD39300AF79C7 /* librdf.0.dylib in Frameworks */,
-				3700DD96183AD39700AF79C7 /* System.framework in Frameworks */,
 				3700DDCB183AD47400AF79C7 /* GTWSWBase.framework in Frameworks */,
-				3700DD91183AD36E00AF79C7 /* CoreFoundation.framework in Frameworks */,
 				3700DD97183AD3A000AF79C7 /* Foundation.framework in Frameworks */,
-				3700DD90183AD36700AF79C7 /* Security.framework in Frameworks */,
-				3700DD69183AD32800AF79C7 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -281,12 +273,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37A6A02A18386B22002604B0 /* Security.framework in Frameworks */,
-				37A6A02818386B0A002604B0 /* Cocoa.framework in Frameworks */,
-				379247E317ADA46200597746 /* librdf.0.dylib in Frameworks */,
+				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
+				372E822B183C7A32000349CE /* Foundation.framework in Frameworks */,
+				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
 				3700DDDB183B15C100AF79C7 /* SPARQLKit.framework in Frameworks */,
+				379247E317ADA46200597746 /* librdf.0.dylib in Frameworks */,
 				37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */,
-				37E3D5E7172D647A00F54DC9 /* CoreFoundation.framework in Frameworks */,
 				37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */,
 				37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */,
 				37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */,
@@ -1032,7 +1024,6 @@
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/GTWSWBase-bpvpvhggcugdjxddhvalusjqdjts/Build/Products/Debug\\\"",
 					"$(SRCROOT)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
 				);
@@ -1064,7 +1055,6 @@
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/GTWSWBase-bpvpvhggcugdjxddhvalusjqdjts/Build/Products/Debug\\\"",
 					"$(SRCROOT)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
 				);

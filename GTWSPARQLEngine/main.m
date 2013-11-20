@@ -302,28 +302,33 @@ int usage(int argc, const char * argv[]) {
 id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasources, NSDictionary* dict, GTWIRI* defaultGraph, Class* class) {
     NSString* sourceName    = dict[@"storetype"];
     Class c = [datasources objectForKey:sourceName];
-    *class  = c;
     if (!c) {
         NSLog(@"No data source class found with config: %@", dict);
         return nil;
     }
-    
-    NSSet* protocols    = [c implementedProtocols];
-    if ([protocols containsObject:@protocol(GTWTripleStore)]) {
-        id<GTWTripleStore> store = [[c alloc] initWithDictionary:dict];
-        if (!store) {
-            NSLog(@"Failed to create triple store from source '%@'", c);
-            return nil;
+
+    NSDictionary* pluginClasses = [c classesImplementingProtocols];
+    for (Class pluginClass in pluginClasses) {
+        NSSet* protocols    = pluginClasses[pluginClass];
+        if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+            id<GTWDataSource,GTWTripleStore> store = [[pluginClass alloc] initWithDictionary:dict];
+            if (!store) {
+                NSLog(@"Failed to create triple store from source '%@'", pluginClass);
+                return nil;
+            }
+            *class  = pluginClass;
+            return store;
+        } else if ([protocols containsObject:@protocol(GTWQuadStore)]) {
+            id<GTWDataSource,GTWQuadStore> store = [[pluginClass alloc] initWithDictionary:dict];
+            if (!store) {
+                NSLog(@"Failed to create triple store from source '%@'", pluginClass);
+                return nil;
+            }
+            *class  = pluginClass;
+            return store;
         }
-        return store;
-    } else {
-        id<GTWQuadStore> store = [[c alloc] initWithDictionary:dict];
-        if (!store) {
-            NSLog(@"Failed to create triple store from source '%@'", c);
-            return nil;
-        }
-        return store;
     }
+    return nil;
 }
 
 id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, NSString* config, GTWIRI* defaultGraph, Class* class) {
@@ -556,53 +561,63 @@ int main(int argc, const char * argv[]) {
             NSLog(@"Failed to construct model for query");
             return 1;
         }
-
+        
         GTWVariable* s  = [[GTWVariable alloc] initWithValue:@"s"];
         GTWVariable* p  = [[GTWVariable alloc] initWithValue:@"p"];
         GTWVariable* o  = [[GTWVariable alloc] initWithValue:@"o"];
         GTWVariable* g  = [[GTWVariable alloc] initWithValue:@"g"];
         NSError* error  = nil;
-
-        NSSet* protocols    = [c implementedProtocols];
-        if ([protocols containsObject:@protocol(GTWTripleStore)]) {
-            NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:defaultGraph error:&error];
-            if (error) {
-                NSLog(@"*** %@", error);
-                return 1;
+        
+        NSDictionary* pluginClasses = [c classesImplementingProtocols];
+        for (Class pluginClass in pluginClasses) {
+            NSSet* protocols    = pluginClasses[pluginClass];
+            if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+                NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:defaultGraph error:&error];
+                if (error) {
+                    NSLog(@"*** %@", error);
+                    return 1;
+                }
+                id<GTWTriplesSerializer> ser    = [[SPKNTriplesSerializer alloc] init];
+                NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+                [ser serializeTriples:e toHandle:out];
+                return 0;
+            } else if ([protocols containsObject:@protocol(GTWQuadStore)]) {
+                NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:g error:&error];
+                if (error) {
+                    NSLog(@"*** %@", error);
+                    return 1;
+                }
+                id<GTWQuadsSerializer> ser    = [[SPKNQuadsSerializer alloc] init];
+                NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
+                [ser serializeQuads:e toHandle:out];
+                return 0;
             }
-            id<GTWTriplesSerializer> ser    = [[SPKNTriplesSerializer alloc] init];
-            NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
-            [ser serializeTriples:e toHandle:out];
-        } else {
-            NSEnumerator* e = [model quadsMatchingSubject:s predicate:p object:o graph:g error:&error];
-            if (error) {
-                NSLog(@"*** %@", error);
-                return 1;
-            }
-            id<GTWQuadsSerializer> ser    = [[SPKNQuadsSerializer alloc] init];
-            NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
-            [ser serializeQuads:e toHandle:out];
         }
+        
+        NSLog(@"No triple/quad store found in plugin %@.", c);
+        return -1;
     } else if ([op isEqual: @"sources"]) {
         fprintf(stdout, "Available data sources:\n");
         for (id s in datasources) {
             Class c = datasources[s];
             fprintf(stdout, "%s\n", [[c description] UTF8String]);
-            NSSet* protocols    = [c implementedProtocols];
-            if ([protocols count]) {
-                NSMutableArray* array   = [NSMutableArray array];
-                for (Protocol* p in protocols) {
-                    const char* name = protocol_getName(p);
-                    [array addObject:[NSString stringWithFormat:@"%s", name]];
+            NSDictionary* pluginClasses = [c classesImplementingProtocols];
+            for (Class pluginClass in pluginClasses) {
+                NSSet* protocols    = pluginClasses[pluginClass];
+                if ([protocols count]) {
+                    NSMutableArray* array   = [NSMutableArray array];
+                    for (Protocol* p in protocols) {
+                        const char* name = protocol_getName(p);
+                        [array addObject:[NSString stringWithFormat:@"%s", name]];
+                    }
+                    NSString* str   = [array componentsJoinedByString:@", "];
+                    fprintf(stdout, "  Protocols: %s\n", [str UTF8String]);
                 }
-                NSString* str   = [array componentsJoinedByString:@", "];
-                fprintf(stdout, "  Protocols: %s\n", [str UTF8String]);
+                NSString* usage = [pluginClass usage];
+                if (usage) {
+                    fprintf(stdout, "  Configuration template: %s\n\n", [usage UTF8String]);
+                }
             }
-            NSString* usage = [c usage];
-            if (usage) {
-                fprintf(stdout, "  Configuration template: %s\n\n", [usage UTF8String]);
-            }
-            
         }
     } else if ([op isEqual: @"test"]) {
         if (argc < (argi+3)) {
