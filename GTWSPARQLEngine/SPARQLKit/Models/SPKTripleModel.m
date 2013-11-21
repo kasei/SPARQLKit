@@ -153,7 +153,7 @@
         if ([plans count] == 1) {
             return plans[0];
         } else {
-            return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
+            return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
         }
     }
     return nil;

@@ -204,5 +204,5 @@ extern SPKTreeType __strong const kTreeResultSet;				// ResultSet( length, resul
 
 @end
 
-@interface GTWQueryPlan : SPKTree<GTWQueryPlan>
+@interface SPKQueryPlan : SPKTree<GTWQueryPlan>
 @end

@@ -636,5 +636,5 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 
 @end
 
-@implementation GTWQueryPlan
+@implementation SPKQueryPlan
 @end

@@ -39,7 +39,7 @@
 
 - (NSSet*) inScopeVariablesForUnionPlan: (id<SPKTree>) plan {
     NSMutableArray* plans  = [plan.arguments mutableCopy];
-    GTWQueryPlan* empty = [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
+    SPKQueryPlan* empty = [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
     [plans removeObject:empty];
     if ([plans count] == 0) {
         return [NSSet set];
@@ -89,12 +89,12 @@
         NSMutableSet* joinVars = [NSMutableSet setWithSet:lhsVars];
         [joinVars intersectSet:rhsVars];
         if ([joinVars count]) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanHashJoin value:joinVars arguments:@[lhs, rhs]];
+            return [[SPKQueryPlan alloc] initWithType:kPlanHashJoin value:joinVars arguments:@[lhs, rhs]];
         }
     }
 //    NSLog(@"HashJoin not available for:\n%@\n%@", lhs, rhs);
 //    NSLog(@"Join vars: %@ %@", lhsVars, rhsVars);
-    return [[GTWQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
+    return [[SPKQueryPlan alloc] initWithType:kPlanNLjoin arguments:@[lhs, rhs]];
 }
 
 - (id<SPKTree>) replaceBlanksWithVariables: (id<SPKTree>) algebra {
@@ -148,11 +148,11 @@
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanDistinct arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanDistinct arguments:@[plan]];
     } else if (algebra.type == kAlgebraConstruct) {
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         NSArray* st = [self statementsForTemplateAlgebra: algebra.arguments[0]];
-        return [[GTWQueryPlan alloc] initWithType:kPlanConstruct value: st arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanConstruct value: st arguments:@[plan]];
     } else if (algebra.type == kAlgebraAsk) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"ASK must be 1-ary");
@@ -161,7 +161,7 @@
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanAsk arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanAsk arguments:@[plan]];
     } else if (algebra.type == kAlgebraGroup) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"Group must be 1-ary");
@@ -170,7 +170,7 @@
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         if (!plan)
             return nil;
-        return [[GTWQueryPlan alloc] initWithType:kPlanGroup treeValue: algebra.treeValue arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanGroup treeValue: algebra.treeValue arguments:@[plan]];
     } else if (algebra.type == kAlgebraDataset) {
         id<SPKTree> pair        = algebra.treeValue;
         id<SPKTree> defSet      = pair.arguments[0];
@@ -195,7 +195,7 @@
             GTWLiteral* spterm  = [[GTWLiteral alloc] initWithValue:sparql];
             id<SPKTree> tn      = [[SPKTree alloc] initWithType:kTreeNode value:spterm arguments:nil];
 //            id<SPKTree> list    = [[SPKTree alloc] initWithType:kTreeList arguments:@[spterm]];
-            return [[GTWQueryPlan alloc] initWithType:kPlanService treeValue:list arguments:@[tn]];
+            return [[SPKQueryPlan alloc] initWithType:kPlanService treeValue:list arguments:@[tn]];
         } else {
             NSLog(@"SERVICE not defined for non-IRIs");
             return nil;
@@ -216,7 +216,7 @@
                 return nil;
             }
             
-            plan    = [[GTWQueryPlan alloc] initWithType:kPlanGraph treeValue: graphtree arguments:@[plan]];
+            plan    = [[SPKQueryPlan alloc] initWithType:kPlanGraph treeValue: graphtree arguments:@[plan]];
             return plan;
         } else {
             NSArray* graphs = [dataset availableGraphsFromModel:model];
@@ -236,13 +236,13 @@
                                                                                       ]];
                 id<SPKTree, GTWQueryPlan> extend    = (id<SPKTree, GTWQueryPlan>) [[SPKTree alloc] initWithType:kPlanExtend treeValue:list arguments:@[plan]];
                 if (gplan) {
-                    gplan   = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[gplan, extend]];
+                    gplan   = [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[gplan, extend]];
                 } else {
                     gplan   = extend;
                 }
             }
             if (!gplan)
-                gplan   = [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+                gplan   = [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
 
             return gplan;
         }
@@ -253,7 +253,7 @@
             NSLog(@"Failed to plan both sides of UNION");
             return nil;
         }
-        return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
     } else if (algebra.type == kAlgebraProject) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"PROJECT must be 1-ary");
@@ -265,10 +265,10 @@
             return nil;
         }
         id<SPKTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
-        return [[GTWQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
     } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
         if ([algebra.arguments count] == 0) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+            return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if ([algebra.arguments count] == 1) {
             return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         } else if ([algebra.arguments count] == 2) {
@@ -300,7 +300,7 @@
             return nil;
         }
         // should probably have a new plan type for MINUS blocks
-        return [[GTWQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options]]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options]]];
     } else if (algebra.type == kAlgebraLeftJoin) {
         if ([algebra.arguments count] != 2) {
             NSLog(@"LEFT JOIN must be 2-ary");
@@ -314,7 +314,7 @@
             return nil;
         }
         
-        id<SPKTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initWithType:kPlanNLLeftJoin treeValue:expr arguments:@[lhs, rhs]];
+        id<SPKTree,GTWQueryPlan> plan   = [[SPKQueryPlan alloc] initWithType:kPlanNLLeftJoin treeValue:expr arguments:@[lhs, rhs]];
         return plan;
     } else if (algebra.type == kAlgebraBGP) {
         return [self planBGP: algebra.arguments usingDataset: dataset withModel:model options:nil];
@@ -327,7 +327,7 @@
         if (!plan)
             return nil;
         id<SPKTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
-        return [[GTWQueryPlan alloc] initWithType:kPlanFilter treeValue: expr arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanFilter treeValue: expr arguments:@[plan]];
     } else if (algebra.type == kAlgebraExtend) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"EXTEND must be 1-ary");
@@ -339,12 +339,12 @@
         if (!p)
             return nil;
         id<SPKTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
-        return [[GTWQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
     } else if (algebra.type == kAlgebraSlice) {
         id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         id<SPKTree> offset      = algebra.arguments[1];
         id<SPKTree> limit       = algebra.arguments[2];
-        return [[GTWQueryPlan alloc] initWithType:kPlanSlice arguments:@[plan, offset, limit]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanSlice arguments:@[plan, offset, limit]];
     } else if (algebra.type == kAlgebraOrderBy) {
         if ([algebra.arguments count] != 1)
             return nil;
@@ -353,20 +353,20 @@
         if (!plan)
             return nil;
         
-        return [[GTWQueryPlan alloc] initWithType:kPlanOrder treeValue: list arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanOrder treeValue: list arguments:@[plan]];
     } else if (algebra.type == kTreeTriple) {
         t   = algebra.value;
         defaultGraphs   = [dataset defaultGraphs];
         count   = [defaultGraphs count];
         if (count == 0) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+            return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if (count == 1) {
-            return [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
+            return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
         } else {
-            id<SPKTree,GTWQueryPlan> plan   = [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
+            id<SPKTree,GTWQueryPlan> plan   = [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
             NSInteger i;
             for (i = 1; i < count; i++) {
-                plan    = [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[GTWQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]]]]];
+                plan    = [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]]]]];
             }
             return plan;
         }
@@ -447,7 +447,7 @@
     } else if (path.type == kPathOr) {
         id<GTWQueryPlan> lhs    = [self queryPlanForPath:path.arguments[0] starting:s ending:o usingDataset:dataset withModel:model];
         id<GTWQueryPlan> rhs    = [self queryPlanForPath:path.arguments[1] starting:s ending:o usingDataset:dataset withModel:model];
-        return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
     } else if (path.type == kPathNegate) {
         NSMutableSet* fwd   = [NSMutableSet set];
         NSMutableSet* inv   = [NSMutableSet set];
@@ -457,17 +457,17 @@
         id<SPKTree> graph   = [[SPKTree alloc] initWithType:kTreeNode value:graphs[0] arguments:nil];
         if ([fwd count]) {
             id<SPKTree> set     = [[SPKTree alloc] initWithType:kTreeSet value:fwd arguments:nil];
-            id<SPKTree> plan    = [[GTWQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
+            id<SPKTree> plan    = [[SPKQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
             [plans addObject:plan];
         }
         if ([inv count]) {
             id<SPKTree> set     = [[SPKTree alloc] initWithType:kTreeSet value:inv arguments:nil];
-            id<SPKTree> plan    = [[GTWQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
+            id<SPKTree> plan    = [[SPKQueryPlan alloc] initWithType:kPlanNPSPath arguments:@[s, set, o, graph]];
             [plans addObject:plan];
         }
         
         if ([plans count] > 1) {
-            return [[GTWQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
+            return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
         } else {
             return plans[0];
         }
@@ -485,7 +485,7 @@
         }
         id<SPKTree> activeGraphs    = [[SPKTree alloc] initWithType:kTreeList arguments:graphsTrees];
         id<SPKTree> list   = [[SPKTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
-        return [[GTWQueryPlan alloc] initWithType:kPlanZeroOrOnePath treeValue:list arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanZeroOrOnePath treeValue:list arguments:@[plan]];
     } else if (path.type == kPathZeroOrMore) {
         GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
         GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
@@ -500,7 +500,7 @@
         }
         id<SPKTree> activeGraphs    = [[SPKTree alloc] initWithType:kTreeList arguments:graphsTrees];
         id<SPKTree> list   = [[SPKTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
-        return [[GTWQueryPlan alloc] initWithType:kPlanZeroOrMorePath treeValue:list arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanZeroOrMorePath treeValue:list arguments:@[plan]];
     } else if (path.type == kPathOneOrMore) {
         GTWVariable* ts = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
         GTWVariable* to = [[GTWVariable alloc] initWithValue:[NSString stringWithFormat:@".zm%lu", self.bnodeCounter++]];
@@ -515,7 +515,7 @@
         }
         id<SPKTree> activeGraphs    = [[SPKTree alloc] initWithType:kTreeList arguments:graphsTrees];
         id<SPKTree> list   = [[SPKTree alloc] initWithType:kTreeList arguments:@[ s, o, temps, tempo, activeGraphs ]];
-        return [[GTWQueryPlan alloc] initWithType:kPlanOneOrMorePath treeValue:list arguments:@[plan]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanOneOrMorePath treeValue:list arguments:@[plan]];
     } else if (path.type == kPathInverse) {
         id<SPKTree> p   = [[SPKTree alloc] initWithType:kTreePath arguments:@[o, path.arguments[0], s]];
         return [self queryPlanForPathAlgebra:p usingDataset:dataset withModel:model];
@@ -640,9 +640,9 @@
     NSInteger i;
     id<SPKTree,GTWQueryPlan> plan;
     if (graphCount == 0) {
-        return [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
     } else if ([triples count] == 0) {
-        return [[GTWQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+        return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
     } else if ([triples count] == 1) {
         return [self queryPlanForAlgebra:triples[0] usingDataset:dataset withModel:model options:options];
     } else {
