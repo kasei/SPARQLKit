@@ -37,6 +37,28 @@
     }
 }
 
+- (NSSet*) inScopeVariablesForUnionPlan: (id<SPKTree>) plan {
+    NSMutableArray* plans  = [plan.arguments mutableCopy];
+    GTWQueryPlan* empty = [[GTWQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
+    [plans removeObject:empty];
+    if ([plans count] == 0) {
+        return [NSSet set];
+    } else if ([plans count] == 1) {
+        id<SPKTree> plan    = plans[0];
+        NSSet* vars = [plan inScopeVariables];
+        return vars;
+    } else {
+        id<SPKTree> plan    = plans[0];
+        NSMutableSet* vars  = [[plan inScopeVariables] mutableCopy];
+        NSUInteger count    = [plans count];
+        for (NSUInteger i = 1; i < count; i++) {
+            NSSet* rhsVars    = [plans[i] inScopeVariables];
+            [vars intersectSet: rhsVars];
+        }
+        return vars;
+    }
+}
+
 - (id<SPKTree,GTWQueryPlan>) joinPlanForPlans: (id<SPKTree>) lhs and: (id<SPKTree>) rhs {
     NSSet* lhsVars  = nil;
     NSSet* rhsVars  = nil;
@@ -56,18 +78,12 @@
     if (lhs.type == kTreeQuad || lhs.type == kPlanHashJoin || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         lhsVars   = [lhs inScopeVariables];
     } else if (lhs.type == kPlanUnion) {
-        NSMutableSet* lhsUnionVars    = [[lhs.arguments[0] inScopeVariables] mutableCopy];
-        NSSet* rhsUnionVars    = [lhs.arguments[1] inScopeVariables];
-        [lhsUnionVars intersectSet: rhsUnionVars];
-        lhsVars = lhsUnionVars;
+        lhsVars = [self inScopeVariablesForUnionPlan:lhs];
     }
     if (rhs.type == kTreeQuad || rhs.type == kPlanHashJoin || [rhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         rhsVars   = [rhs inScopeVariables];
     } else if (rhs.type == kPlanUnion) {
-        NSMutableSet* lhsUnionVars    = [[rhs.arguments[0] inScopeVariables] mutableCopy];
-        NSSet* rhsUnionVars    = [rhs.arguments[1] inScopeVariables];
-        [lhsUnionVars intersectSet: rhsUnionVars];
-        rhsVars = lhsUnionVars;
+        rhsVars = [self inScopeVariablesForUnionPlan:rhs];
     }
     if (lhsVars && rhsVars) {
         NSMutableSet* joinVars = [NSMutableSet setWithSet:lhsVars];
@@ -97,7 +113,16 @@
 
 - (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     algebra = [self replaceBlanksWithVariables:algebra];
-    if ([model conformsToProtocol:@protocol(SPKQueryPlanner)]) {
+    BOOL customPlanning = YES;
+    if (options) {
+        NSNumber* flag  = options[@"disableCustomPlanning"];
+        if (flag && [flag boolValue]) {
+            customPlanning  = NO;
+        }
+    }
+    
+    
+    if (customPlanning && [model conformsToProtocol:@protocol(SPKQueryPlanner)]) {
         NSMutableDictionary* opt    = [NSMutableDictionary dictionaryWithDictionary:options];
         opt[@"queryPlanner"]    = self;
         id<SPKTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)model queryPlanForAlgebra: algebra usingDataset: dataset withModel: model options:opt];

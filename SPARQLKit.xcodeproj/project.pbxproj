@@ -51,6 +51,7 @@
 		371EDA7B183D805200C82D13 /* SPKSPARQLPluginHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 371EDA79183D805200C82D13 /* SPKSPARQLPluginHandler.m */; };
 		372E8229183C7A12000349CE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
+		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		37E0FE6F183C2E0100377B1D /* SPKMemoryQuadStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE70183C2E0100377B1D /* SPKMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */; };
@@ -128,6 +129,7 @@
 		3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../Library/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
 		371EDA78183D805200C82D13 /* SPKSPARQLPluginHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLPluginHandler.h; sourceTree = "<group>"; };
 		371EDA79183D805200C82D13 /* SPKSPARQLPluginHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLPluginHandler.m; sourceTree = "<group>"; };
+		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		37A2618618048D95008AFED4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		37A2619618048FB2008AFED4 /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		37A2E1CB1756963C0086CBE7 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
@@ -247,6 +249,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */,
 				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
 				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
 				3700DDDB183B15C100AF79C7 /* SPARQLKit.framework in Frameworks */,
@@ -588,6 +591,7 @@
 		37E3D5E5172D647A00F54DC9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3757ADC4183DA9AD0062E484 /* libz.dylib */,
 				3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */,
 				37A6A02918386B22002604B0 /* Security.framework */,
 				37A6A02718386B0A002604B0 /* Cocoa.framework */,

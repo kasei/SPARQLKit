@@ -331,7 +331,7 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
     if (!sourceName)
         sourceName  = dict[@"storetype"];
     
-    if ([sourceName isEqualToString:@"SPKQuadModel"]) {
+    if ([sourceName isEqualToString:@"SPKTripleModel"]) {
         NSDictionary* data  = dict[@"graphs"];
         SPKTripleModel* model  = [[SPKTripleModel alloc] init];
         for (NSString* graphName in data) {

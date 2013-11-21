@@ -7,7 +7,7 @@
 #define SPARQLKIT_VERSION @"0.0.1"
 
 @protocol GTWLogger
-- (void) logData: (id) data forKey: (NSString*) key;
+- (void) logData:(id) data forKey:(NSString*) key inDomain:(NSString*) domain;
 @end
 
 #pragma mark -
