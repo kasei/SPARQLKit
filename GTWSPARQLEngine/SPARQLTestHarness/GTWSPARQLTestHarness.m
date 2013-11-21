@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Gregory Williams. All rights reserved.
 //
 
+#import <GTWSWBase/GTWSWBase.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWVariable.h>
@@ -18,7 +19,7 @@
 #import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKQuadModel.h>
-#import <SPARQLKit/SPKRedlandParser.h>
+//#import <SPARQLKit/SPKRedlandParser.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
@@ -27,8 +28,9 @@
 #import <SPARQLKit/SPKNTriplesSerializer.h>
 #import "GTWSPARQLTestHarness.h"
 #import "GTWSPARQLTestHarnessURLProtocol.h"
+#import "SPKSPARQLPluginHandler.h"
 
-extern raptor_world* raptor_world_ptr;
+//extern raptor_world* raptor_world_ptr;
 static const NSString* kFailingSyntaxTests  = @"Failing Syntax Tests";
 static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 
@@ -52,7 +54,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         }
         self.jobs_queue     = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.tests", attr);
         self.results_queue  = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.results", DISPATCH_QUEUE_SERIAL);
-        self.raptor_queue   = dispatch_queue_create("us.kasei.sparql.sparql11-testsuite.raptor", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
@@ -90,15 +91,21 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         SPKQuadModel* model         = [[SPKQuadModel alloc] initWithQuadStore:store];
         NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:manifest];
         NSData* data                = [fh readDataToEndOfFile];
-        dispatch_sync(self.raptor_queue, ^{
-            id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
-            NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-            SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
-            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-                [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
-            } error:&error];
-        });
+        Class SPKRedlandParser      = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
+        if (!SPKRedlandParser) {
+            NSLog(@"Redland parser plugin not available.");
+            return NO;
+        }
+        id<GTWRDFParser> parser     = [SPKRedlandParser alloc];
+        parser  = [parser initWithData:data base:base];
+
+        //            id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: base WithRaptorWorld:raptor_world_ptr];
+        NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
+        SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
+            [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
+        } error:&error];
  
         GTWVariable* v  = [[GTWVariable alloc] initWithValue:@"o"];
         GTWIRI* include = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#include"];
@@ -149,17 +156,21 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         for (id<GTWIRI> file in manifests) {
             NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:file.value] error:nil];
             NSData* data                = [fh readDataToEndOfFile];
-            dispatch_sync(self.raptor_queue, ^{
-                id<GTWRDFParser> parser     = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: file WithRaptorWorld:raptor_world_ptr];
-                __block NSUInteger count    = 0;
-                NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
-                SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
-                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                    GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
-                    [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
-                    count++;
-                } error:&error];
-            });
+            Class SPKRedlandParser      = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
+            if (!SPKRedlandParser) {
+                NSLog(@"Redland parser plugin not available.");
+                return NO;
+            }
+            id<GTWRDFParser> parser     = [SPKRedlandParser alloc];
+            parser  = [parser initWithData:data base:file];
+            __block NSUInteger count    = 0;
+            NSString* ctx           = [NSString stringWithFormat:@"%lu", self.RDFLoadCount++];
+            SPKBlankNodeRenamer* renamer    = [[SPKBlankNodeRenamer alloc] init];
+            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:base];
+                [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:&error];
+                count++;
+            } error:&error];
         }
         
         GTWIRI* type = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
@@ -325,21 +336,29 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         //  NSLog(@"%lu total quads\n", count);
     } else {
         NSData* data            = [fh readDataToEndOfFile];
-        dispatch_sync(self.raptor_queue, ^{
-            NSError* error  = nil;
-            id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
-            //  NSLog(@"parsing data with %@", parser);
-            __block NSUInteger count    = 0;
-            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
-                count++;
-                GTWQuad* q   = [GTWQuad quadFromTriple:t withGraph:graph];
-                [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
-            } error:&error];
-            //  NSLog(@"%lu total quads\n", count);
-            if (error) {
-                NSLog(@"parser error: %@", error);
-            }
-        });
+        NSError* error  = nil;
+        Class SPKRedlandParser      = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
+        if (!SPKRedlandParser) {
+            NSLog(@"Redland parser plugin not available.");
+            return;
+        }
+        id<GTWRDFParser> parser     = [SPKRedlandParser alloc];
+        parser  = [parser initWithData:data base:base];
+//            id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: base WithRaptorWorld:raptor_world_ptr];
+        
+        
+        
+        //  NSLog(@"parsing data with %@", parser);
+        __block NSUInteger count    = 0;
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t){
+            count++;
+            GTWQuad* q   = [GTWQuad quadFromTriple:t withGraph:graph];
+            [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
+        } error:&error];
+        //  NSLog(@"%lu total quads\n", count);
+        if (error) {
+            NSLog(@"parser error: %@", error);
+        }
     }
 }
 
@@ -597,53 +616,93 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         if (self.verbose) {
             NSLog(@"Results file: %@", resultsFilename);
         }
-        if ([resultsFilename hasSuffix:@".srx"]) {
-            NSData* data                = [fh readDataToEndOfFile];
-            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsXMLParser alloc] init];
-            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
-        } else if ([resultsFilename hasSuffix:@".ttl"] || [resultsFilename hasSuffix:@".rdf"]) {
+        
+        
+        Class RDFParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWRDFParser)];
+        Class SPARQLParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWSPARQLResultsParser)];
+        if (RDFParserClass) {
+//            NSLog(@"-> Parsing RDF results format from %@", resultsFilename);
             NSMutableArray* triples = [NSMutableArray array];
             GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
             __block BOOL sparqlResults  = NO;
-            if ([resultsFilename hasSuffix:@".ttl"]) {
-                SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
-                id<GTWRDFParser> parser = [[SPKTurtleParser alloc] initWithLexer:l base:base];
-                NSError* error;
-                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                    if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-                        sparqlResults   = YES;
-                    }
-                    [triples addObject:t];
-                } error:&error];
-            } else {
-                NSData* data            = [fh readDataToEndOfFile];
-                dispatch_sync(self.raptor_queue, ^{
-                    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
-                    NSError* error;
-                    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                        if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-                            sparqlResults   = YES;
-                        }
-                        [triples addObject:t];
-                    } error:&error];
-                });
-            }
+            NSData* data                = [fh readDataToEndOfFile];
+            id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
+            NSError* error;
+            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+                    sparqlResults   = YES;
+                }
+                [triples addObject:t];
+            } error:&error];
+            
             if (sparqlResults) {
                 expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
             } else {
                 expected    = triples;
             }
-        } else if ([resultsFilename hasSuffix:@".srj"]) {
+        } else if (SPARQLParserClass) {
+//            NSLog(@"-> Parsing SPARQL Results format from %@", resultsFilename);
             NSData* data                = [fh readDataToEndOfFile];
-            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsJSONParser alloc] init];
+            id<GTWSPARQLResultsParser> parser   = [[SPARQLParserClass alloc] init];
             expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
-        } else {
-            dispatch_sync(self.results_queue, ^{
-                NSLog(@"*** Don't know how to parse expected results from file %@", resultsFilename);
-                [self.failingTests addObject:test];
-            });
-            return NO;
         }
+        
+        
+        
+//        if ([resultsFilename hasSuffix:@".srx"]) {
+//            NSData* data                = [fh readDataToEndOfFile];
+//            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsXMLParser alloc] init];
+//            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
+//        } else if ([resultsFilename hasSuffix:@".srj"]) {
+//            NSData* data                = [fh readDataToEndOfFile];
+//            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsJSONParser alloc] init];
+//            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
+//        } else if ([resultsFilename hasSuffix:@".ttl"] || [resultsFilename hasSuffix:@".rdf"]) {
+//            NSMutableArray* triples = [NSMutableArray array];
+//            GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
+//            __block BOOL sparqlResults  = NO;
+//            if ([resultsFilename hasSuffix:@".ttl"]) {
+//                SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
+//                id<GTWRDFParser> parser = [[SPKTurtleParser alloc] initWithLexer:l base:base];
+//                NSError* error;
+//                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+//                    if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+//                        sparqlResults   = YES;
+//                    }
+//                    [triples addObject:t];
+//                } error:&error];
+//            } else {
+//                NSData* data            = [fh readDataToEndOfFile];
+//                dispatch_sync(self.raptor_queue, ^{
+//                    Class SPKRedlandParser      = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
+//                    if (!SPKRedlandParser) {
+//                        NSLog(@"Redland parser plugin not available.");
+//                        return;
+//                    }
+//                    id<GTWRDFParser> parser     = [SPKRedlandParser alloc];
+//                    parser  = [parser initWithData:data base:nil];
+////                    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
+//                    NSError* error;
+//                    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+//                        if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+//                            sparqlResults   = YES;
+//                        }
+//                        [triples addObject:t];
+//                    } error:&error];
+//                });
+//            }
+//            if (sparqlResults) {
+//                expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
+//            } else {
+//                expected    = triples;
+//            }
+//        } else {
+//            dispatch_sync(self.results_queue, ^{
+//                NSLog(@"*** Don't know how to parse expected results from file %@", resultsFilename);
+//                [self.failingTests addObject:test];
+//            });
+//            return NO;
+//        }
         
         NSError* reason;
         if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator] canonicalize:YES reason:&reason]) {

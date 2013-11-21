@@ -2,21 +2,18 @@
 #import <SPARQLKit/SPARQLKit.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWVariable.h>
-#import <GTWSWBase/GTWDataset.h>
+#import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
+#import <GTWSWBase/GTWSPARQLResultsJSONParser.h>
 
 #import <SPARQLKit/SPKMemoryQuadStore.h>
-#import <SPARQLKit/SPKRedlandTripleStore.h>
 #import <SPARQLKit/SPKTurtleParser.h>
 #import <SPARQLKit/SPKSPARQLParser.h>
 #import <SPARQLKit/SPKQuadModel.h>
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKQueryPlanner.h>
-#import <SPARQLKit/SPKRedlandParser.h>
-#import <SPARQLKit/SPKSPARQLDataSourcePlugin.h>
+#import <SPARQLKit/SPKSPARQLPluginHandler.h>
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
-#import <SPARQLKit/SPKSPARQLResultsXMLSerializer.h>
-#import <SPARQLKit/SPKNTriplesSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 
 #import "GTWSPARQLTestHarness.h"
@@ -27,9 +24,6 @@
 #import "HTTPServer.h"
 #import "DDLog.h"
 #import "DDTTYLogger.h"
-
-librdf_world* librdf_world_ptr;
-raptor_world* raptor_world_ptr;
 
 static NSString* kDefaultBase    = @"http://base.example.com/";
 
@@ -54,8 +48,6 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     
     //    [store addIndexType: @"term" value:@[@"subject", @"predicate"] synchronous:YES error: nil];
     
-    
-    
     GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
     GTWIRI* baseuri     = [[GTWIRI alloc] initWithValue:base];
     SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
@@ -78,58 +70,37 @@ int run_memory_quad_store_example(NSString* filename, NSString* base) {
     SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
     loadRDFFromFileIntoStore(store, filename, base);
     
-//    GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
-//    GTWIRI* greg    = [[GTWIRI alloc] initWithValue:@"http://kasei.us/about/foaf.xrdf#greg"];
-//    GTWIRI* type  =[[GTWIRI alloc] initWithValue:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
-    
     NSLog(@"Graphs:\n");
     [store enumerateGraphsUsingBlock:^(id<GTWTerm> g){
         NSLog(@"-> %@\n", g);
     } error:nil];
     NSLog(@"\n\n");
     
-    //    {
-    //        __block NSUInteger count    = 0;
-    //        NSLog(@"Quads:\n");
-    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(id<GTWQuad> q){
-    //            count++;
-    //            NSLog(@"-> %@\n", q);
-    //        } error:nil];
-    //        NSLog(@"%lu total quads\n", count);
-    //    }
-    //
-    //
-    //    GTWQuad* q  = [[GTWQuad alloc] initWithSubject:greg predicate:rdftype object:type graph:graph];
-    //    [store removeQuad:q error:nil];
-    //
-    //
-    //
-    //    {
-    //        __block NSUInteger count    = 0;
-    //        NSLog(@"Quads:\n");
-    //        [store enumerateQuadsMatchingSubject:greg predicate:rdftype object:nil graph:nil usingBlock:^(NSObject<GTWQuad>* q){
-    //            count++;
-    //            NSLog(@"-> %@\n", q);
-    //            //            NSLog(@"      subject -> %@\n", [q valueForKey: @"subject"]);
-    //        } error:nil];
-    //        NSLog(@"%lu total quads\n", count);
-    //    }
-    
-    //    [store addIndexType: @"term" value:@[@"subject", @"predicate"] synchronous:YES error: nil];
-    //    [store addIndexType: @"term" value:@[@"object"] synchronous:YES error: nil];
-    //    [store addIndexType: @"term" value:@[@"graph", @"subject"] synchronous:YES error: nil];
-    
-    NSLog(@"%@", store);
-    //    NSLog(@"best index for S___: %@\n", [store bestIndexForMatchingSubject:greg predicate:nil object:nil graph:nil]);
-    //    NSLog(@"best index for ___G: %@\n", [store bestIndexForMatchingSubject:nil predicate:nil object:nil graph:greg]);
-    //    NSLog(@"best index for SPO_: %@\n", [store bestIndexForMatchingSubject:greg predicate:rdftype object:type graph:nil]);
-    //    NSLog(@"best index for S_O_: %@\n", [store bestIndexForMatchingSubject:greg predicate:nil object:type graph:nil]);
+    if (NO) {
+        GTWIRI* rdftype = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        GTWIRI* greg    = [[GTWIRI alloc] initWithValue:@"http://kasei.us/about/foaf.xrdf#greg"];
+        GTWIRI* type  =[[GTWIRI alloc] initWithValue:@"http://www.mindswap.org/2003/vegetarian.owl#Vegetarian"];
+
+        [store addIndexType: @"term" value:@[@"subject", @"predicate"] synchronous:YES error: nil];
+        [store addIndexType: @"term" value:@[@"object"] synchronous:YES error: nil];
+        [store addIndexType: @"term" value:@[@"graph", @"subject"] synchronous:YES error: nil];
+
+        NSLog(@"%@", store);
+        NSLog(@"best index for S___: %@\n", [store bestIndexForMatchingSubject:greg predicate:nil object:nil graph:nil]);
+        NSLog(@"best index for ___G: %@\n", [store bestIndexForMatchingSubject:nil predicate:nil object:nil graph:greg]);
+        NSLog(@"best index for SPO_: %@\n", [store bestIndexForMatchingSubject:greg predicate:rdftype object:type graph:nil]);
+        NSLog(@"best index for S_O_: %@\n", [store bestIndexForMatchingSubject:greg predicate:nil object:type graph:nil]);
+    }
     return 0;
 }
 
 int run_redland_triple_store_example (NSString* filename, NSString* base) {
-	librdf_world* librdf_world_ptr	= librdf_new_world();
-    SPKRedlandTripleStore* store    = [[SPKRedlandTripleStore alloc] initWithName:@"db1" redlandPtr:librdf_world_ptr];
+    Class GTWRedlandTripleStore = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandTripleStore"];
+    if (!GTWRedlandTripleStore) {
+        NSLog(@"Redland triple store plugin not available.");
+        return 1;
+    }
+    id<GTWTripleStore,GTWMutableTripleStore> store    = [[GTWRedlandTripleStore alloc] initWithDictionary:@{@"store_name": @"db1"}];
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
     SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
     
@@ -170,7 +141,7 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 //        NSLog(@"%lu total quads\n", count);
 //    }
 
-    librdf_free_world(librdf_world_ptr);
+//    librdf_free_world(librdf_world_ptr);
 //    NSLog(@"%@", store);
     return 0;
 }
@@ -178,7 +149,14 @@ int run_redland_triple_store_example (NSString* filename, NSString* base) {
 int run_redland_parser_example (NSString* filename, NSString* base) {
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data            = [fh readDataToEndOfFile];
-    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"turtle" base: nil WithRaptorWorld:raptor_world_ptr];
+
+    Class GTWRedlandParser = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
+    if (!GTWRedlandParser) {
+        NSLog(@"Redland parser plugin not available.");
+        return 1;
+    }
+    id<GTWRDFParser> parser = [[GTWRedlandParser alloc] initWithData:data base:nil];
+//    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"turtle" base: nil WithRaptorWorld:raptor_world_ptr];
     {
         __block NSUInteger count    = 0;
         NSError* error  = nil;
@@ -220,7 +198,6 @@ int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> m
     id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
     NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
     id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
-//    id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
     
     NSData* data        = [s dataFromResults:e withVariables:variables];
     fwrite([data bytes], [data length], 1, stdout);
@@ -266,13 +243,15 @@ int runQuery(NSString* query, NSString* filename, NSString* base, NSUInteger ver
     SPKMemoryQuadStore* store   = [[SPKMemoryQuadStore alloc] init];
 
     {
-        NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
-        NSData* data            = [fh readDataToEndOfFile];
-        id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
-        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
-            [store addQuad:q error:nil];
-        } error:nil];
+//        NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
+//        NSData* data            = [fh readDataToEndOfFile];
+//        id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
+//        id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"guess" base: nil WithRaptorWorld:raptor_world_ptr];
+//        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+//            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+//            [store addQuad:q error:nil];
+//        } error:nil];
+        loadRDFFromFileIntoStore(store, filename, base);
     }
     
     SPKQuadModel* model         = [[SPKQuadModel alloc] initWithQuadStore:store];
@@ -295,6 +274,7 @@ int usage(int argc, const char * argv[]) {
     fprintf(stderr, "    %s grapheq data1.rdf data2.rdf base-uri\n", argv[0]);
     fprintf(stderr, "    %s dump [config-json-string]\n", argv[0]);
     fprintf(stderr, "    %s sources\n", argv[0]);
+    fprintf(stderr, "    %s parsers\n", argv[0]);
     fprintf(stderr, "\n");
     return 0;
 }
@@ -383,12 +363,12 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
 
 int main(int argc, const char * argv[]) {
     srand([[NSDate date] timeIntervalSince1970]);
-	librdf_world_ptr	= librdf_new_world();
-    raptor_world_ptr    = raptor_new_world();
+//	librdf_world_ptr	= librdf_new_world();
+//    raptor_world_ptr    = raptor_new_world();
     
     // ------------------------------------------------------------------------------------------------------------------------
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
-    NSArray* plugins    = [SPKSPARQLDataSourcePlugin loadAllPlugins];
+    NSArray* plugins    = [SPKSPARQLPluginHandler dataSourceClasses];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
     [datasourcelist addObject:[SPKMemoryQuadStore class]];
     
@@ -403,6 +383,13 @@ int main(int argc, const char * argv[]) {
     } else if (argc == 2 && !strcmp(argv[1], "--help")) {
         return usage(argc, argv);
     }
+    
+    
+    
+    [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsXMLParser class]];
+    [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsJSONParser class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKTurtleParser class]];
+//    NSLog(@"registered classes: %@", [SPKSPARQLPluginHandler registeredClasses]);
     
     NSUInteger stress   = 0;
     NSUInteger concurrent   = 0;
@@ -596,6 +583,25 @@ int main(int argc, const char * argv[]) {
         
         NSLog(@"No triple/quad store found in plugin %@.", c);
         return -1;
+    } else if ([op isEqual: @"parsers"]) {
+        fprintf(stdout, "Available RDF parsers:\n");
+        NSArray* parsers    = [SPKSPARQLPluginHandler parserClasses];
+        for (Class c in parsers) {
+            fprintf(stdout, "%s\n", [[c description] UTF8String]);
+            NSDictionary* pluginClasses = [c classesImplementingProtocols];
+            for (Class pluginClass in pluginClasses) {
+                NSSet* protocols    = pluginClasses[pluginClass];
+                if ([protocols count]) {
+                    NSMutableArray* array   = [NSMutableArray array];
+                    for (Protocol* p in protocols) {
+                        const char* name = protocol_getName(p);
+                        [array addObject:[NSString stringWithFormat:@"%s", name]];
+                    }
+                    NSString* str   = [array componentsJoinedByString:@", "];
+                    fprintf(stdout, "  Protocols: %s\n", [str UTF8String]);
+                }
+            }
+        }
     } else if ([op isEqual: @"sources"]) {
         fprintf(stdout, "Available data sources:\n");
         for (id s in datasources) {
@@ -627,8 +633,7 @@ int main(int argc, const char * argv[]) {
         NSString* testtype  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* filename  = [NSString stringWithFormat:@"%s", argv[argi++]];
         NSString* base      = [NSString stringWithFormat:@"%s", argv[argi++]];
-        if ([testtype isEqual: @"parser"]) {
-            run_redland_parser_example(filename, base);
+        if (NO) {
         } else if ([testtype isEqual: @"endpoint"]) {
             NSDictionary* dict              = @{@"endpoint": @"http://myrdf.us/sparql11"};
             id<GTWTripleStore> store        = [[[datasources objectForKey:@"GTWSPARQLProtocolStore"] alloc] initWithDictionary:dict];
@@ -642,6 +647,8 @@ int main(int argc, const char * argv[]) {
             id<GTWTriplesSerializer> ser    = [[SPKNTriplesSerializer alloc] init];
             NSFileHandle* out    = [[NSFileHandle alloc] initWithFileDescriptor: fileno(stdout)];
             [ser serializeTriples:e toHandle:out];
+        } else if ([testtype isEqual: @"parser"]) {
+            run_redland_parser_example(filename, base);
         } else if ([testtype isEqual: @"triple"]) {
             run_redland_triple_store_example(filename, base);
         } else {

@@ -3,6 +3,7 @@
 #import <GTWSWBase/GTWLiteral.h>
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWBlank.h>
+#import <SPARQLKit/SPKSPARQLPluginHandler.h>
 
 #define ASSERT_EMPTY(e) if ([e count] > 0) return NO;
 
@@ -13,6 +14,36 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
 
 @implementation SPKTurtleParser
 @synthesize baseURI;
+
++ (void)load {
+    [SPKSPARQLPluginHandler registerClass:self];
+}
+
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWRDFParser), nil];
+}
+
++ (NSSet*) handledMediaTypes {
+    return [NSSet setWithObjects:@"text/turtle", @"application/x-turtle", nil];
+}
+
++ (NSSet*) handledFileExtensions {
+    return [NSSet setWithObjects:@".ttl", nil];
+}
+
+- (id<GTWParser>) initWithData: (NSData*) data base: (id<GTWIRI>) base {
+    NSString* string        = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:string];
+    return [self initWithLexer:lexer base:base];
+}
 
 - (SPKTurtleParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base {
     if (self = [self init]) {

@@ -101,14 +101,6 @@ typedef NSString* SPKTreeType;
 
 #pragma mark -
 
-@protocol GTWRDFParser
-@property (readwrite) id<GTWIRI> baseURI;
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
-@end
-
-
-#pragma mark -
-
 @protocol GTWQueryEngine
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWQueryPlan>) plan withModel: (id<GTWModel>) model;
 @end

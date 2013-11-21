@@ -9,10 +9,6 @@
 /* Begin PBXBuildFile section */
 		3700DD73183AD32900AF79C7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3700DD71183AD32900AF79C7 /* InfoPlist.strings */; };
 		3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		3700DD93183AD39300AF79C7 /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
-		3700DD94183AD39300AF79C7 /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
-		3700DD95183AD39300AF79C7 /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 379247E217ADA46200597746 /* librdf.0.dylib */; };
-		3700DD97183AD3A000AF79C7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD6B183AD32800AF79C7 /* Foundation.framework */; };
 		3700DDAF183AD43400AF79C7 /* NSDate+W3CDTFSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD39183ACFC300AF79C7 /* NSDate+W3CDTFSupport.m */; };
 		3700DDB0183AD43400AF79C7 /* NSObject+NSDictionary_QueryBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD3B183ACFC300AF79C7 /* NSObject+NSDictionary_QueryBindings.m */; };
 		3700DDC9183AD46100AF79C7 /* NSDate+W3CDTFSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 3700DD38183ACFC300AF79C7 /* NSDate+W3CDTFSupport.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -49,25 +45,19 @@
 		3700DDF6183B160200AF79C7 /* GTWSPARQLConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5A183AD0BA00AF79C7 /* GTWSPARQLConfig.m */; };
 		3700DDF7183B160200AF79C7 /* GTWSPARQLConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5C183AD0BA00AF79C7 /* GTWSPARQLConnection.m */; };
 		3700DDF8183B160200AF79C7 /* GTWSPARQLServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5E183AD0BA00AF79C7 /* GTWSPARQLServer.m */; };
-		3700DDF9183B160200AF79C7 /* GTWSPARQLTestHarness.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCF8183ACF8500AF79C7 /* GTWSPARQLTestHarness.m */; };
-		3700DDFA183B160200AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCFA183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m */; };
+		371EDA76183D7C8500C82D13 /* GTWSPARQLTestHarness.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCF8183ACF8500AF79C7 /* GTWSPARQLTestHarness.m */; };
+		371EDA77183D7C8500C82D13 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCFA183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m */; };
+		371EDA7A183D805200C82D13 /* SPKSPARQLPluginHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 371EDA78183D805200C82D13 /* SPKSPARQLPluginHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		371EDA7B183D805200C82D13 /* SPKSPARQLPluginHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 371EDA79183D805200C82D13 /* SPKSPARQLPluginHandler.m */; };
 		372E8229183C7A12000349CE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
-		372E822B183C7A32000349CE /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD6B183AD32800AF79C7 /* Foundation.framework */; };
 		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
-		379247E317ADA46200597746 /* librdf.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 379247E217ADA46200597746 /* librdf.0.dylib */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A4D1738089E0078C98F /* libraptor2.0.dylib */; };
-		37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37C37A521739472A0078C98F /* librasqal.3.dylib */; };
-		37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		37E0FE6C183C2D9A00377B1D /* SPKRedlandTripleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */; };
 		37E0FE6F183C2E0100377B1D /* SPKMemoryQuadStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE70183C2E0100377B1D /* SPKMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */; };
 		37E0FE73183C2F5B00377B1D /* SPKQuadModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE71183C2F5B00377B1D /* SPKQuadModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE74183C2F5B00377B1D /* SPKQuadModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE72183C2F5B00377B1D /* SPKQuadModel.m */; };
 		37E0FE77183C2FAA00377B1D /* SPKTripleModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE75183C2FAA00377B1D /* SPKTripleModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE78183C2FAA00377B1D /* SPKTripleModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE76183C2FAA00377B1D /* SPKTripleModel.m */; };
-		37E0FE7B183C302C00377B1D /* SPKRedlandParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE79183C302C00377B1D /* SPKRedlandParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		37E0FE7C183C302C00377B1D /* SPKRedlandParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE7A183C302C00377B1D /* SPKRedlandParser.m */; };
 		37E0FE7F183C307E00377B1D /* SPKTurtleParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE7D183C307E00377B1D /* SPKTurtleParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE80183C307E00377B1D /* SPKTurtleParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE7E183C307E00377B1D /* SPKTurtleParser.m */; };
 		37E0FE83183C30EE00377B1D /* SPKSPARQLLexer.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE81183C30EE00377B1D /* SPKSPARQLLexer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -78,8 +68,6 @@
 		37E0FE8C183C315700377B1D /* SPKSPARQLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE8A183C315700377B1D /* SPKSPARQLParser.m */; };
 		37E0FE8F183C31BE00377B1D /* SPKQueryPlanner.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE8D183C31BE00377B1D /* SPKQueryPlanner.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE90183C31BE00377B1D /* SPKQueryPlanner.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE8E183C31BE00377B1D /* SPKQueryPlanner.m */; };
-		37E0FE93183C322400377B1D /* SPKSPARQLDataSourcePlugin.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE91183C322400377B1D /* SPKSPARQLDataSourcePlugin.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		37E0FE94183C322400377B1D /* SPKSPARQLDataSourcePlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE92183C322400377B1D /* SPKSPARQLDataSourcePlugin.m */; };
 		37E0FE97183C327800377B1D /* SPKExpressionEvaluationContext.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE95183C327800377B1D /* SPKExpressionEvaluationContext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37E0FE98183C327800377B1D /* SPKExpressionEvaluationContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E0FE96183C327800377B1D /* SPKExpressionEvaluationContext.m */; };
 		37E0FE9B183C32AE00377B1D /* SPKSimpleQueryEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 37E0FE99183C32AE00377B1D /* SPKSimpleQueryEngine.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -133,15 +121,13 @@
 		3700DD5D183AD0BA00AF79C7 /* GTWSPARQLServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWSPARQLServer.h; sourceTree = "<group>"; };
 		3700DD5E183AD0BA00AF79C7 /* GTWSPARQLServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWSPARQLServer.m; sourceTree = "<group>"; };
 		3700DD68183AD32800AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SPARQLKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		3700DD6B183AD32800AF79C7 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		3700DD6C183AD32800AF79C7 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		3700DD6D183AD32800AF79C7 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		3700DD70183AD32800AF79C7 /* SPARQLKit-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SPARQLKit-Info.plist"; sourceTree = "<group>"; };
 		3700DD72183AD32900AF79C7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3700DD74183AD32900AF79C7 /* SPARQLKit-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SPARQLKit-Prefix.pch"; sourceTree = "<group>"; };
 		3700DDCC183B111300AF79C7 /* SPARQLKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPARQLKit.h; path = SPARQLKit/SPARQLKit.h; sourceTree = "<group>"; };
 		3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../Library/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
-		379247E217ADA46200597746 /* librdf.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librdf.0.dylib; path = /usr/local/Cellar/redland/1.0.16/lib/librdf.0.dylib; sourceTree = "<absolute>"; };
+		371EDA78183D805200C82D13 /* SPKSPARQLPluginHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLPluginHandler.h; sourceTree = "<group>"; };
+		371EDA79183D805200C82D13 /* SPKSPARQLPluginHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLPluginHandler.m; sourceTree = "<group>"; };
 		37A2618618048D95008AFED4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		37A2619618048FB2008AFED4 /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		37A2E1CB1756963C0086CBE7 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
@@ -203,18 +189,12 @@
 		37A6A02718386B0A002604B0 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		37A6A02918386B22002604B0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		37BF086E176718A2008B11F8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = ../../../../../../../System/Library/Frameworks/System.framework; sourceTree = "<group>"; };
-		37C37A4D1738089E0078C98F /* libraptor2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libraptor2.0.dylib; path = ../../../../../../../../usr/local/Cellar/raptor/2.0.9/lib/libraptor2.0.dylib; sourceTree = "<group>"; };
-		37C37A521739472A0078C98F /* librasqal.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librasqal.3.dylib; path = ../../../../../../../../usr/local/Cellar/rasqal/0.9.30/lib/librasqal.3.dylib; sourceTree = "<group>"; };
-		37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKRedlandTripleStore.h; sourceTree = "<group>"; };
-		37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKRedlandTripleStore.m; sourceTree = "<group>"; };
 		37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKMemoryQuadStore.h; sourceTree = "<group>"; };
 		37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKMemoryQuadStore.m; sourceTree = "<group>"; };
 		37E0FE71183C2F5B00377B1D /* SPKQuadModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKQuadModel.h; sourceTree = "<group>"; };
 		37E0FE72183C2F5B00377B1D /* SPKQuadModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKQuadModel.m; sourceTree = "<group>"; };
 		37E0FE75183C2FAA00377B1D /* SPKTripleModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKTripleModel.h; sourceTree = "<group>"; };
 		37E0FE76183C2FAA00377B1D /* SPKTripleModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKTripleModel.m; sourceTree = "<group>"; };
-		37E0FE79183C302C00377B1D /* SPKRedlandParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKRedlandParser.h; sourceTree = "<group>"; };
-		37E0FE7A183C302C00377B1D /* SPKRedlandParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKRedlandParser.m; sourceTree = "<group>"; };
 		37E0FE7D183C307E00377B1D /* SPKTurtleParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKTurtleParser.h; sourceTree = "<group>"; };
 		37E0FE7E183C307E00377B1D /* SPKTurtleParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKTurtleParser.m; sourceTree = "<group>"; };
 		37E0FE81183C30EE00377B1D /* SPKSPARQLLexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLLexer.h; sourceTree = "<group>"; };
@@ -225,8 +205,6 @@
 		37E0FE8A183C315700377B1D /* SPKSPARQLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLParser.m; sourceTree = "<group>"; };
 		37E0FE8D183C31BE00377B1D /* SPKQueryPlanner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKQueryPlanner.h; sourceTree = "<group>"; };
 		37E0FE8E183C31BE00377B1D /* SPKQueryPlanner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKQueryPlanner.m; sourceTree = "<group>"; };
-		37E0FE91183C322400377B1D /* SPKSPARQLDataSourcePlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSPARQLDataSourcePlugin.h; sourceTree = "<group>"; };
-		37E0FE92183C322400377B1D /* SPKSPARQLDataSourcePlugin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKSPARQLDataSourcePlugin.m; sourceTree = "<group>"; };
 		37E0FE95183C327800377B1D /* SPKExpressionEvaluationContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKExpressionEvaluationContext.h; sourceTree = "<group>"; };
 		37E0FE96183C327800377B1D /* SPKExpressionEvaluationContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SPKExpressionEvaluationContext.m; sourceTree = "<group>"; };
 		37E0FE99183C32AE00377B1D /* SPKSimpleQueryEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SPKSimpleQueryEngine.h; sourceTree = "<group>"; };
@@ -261,11 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */,
-				3700DD93183AD39300AF79C7 /* librasqal.3.dylib in Frameworks */,
-				3700DD94183AD39300AF79C7 /* libraptor2.0.dylib in Frameworks */,
-				3700DD95183AD39300AF79C7 /* librdf.0.dylib in Frameworks */,
 				3700DDCB183AD47400AF79C7 /* GTWSWBase.framework in Frameworks */,
-				3700DD97183AD3A000AF79C7 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,13 +248,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
-				372E822B183C7A32000349CE /* Foundation.framework in Frameworks */,
 				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
 				3700DDDB183B15C100AF79C7 /* SPARQLKit.framework in Frameworks */,
-				379247E317ADA46200597746 /* librdf.0.dylib in Frameworks */,
 				37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */,
-				37C37A4E1738089E0078C98F /* libraptor2.0.dylib in Frameworks */,
-				37C37A531739472A0078C98F /* librasqal.3.dylib in Frameworks */,
 				37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -304,8 +274,6 @@
 			children = (
 				37E0FE6D183C2E0100377B1D /* SPKMemoryQuadStore.h */,
 				37E0FE6E183C2E0100377B1D /* SPKMemoryQuadStore.m */,
-				37E0FE68183C2D9A00377B1D /* SPKRedlandTripleStore.h */,
-				37E0FE69183C2D9A00377B1D /* SPKRedlandTripleStore.m */,
 			);
 			name = DataSources;
 			path = SPARQLKit/DataSources;
@@ -336,8 +304,8 @@
 		3700DD0C183ACFC300AF79C7 /* PluginFramework */ = {
 			isa = PBXGroup;
 			children = (
-				37E0FE91183C322400377B1D /* SPKSPARQLDataSourcePlugin.h */,
-				37E0FE92183C322400377B1D /* SPKSPARQLDataSourcePlugin.m */,
+				371EDA78183D805200C82D13 /* SPKSPARQLPluginHandler.h */,
+				371EDA79183D805200C82D13 /* SPKSPARQLPluginHandler.m */,
 			);
 			name = PluginFramework;
 			path = SPARQLKit/PluginFramework;
@@ -368,8 +336,6 @@
 		3700DD17183ACFC300AF79C7 /* RDFParsers */ = {
 			isa = PBXGroup;
 			children = (
-				37E0FE79183C302C00377B1D /* SPKRedlandParser.h */,
-				37E0FE7A183C302C00377B1D /* SPKRedlandParser.m */,
 				37E0FE7D183C307E00377B1D /* SPKTurtleParser.h */,
 				37E0FE7E183C307E00377B1D /* SPKTurtleParser.m */,
 			);
@@ -470,9 +436,6 @@
 		3700DD6A183AD32800AF79C7 /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3700DD6B183AD32800AF79C7 /* Foundation.framework */,
-				3700DD6C183AD32800AF79C7 /* CoreData.framework */,
-				3700DD6D183AD32800AF79C7 /* AppKit.framework */,
 			);
 			name = "Other Frameworks";
 			sourceTree = "<group>";
@@ -631,12 +594,9 @@
 				37A2619618048FB2008AFED4 /* GTWSWBase.framework */,
 				37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */,
 				37BF086E176718A2008B11F8 /* System.framework */,
+				37A2618618048D95008AFED4 /* XCTest.framework */,
 				37F96DD517AD5CBF00235009 /* GTWSWBase.framework */,
 				37A2E1CB1756963C0086CBE7 /* libxml2.dylib */,
-				37C37A521739472A0078C98F /* librasqal.3.dylib */,
-				37C37A4D1738089E0078C98F /* libraptor2.0.dylib */,
-				379247E217ADA46200597746 /* librdf.0.dylib */,
-				37A2618618048D95008AFED4 /* XCTest.framework */,
 				3700DD6A183AD32800AF79C7 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -668,7 +628,6 @@
 				37E0FE8B183C315700377B1D /* SPKSPARQLParser.h in Headers */,
 				37E0FE87183C312000377B1D /* SPKSPARQLToken.h in Headers */,
 				37E0FE83183C30EE00377B1D /* SPKSPARQLLexer.h in Headers */,
-				37E0FE7B183C302C00377B1D /* SPKRedlandParser.h in Headers */,
 				37E0FE7F183C307E00377B1D /* SPKTurtleParser.h in Headers */,
 				37E0FE8F183C31BE00377B1D /* SPKQueryPlanner.h in Headers */,
 				37E0FE97183C327800377B1D /* SPKExpressionEvaluationContext.h in Headers */,
@@ -677,13 +636,12 @@
 				37E0FEA1183C331200377B1D /* SPKNQuadsSerializer.h in Headers */,
 				37E0FEA7183C335E00377B1D /* SPKSPARQLResultsTextTableSerializer.h in Headers */,
 				37E0FEAB183C338400377B1D /* SPKSPARQLResultsXMLSerializer.h in Headers */,
-				37E0FE93183C322400377B1D /* SPKSPARQLDataSourcePlugin.h in Headers */,
 				37E0FEB7183C347100377B1D /* SPKExpression.h in Headers */,
 				37E0FEB3183C345500377B1D /* NSObject+SPKTree.h in Headers */,
 				37E0FEAF183C342300377B1D /* SPKTree.h in Headers */,
 				37E0FEBB183C34D400377B1D /* SPKBlankNodeRenamer.h in Headers */,
+				371EDA7A183D805200C82D13 /* SPKSPARQLPluginHandler.h in Headers */,
 				37E0FEBF183C357300377B1D /* SPKErrorLogger.h in Headers */,
-				37E0FE6A183C2D9A00377B1D /* SPKRedlandTripleStore.h in Headers */,
 				3700DDC9183AD46100AF79C7 /* NSDate+W3CDTFSupport.h in Headers */,
 				3700DDCA183AD46100AF79C7 /* NSObject+NSDictionary_QueryBindings.h in Headers */,
 			);
@@ -784,16 +742,14 @@
 				37E0FEC0183C357300377B1D /* SPKErrorLogger.m in Sources */,
 				37E0FE9C183C32AE00377B1D /* SPKSimpleQueryEngine.m in Sources */,
 				37E0FE90183C31BE00377B1D /* SPKQueryPlanner.m in Sources */,
+				371EDA7B183D805200C82D13 /* SPKSPARQLPluginHandler.m in Sources */,
 				37E0FE78183C2FAA00377B1D /* SPKTripleModel.m in Sources */,
-				37E0FE94183C322400377B1D /* SPKSPARQLDataSourcePlugin.m in Sources */,
-				37E0FE7C183C302C00377B1D /* SPKRedlandParser.m in Sources */,
 				37E0FEA8183C335E00377B1D /* SPKSPARQLResultsTextTableSerializer.m in Sources */,
 				37E0FEB0183C342300377B1D /* SPKTree.m in Sources */,
 				3700DDAF183AD43400AF79C7 /* NSDate+W3CDTFSupport.m in Sources */,
 				3700DDB0183AD43400AF79C7 /* NSObject+NSDictionary_QueryBindings.m in Sources */,
 				37E0FE70183C2E0100377B1D /* SPKMemoryQuadStore.m in Sources */,
 				37E0FEB4183C345500377B1D /* NSObject+SPKTree.m in Sources */,
-				37E0FE6C183C2D9A00377B1D /* SPKRedlandTripleStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -801,6 +757,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				371EDA76183D7C8500C82D13 /* GTWSPARQLTestHarness.m in Sources */,
+				371EDA77183D7C8500C82D13 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */,
 				3700DDDC183B160200AF79C7 /* main.m in Sources */,
 				3700DDDD183B160200AF79C7 /* GCDAsyncSocket.m in Sources */,
 				3700DDDE183B160200AF79C7 /* DDAbstractDatabaseLogger.m in Sources */,
@@ -830,8 +788,6 @@
 				3700DDF6183B160200AF79C7 /* GTWSPARQLConfig.m in Sources */,
 				3700DDF7183B160200AF79C7 /* GTWSPARQLConnection.m in Sources */,
 				3700DDF8183B160200AF79C7 /* GTWSPARQLServer.m in Sources */,
-				3700DDF9183B160200AF79C7 /* GTWSPARQLTestHarness.m in Sources */,
-				3700DDFA183B160200AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -890,7 +846,7 @@
 					/usr/local/Cellar/raptor/2.0.9/lib,
 					/usr/local/Cellar/redland/1.0.16/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;
 			};
@@ -934,7 +890,7 @@
 					/usr/local/Cellar/raptor/2.0.9/lib,
 					/usr/local/Cellar/redland/1.0.16/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;
 			};
@@ -1044,6 +1000,7 @@
 				);
 				PRODUCT_NAME = GTWSPARQLEngine;
 				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VALID_ARCHS = x86_64;
 			};
@@ -1076,6 +1033,7 @@
 				);
 				PRODUCT_NAME = GTWSPARQLEngine;
 				RUN_CLANG_STATIC_ANALYZER = NO;
+				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VALID_ARCHS = x86_64;
 			};
