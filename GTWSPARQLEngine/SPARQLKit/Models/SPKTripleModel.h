@@ -3,7 +3,7 @@
 #import <GTWSWBase/GTWIRI.h>
 #import <GTWSWBase/GTWModelBase.h>
 
-@interface SPKTripleModel : GTWModelBase<GTWModel,SPKQueryPlanner>
+@interface SPKTripleModel : GTWModelBase<GTWModel,GTWMutableModel,SPKQueryPlanner>
 
 @property NSMutableDictionary* graphs;
 @property id<GTWLogger> logger;

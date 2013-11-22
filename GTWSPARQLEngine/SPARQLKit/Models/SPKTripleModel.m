@@ -159,4 +159,94 @@
     return nil;
 }
 
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
+    id<GTWTerm> graph    = q.graph;
+    id<GTWTripleStore> store   = (self.graphs)[graph.value];
+    if (store) {
+        if ([store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+            id<GTWTriple> triple    = [GTWTriple tripleFromQuad:q];
+            return [(id<GTWMutableTripleStore>)store addTriple:triple error:error];
+        } else {
+            if (error) {
+                NSString* desc  = [NSString stringWithFormat:@"Triple store backing graph %@ is not mutable: %@", graph, store];
+                *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:2 userInfo:@{@"description": desc}];
+            }
+            return NO;
+        }
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Graph does not exist for adding quad: %@", graph];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:1 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+    
+}
+
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+    id<GTWTerm> graph    = q.graph;
+    id<GTWTripleStore> store   = (self.graphs)[graph.value];
+    if (store) {
+        if ([store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+            id<GTWTriple> triple    = [GTWTriple tripleFromQuad:q];
+            return [(id<GTWMutableTripleStore>)store removeTriple:triple error:error];
+        } else {
+            if (error) {
+                NSString* desc  = [NSString stringWithFormat:@"Triple store backing graph %@ is not mutable: %@", graph, store];
+                *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:2 userInfo:@{@"description": desc}];
+            }
+            return NO;
+        }
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Graph does not exist for removing quad: %@", graph];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:1 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+}
+
+- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    if (error) {
+        NSString* desc  = [NSString stringWithFormat:@"SPKTripleModel cannot create empty graphs."];
+        *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:3 userInfo:@{@"description": desc}];
+    }
+    return NO;
+}
+
+- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    id<GTWTripleStore> store   = (self.graphs)[graph.value];
+    if (!store) {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Graph to drop does not exist: %@.", graph];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:4 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+    [self.graphs removeObjectForKey:graph.value];
+    return YES;
+}
+
+- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    id<GTWTripleStore> store   = (self.graphs)[graph.value];
+    if (store) {
+        if ([store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+            // TODO: remove all triples from store
+            return YES;
+        } else {
+            if (error) {
+                NSString* desc  = [NSString stringWithFormat:@"Triple store backing graph %@ is not mutable: %@", graph, store];
+                *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:2 userInfo:@{@"description": desc}];
+            }
+            return NO;
+        }
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Graph does not exist for clearing: %@", graph];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:1 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+}
+
 @end
