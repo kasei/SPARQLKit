@@ -52,7 +52,6 @@ bad_plugin:
     [self loadAllPlugins];
     NSArray* classes    = [self registeredClasses];
     NSMutableArray* sources = [NSMutableArray array];
-    // TODO: don't rely on the principle class being the same as the store class
     for (Class principleClass in classes) {
         NSDictionary* pluginClasses = [principleClass classesImplementingProtocols];
         for (Class pluginClass in pluginClasses) {
