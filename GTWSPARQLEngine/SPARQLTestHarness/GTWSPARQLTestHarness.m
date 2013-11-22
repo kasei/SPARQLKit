@@ -129,8 +129,11 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 // Skip update tests
                 if ([f.value rangeOfString:@"add"].location != NSNotFound)
                     continue;
-                if ([f.value rangeOfString:@"update"].location != NSNotFound)
-                    continue;
+                if ([f.value rangeOfString:@"update"].location != NSNotFound) {
+                    if ([f.value rangeOfString:@"syntax"].location == NSNotFound) {
+                        continue;
+                    }
+                }
                 if ([f.value rangeOfString:@"clear"].location != NSNotFound)
                     continue;
                 if ([f.value rangeOfString:@"copy"].location != NSNotFound)
@@ -276,13 +279,13 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             if (self.verbose) {
                 NSLog(@"%@ - %@", testtype.value, test.value);
             }
-            if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest"]) {
+            if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveSyntaxTest"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveUpdateSyntaxTest11"]) {
                 if (self.runSyntaxTests) {
                     return [self runQuerySyntaxTest: test withModel: model expectSuccess: YES];
                 } else {
                     return YES;
                 }
-            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest"]) {
+            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest11"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeSyntaxTest"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeUpdateSyntaxTest11"]) {
                 if (self.runSyntaxTests) {
                     return [self runQuerySyntaxTest: test withModel: model expectSuccess: NO];
                 } else {
