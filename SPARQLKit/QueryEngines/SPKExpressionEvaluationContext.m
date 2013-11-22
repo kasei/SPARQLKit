@@ -270,7 +270,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             id<GTWTerm> replace = [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model];
             id<GTWTerm> args    = ([expr.arguments count] > 3) ? [self evaluateExpression:expr.arguments[3] withResult:result usingModel: model] : nil;
             NSInteger reopt     = 0;
-            if (args && [args.value isEqual:@"i"]) {
+            if (args && [args.value isEqualToString:@"i"]) {
                 reopt   |= NSRegularExpressionCaseInsensitive;
             }
             NSError* error;
@@ -294,7 +294,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
             id<GTWTerm> pattern = [self evaluateExpression:expr.arguments[1] withResult:result usingModel: model];
             id<GTWTerm> args    = ([expr.arguments count] > 2) ? [self evaluateExpression:expr.arguments[2] withResult:result usingModel: model] : nil;
             NSInteger opt       = NSRegularExpressionSearch;
-            if (args && [args.value isEqual:@"i"]) {
+            if (args && [args.value isEqualToString:@"i"]) {
                 opt |= NSCaseInsensitiveSearch;
             }
             // TODO: Replace with RegexKitLite for correct unicode support

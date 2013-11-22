@@ -111,7 +111,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
         SPKSPARQLToken* t   = [self peekNextNonCommentToken];
         while (t) {
             if (t.type == KEYWORD) {
-                if ([t.value isEqual:@"PREFIX"]) {
+                if ([t.value isEqualToString:@"PREFIX"]) {
                     [self parseExpectedTokenOfType:KEYWORD withValue:@"PREFIX" withErrors:errors];
                     if ([errors count]) goto cleanup;
                     
@@ -130,7 +130,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
                         return NO;
                     }
                     //            NSLog(@"PREFIX %@: %@\n", name.value, iri.value);
-                } else if ([t.value isEqual:@"BASE"]) {
+                } else if ([t.value isEqualToString:@"BASE"]) {
                     [self nextNonCommentToken];
                     SPKSPARQLToken* iri     = [self nextNonCommentToken];
                     if (iri) {
@@ -538,7 +538,7 @@ cleanup:
             return [[GTWLiteral alloc] initWithValue:value datatype:dt.value];
         }
         return [[GTWLiteral alloc] initWithValue:value];
-    } else if ((t.type == KEYWORD) && [t.value isEqual:@"A"]) {
+    } else if ((t.type == KEYWORD) && [t.value isEqualToString:@"A"]) {
         return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     } else if (t.type == BOOLEAN) {
         return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];

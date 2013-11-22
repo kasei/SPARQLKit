@@ -291,7 +291,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 } else {
                     return YES;
                 }
-            } else if ([testtype.value isEqual:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
+            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
                 if (self.runEvalTests) {
                     BOOL ok     = [self runQueryEvalTest: test withModel: model];
                     [NSURLProtocol unregisterClass:[GTWSPARQLTestHarnessURLProtocol class]];
@@ -632,7 +632,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
             NSError* error;
             [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+                if ([t.object.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
                     sparqlResults   = YES;
                 }
                 [triples addObject:t];
@@ -649,63 +649,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             id<GTWSPARQLResultsParser> parser   = [[SPARQLParserClass alloc] init];
             expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
         }
-        
-        
-        
-//        if ([resultsFilename hasSuffix:@".srx"]) {
-//            NSData* data                = [fh readDataToEndOfFile];
-//            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsXMLParser alloc] init];
-//            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
-//        } else if ([resultsFilename hasSuffix:@".srj"]) {
-//            NSData* data                = [fh readDataToEndOfFile];
-//            id<GTWSPARQLResultsParser> parser   = [[GTWSPARQLResultsJSONParser alloc] init];
-//            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
-//        } else if ([resultsFilename hasSuffix:@".ttl"] || [resultsFilename hasSuffix:@".rdf"]) {
-//            NSMutableArray* triples = [NSMutableArray array];
-//            GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
-//            __block BOOL sparqlResults  = NO;
-//            if ([resultsFilename hasSuffix:@".ttl"]) {
-//                SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
-//                id<GTWRDFParser> parser = [[SPKTurtleParser alloc] initWithLexer:l base:base];
-//                NSError* error;
-//                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-//                    if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-//                        sparqlResults   = YES;
-//                    }
-//                    [triples addObject:t];
-//                } error:&error];
-//            } else {
-//                NSData* data            = [fh readDataToEndOfFile];
-//                dispatch_sync(self.raptor_queue, ^{
-//                    Class SPKRedlandParser      = [SPKSPARQLPluginHandler pluginClassWithName:@"GTWRedlandParser"];
-//                    if (!SPKRedlandParser) {
-//                        NSLog(@"Redland parser plugin not available.");
-//                        return;
-//                    }
-//                    id<GTWRDFParser> parser     = [SPKRedlandParser alloc];
-//                    parser  = [parser initWithData:data base:nil];
-////                    id<GTWRDFParser> parser = [[SPKRedlandParser alloc] initWithData:data inFormat:@"rdfxml" base: nil WithRaptorWorld:raptor_world_ptr];
-//                    NSError* error;
-//                    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-//                        if ([t.object.value isEqual: @"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-//                            sparqlResults   = YES;
-//                        }
-//                        [triples addObject:t];
-//                    } error:&error];
-//                });
-//            }
-//            if (sparqlResults) {
-//                expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
-//            } else {
-//                expected    = triples;
-//            }
-//        } else {
-//            dispatch_sync(self.results_queue, ^{
-//                NSLog(@"*** Don't know how to parse expected results from file %@", resultsFilename);
-//                [self.failingTests addObject:test];
-//            });
-//            return NO;
-//        }
         
         NSError* reason;
         if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator] canonicalize:YES reason:&reason]) {

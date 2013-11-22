@@ -105,51 +105,36 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
             goto cleanup;
         }
         
-        if ([t.value isEqual: @"SELECT"]) {
+        if ([t.value isEqualToString: @"SELECT"]) {
             algebra = [self parseSelectQueryWithError:errors];
             if ([errors count])
                 goto cleanup;
-        } else if ([t.value isEqual: @"CONSTRUCT"]) {
+        } else if ([t.value isEqualToString: @"CONSTRUCT"]) {
             algebra = [self parseConstructQueryWithErrors:errors];
             if ([errors count])
                 goto cleanup;
-        } else if ([t.value isEqual: @"DESCRIBE"]) {
+        } else if ([t.value isEqualToString: @"DESCRIBE"]) {
             algebra = [self parseDescribeQueryWithErrors: errors];
             if ([errors count])
                 goto cleanup;
-        } else if ([t.value isEqual: @"ASK"]) {
+        } else if ([t.value isEqualToString: @"ASK"]) {
             algebra = [self parseAskQueryWithError:errors];
             if ([errors count])
                 goto cleanup;
         } else if ([t.value rangeOfString:@"^(LOAD|CLEAR|DROP|ADD|MOVE|COPY|CREATE|INSERT|DELETE|WITH)$" options:NSRegularExpressionSearch].location != NSNotFound) {
-            if ([t.value isEqual: @"LOAD"]) {
+            if ([t.value isEqualToString: @"LOAD"]) {
                 algebra     = [self parseLoadWithErrors: errors];
                 if ([errors count])
                     goto cleanup;
-            } else if ([t.value isEqual: @"CLEAR"] || [t.value isEqual: @"DROP"]) {
+            } else if ([t.value isEqualToString: @"CLEAR"] || [t.value isEqualToString: @"DROP"]) {
                 algebra = [self parseClearOrDropWithErrors: errors];
                 if ([errors count])
                     goto cleanup;
-            } else if ([t.value isEqual: @"CREATE"]) {
-                [self nextNonCommentToken];
+            } else if ([t.value isEqualToString: @"CREATE"]) {
+                algebra = [self parseCreateWithErrors:errors];
                 if ([errors count])
                     goto cleanup;
-                SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
-                [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
-                if ([errors count])
-                    goto cleanup;
-                id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
-                if ([errors count])
-                    goto cleanup;
-                
-                NSMutableArray* list    = [NSMutableArray array];
-                id<GTWTerm> silentTerm  = silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral];
-                id<SPKTree> silentTree  = [[SPKTree alloc] initWithType:kTreeNode value:silentTerm arguments:nil];
-                [list addObject:silentTree];
-                [list addObject:graph];
-                id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
-                algebra     = [[SPKTree alloc] initWithType:kAlgebraCreate treeValue:data arguments:nil];
-            } else if ([t.value isEqual: @"INSERT"]) {
+            } else if ([t.value isEqualToString: @"INSERT"]) {
                 [self parseExpectedTokenOfType:KEYWORD withValue:@"INSERT" withErrors:errors];
                 if ([errors count])
                     goto cleanup;
@@ -161,10 +146,10 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
                     algebra = [[SPKTree alloc] initWithType:kAlgebraInsertData arguments:@[quads]];
                 } else {
                     // TODO: parse INSERT pattern
-                    [self errorMessage:@"INSERT not implemented yet" withErrors:errors];
+                    [self errorMessage:@"INSERT pattern not implemented yet" withErrors:errors];
                     goto cleanup;
                 }
-            } else if ([t.value isEqual: @"DELETE"]) {
+            } else if ([t.value isEqualToString: @"DELETE"]) {
                 [self parseExpectedTokenOfType:KEYWORD withValue:@"DELETE" withErrors:errors];
                 if ([errors count])
                     goto cleanup;
@@ -176,10 +161,11 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
                     algebra = [[SPKTree alloc] initWithType:kAlgebraDeleteData arguments:@[quads]];
                 } else {
                     // TODO: parse DELETE pattern
-                    [self errorMessage:@"DELETE not implemented yet" withErrors:errors];
+                    [self errorMessage:@"DELETE pattern not implemented yet" withErrors:errors];
                     goto cleanup;
                 }
             } else {
+                // TODO: implement ADD, MOVE, COPY, WITH...
                 [self errorMessage:[NSString stringWithFormat:@"%@ not implemented yet", t.value] withErrors:errors];
                 goto cleanup;
             }
@@ -220,10 +206,10 @@ cleanup:
         if (t.type != KEYWORD)
             break;
         
-        if ([t.value isEqual:@"PREFIX"]) {
+        if ([t.value isEqualToString:@"PREFIX"]) {
             [self nextNonCommentToken];
             SPKSPARQLToken* name    = [self nextNonCommentToken];
-            if ([name.args count] > 2 || ([name.args count] == 2 && ![[name.args objectAtIndex:1] isEqual: @""])) {
+            if ([name.args count] > 2 || ([name.args count] == 2 && ![[name.args objectAtIndex:1] isEqualToString: @""])) {
                 [self errorMessage:[NSString stringWithFormat: @"Expecting PNAME_NS in PREFIX declaration, but found PNAME_LN %@", [name.args componentsJoinedByString:@":"]] withErrors:errors];
                 return;
             }
@@ -234,7 +220,7 @@ cleanup:
                 [self errorMessage:[NSString stringWithFormat:@"Failed to parse PREFIX declaration (name: %@; iri: %@)", name, iri] withErrors:errors];
                 return;
             }
-        } else if ([t.value isEqual:@"BASE"]) {
+        } else if ([t.value isEqualToString:@"BASE"]) {
             [self nextNonCommentToken];
             SPKSPARQLToken* iri     = [self nextNonCommentToken];
             if (iri) {
@@ -262,10 +248,10 @@ cleanup:
     t   = [self peekNextNonCommentToken];
     if (t.type == KEYWORD) {
         // (DISTINCT | REDUCED)
-        if ([t.value isEqual: @"DISTINCT"]) {
+        if ([t.value isEqualToString: @"DISTINCT"]) {
             [self nextNonCommentToken];
             distinct    = 1;
-        } else if ([t.value isEqual: @"REDUCED"]) {
+        } else if ([t.value isEqualToString: @"REDUCED"]) {
             [self nextNonCommentToken];
             distinct    = 1;
         }
@@ -671,7 +657,7 @@ cleanup:
     
     id<SPKTree> algebra;
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
-    if (t.type == KEYWORD && [t.value isEqual: @"SELECT"]) {
+    if (t.type == KEYWORD && [t.value isEqualToString: @"SELECT"]) {
         algebra = [self parseSubSelectWithError:errors];
     } else {
         algebra = [self parseGroupGraphPatternSubWithError:errors];
@@ -720,10 +706,10 @@ cleanup:
     t   = [self peekNextNonCommentToken];
     if (t.type == KEYWORD) {
         // (DISTINCT | REDUCED)
-        if ([t.value isEqual: @"DISTINCT"]) {
+        if ([t.value isEqualToString: @"DISTINCT"]) {
             [self nextNonCommentToken];
             distinct    = 1;
-        } else if ([t.value isEqual: @"REDUCED"]) {
+        } else if ([t.value isEqualToString: @"REDUCED"]) {
             [self nextNonCommentToken];
             distinct    = 1;
         }
@@ -1017,7 +1003,7 @@ cleanup:
     t   = [self peekNextNonCommentToken];
     if (t && t.type == KEYWORD) {
         id<GTWTerm> limit, offset;
-        if ([t.value isEqual: @"LIMIT"]) {
+        if ([t.value isEqualToString: @"LIMIT"]) {
             [self parseExpectedTokenOfType:KEYWORD withValue:@"LIMIT" withErrors:errors];
             ASSERT_EMPTY(errors);
             
@@ -1031,7 +1017,7 @@ cleanup:
                 ASSERT_EMPTY(errors);
                 offset    = (GTWLiteral*) [self tokenAsTerm:t withErrors:errors];
             }
-        } else if ([t.value isEqual: @"OFFSET"]) {
+        } else if ([t.value isEqualToString: @"OFFSET"]) {
             [self parseExpectedTokenOfType:KEYWORD withValue:@"OFFSET" withErrors:errors];
             ASSERT_EMPTY(errors);
 
@@ -1119,6 +1105,26 @@ cleanup:
     return [[SPKTree alloc] initLeafWithType:kAlgebraLoad treeValue:data];
 }
 
+- (SPKTree*) parseCreateWithErrors: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:KEYWORD withValue:@"CREATE" withErrors:errors];
+    ASSERT_EMPTY(errors);
+
+    SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
+    
+    [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
+    ASSERT_EMPTY(errors);
+    id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    NSMutableArray* list    = [NSMutableArray array];
+    id<GTWTerm> silentTerm  = silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral];
+    id<SPKTree> silentTree  = [[SPKTree alloc] initWithType:kTreeNode value:silentTerm arguments:nil];
+    [list addObject:silentTree];
+    [list addObject:graph];
+    id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
+    return [[SPKTree alloc] initWithType:kAlgebraCreate treeValue:data arguments:nil];
+}
+
 - (SPKTree*) parseClearOrDropWithErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self nextNonCommentToken];
     ASSERT_EMPTY(errors);
@@ -1136,14 +1142,14 @@ cleanup:
     id<SPKTree> opType  = [[SPKTree alloc] initWithType: kTreeString value:token.value arguments:nil];
     [list addObject:opType];
     
-    if ([token.value isEqual: @"GRAPH"]) {
+    if ([token.value isEqualToString: @"GRAPH"]) {
         id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
         ASSERT_EMPTY(errors);
         [list addObject:graph];
     }
     
     SPKTreeType type;
-    if ([t.value isEqual: @"CLEAR"]) {
+    if ([t.value isEqualToString: @"CLEAR"]) {
         type    = kAlgebraClear;
     } else {
         type    = kAlgebraDrop;
@@ -1167,7 +1173,6 @@ cleanup:
 //[51]  	QuadsNotTriples	  ::=  	'GRAPH' VarOrIri '{' TriplesTemplate? '}'
 //[52]  	TriplesTemplate	  ::=  	TriplesSameSubject ( '.' TriplesTemplate? )?
 - (NSArray*) parseQuadsWithErrors: (NSMutableArray*) errors {
-    
     // TODO: parse TriplesTemplate?
     while (YES) {
         // TODO: what's the stopping condition here?
@@ -1468,8 +1473,8 @@ cleanup:
 - (NSArray*) parseDataBlockValuesWithErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     NSMutableArray* values  = [NSMutableArray array];
-    while ([self tokenIsTerm:t] || (t.type == KEYWORD && [t.value isEqual: @"UNDEF"])) {
-        if (t.type == KEYWORD && [t.value isEqual: @"UNDEF"]) {
+    while ([self tokenIsTerm:t] || (t.type == KEYWORD && [t.value isEqualToString: @"UNDEF"])) {
+        if (t.type == KEYWORD && [t.value isEqualToString: @"UNDEF"]) {
             [self nextNonCommentToken];
             [values addObject:[NSNull null]];
         } else {
@@ -1741,7 +1746,7 @@ cleanup:
         [self parseExpectedTokenOfType:RPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         return path;
-    } else if (t.type == KEYWORD && [t.value isEqual: @"A"]) {
+    } else if (t.type == KEYWORD && [t.value isEqualToString: @"A"]) {
         [self parseExpectedTokenOfType:KEYWORD withValue:@"A" withErrors:errors];
         id<GTWTerm> term    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
         return [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
@@ -1790,7 +1795,7 @@ cleanup:
     if (t.type == HAT) {
         [self nextNonCommentToken];
         t   = [self peekNextNonCommentToken];
-        if (t.type == KEYWORD && [t.value isEqual: @"A"]) {
+        if (t.type == KEYWORD && [t.value isEqualToString: @"A"]) {
             [self nextNonCommentToken];
             id<GTWTerm> term    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
             id<SPKTree> path    = [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
@@ -1799,7 +1804,7 @@ cleanup:
             id<SPKTree> path    = [self parseIRIWithErrors: errors];
             return [[SPKTree alloc] initWithType:kPathInverse arguments:@[path]];
         }
-    } else if (t.type == KEYWORD && [t.value isEqual: @"A"]) {
+    } else if (t.type == KEYWORD && [t.value isEqualToString: @"A"]) {
         [self nextNonCommentToken];
         id<GTWTerm> term    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
         return [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
@@ -2078,12 +2083,12 @@ cleanup:
                 return nil;
         }
         expr    = [[SPKTree alloc] initWithType:type arguments:@[expr, rhs]];
-    } else if (t && t.type == KEYWORD && [t.value isEqual: @"IN"]) {
+    } else if (t && t.type == KEYWORD && [t.value isEqualToString: @"IN"]) {
         [self nextNonCommentToken];
         id<SPKTree> list    = [self parseExpressionListWithErrors: errors];
         ASSERT_EMPTY(errors);
         return [[SPKTree alloc] initWithType:kExprIn arguments:@[expr, list]];
-    } else if (t && t.type == KEYWORD && [t.value isEqual: @"NOT"]) {
+    } else if (t && t.type == KEYWORD && [t.value isEqualToString: @"NOT"]) {
         [self nextNonCommentToken];
         [self parseExpectedTokenOfType:KEYWORD withValue:@"IN" withErrors:errors];
         ASSERT_EMPTY(errors);
@@ -2301,7 +2306,7 @@ cleanup:
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
 	NSRange agg_range	= [t.value rangeOfString:@"(COUNT|SUM|MIN|MAX|AVG|SAMPLE|GROUP_CONCAT)" options:NSRegularExpressionSearch];
     NSRange func_range  = [t.value rangeOfString:@"(STR|LANG|LANGMATCHES|DATATYPE|BOUND|IRI|URI|BNODE|RAND|ABS|CEIL|FLOOR|ROUND|CONCAT|STRLEN|UCASE|LCASE|ENCODE_FOR_URI|CONTAINS|STRSTARTS|STRENDS|STRBEFORE|STRAFTER|YEAR|MONTH|DAY|HOURS|MINUTES|SECONDS|TIMEZONE|TZ|NOW|UUID|STRUUID|MD5|SHA1|SHA256|SHA384|SHA512|COALESCE|IF|STRLANG|STRDT|SAMETERM|SUBSTR|REPLACE|ISIRI|ISURI|ISBLANK|ISLITERAL|ISNUMERIC|REGEX)" options:NSRegularExpressionSearch];
-    if (t.type == KEYWORD && agg_range.location == 0 && ((![t.value isEqual:@"MINUTES"]))) {    // the length check is in case we've mistaken a longer token (e.g. MINUTES) for MIN here
+    if (t.type == KEYWORD && agg_range.location == 0 && ((![t.value isEqualToString:@"MINUTES"]))) {    // the length check is in case we've mistaken a longer token (e.g. MINUTES) for MIN here
         return [self parseAggregateWithErrors: errors];
     } else if (t.type == KEYWORD && [t.value isEqualToString:@"NOT"]) {
         [self parseExpectedTokenOfType:KEYWORD withValue:@"NOT" withErrors:errors];
@@ -2419,7 +2424,7 @@ cleanup:
 - (id<SPKTree>) parseAggregateWithErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self parseExpectedTokenOfType:KEYWORD withErrors:errors];
     ASSERT_EMPTY(errors);
-    if ([t.value isEqual: @"COUNT"]) {
+    if ([t.value isEqualToString: @"COUNT"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2438,7 +2443,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"SUM"]) {
+    } else if ([t.value isEqualToString: @"SUM"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2449,7 +2454,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"MIN"]) {
+    } else if ([t.value isEqualToString: @"MIN"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2460,7 +2465,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"MAX"]) {
+    } else if ([t.value isEqualToString: @"MAX"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2471,7 +2476,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"AVG"]) {
+    } else if ([t.value isEqualToString: @"AVG"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2482,7 +2487,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"SAMPLE"]) {
+    } else if ([t.value isEqualToString: @"SAMPLE"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2493,7 +2498,7 @@ cleanup:
         ASSERT_EMPTY(errors);
         [self addSeenAggregate:agg];
         return agg;
-    } else if ([t.value isEqual: @"GROUP_CONCAT"]) {
+    } else if ([t.value isEqualToString: @"GROUP_CONCAT"]) {
         [self parseExpectedTokenOfType:LPAREN withErrors:errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* d   = [self parseOptionalTokenOfType:KEYWORD withValue:@"DISTINCT"];
@@ -2567,7 +2572,7 @@ cleanup:
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (t.type == KEYWORD) {
         NSString* kw    = t.value;
-        if ([kw isEqual:@"OPTIONAL"]) {
+        if ([kw isEqualToString:@"OPTIONAL"]) {
             // 'OPTIONAL' GroupGraphPattern
             [self nextNonCommentToken];
             id<SPKTree> ggp = [self parseGroupGraphPatternWithError:errors];
@@ -2580,7 +2585,7 @@ cleanup:
             } else {
                 return [[SPKTree alloc] initWithType:kAlgebraLeftJoin arguments:@[ggp]];
             }
-        } else if ([kw isEqual:@"MINUS"]) {
+        } else if ([kw isEqualToString:@"MINUS"]) {
             // 'MINUS' GroupGraphPattern
             [self nextNonCommentToken];
             id<SPKTree> ggp = [self parseGroupGraphPatternWithError:errors];
@@ -2588,7 +2593,7 @@ cleanup:
             if (!ggp)
                 return nil;
             return [[SPKTree alloc] initWithType:kAlgebraMinus arguments:@[ggp]];
-        } else if ([kw isEqual:@"GRAPH"]) {
+        } else if ([kw isEqualToString:@"GRAPH"]) {
             // 'GRAPH' VarOrIri GroupGraphPattern
             [self nextNonCommentToken];
             id<SPKTree> varOrIRI    = [self parseVarOrIRIWithErrors: errors];
@@ -2605,7 +2610,7 @@ cleanup:
             id<SPKTree> graph   = [[SPKTree alloc] initWithType:kTreeNode value:g arguments:nil];
             id<SPKTree> graphPattern    = [[SPKTree alloc] initWithType:kAlgebraGraph treeValue: graph arguments:@[ggp]];
             return graphPattern;
-        } else if ([kw isEqual:@"SERVICE"]) {
+        } else if ([kw isEqualToString:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
             [self nextNonCommentToken];
             SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
@@ -2625,14 +2630,14 @@ cleanup:
             if (!ggp)
                 return nil;
             return [[SPKTree alloc] initWithType:kAlgebraService treeValue: graphAndSilent arguments:@[ggp]];
-        } else if ([kw isEqual:@"FILTER"]) {
+        } else if ([kw isEqualToString:@"FILTER"]) {
             [self nextNonCommentToken];
             id<SPKTree> f   = [self parseConstraintWithErrors:errors];
             ASSERT_EMPTY(errors);
             return [[SPKTree alloc] initWithType:kAlgebraFilter treeValue: f arguments:nil];
-        } else if ([kw isEqual:@"VALUES"]) {
+        } else if ([kw isEqualToString:@"VALUES"]) {
             return [self parseInlineDataWithErrors: errors];
-        } else if ([kw isEqual:@"BIND"]) {
+        } else if ([kw isEqualToString:@"BIND"]) {
             return [self parseBindWithErrors: errors];
         } else {
             return [self errorMessage:[NSString stringWithFormat:@"Unexpected KEYWORD %@ while expecting GraphPatternNotTriples", t.value] withErrors:errors];
@@ -2700,7 +2705,7 @@ cleanup:
     if (t.type != type) {
         return [self errorMessage:[NSString stringWithFormat:@"Expecting %@['%@'] but found %@", [SPKSPARQLToken nameOfSPARQLTokenOfType:type], string, t] withErrors:errors];
     } else {
-        if ([t.value isEqual: string]) {
+        if ([t.value isEqualToString: string]) {
             return t;
         } else {
             return [self errorMessage:[NSString stringWithFormat:@"Expecting %@ value '%@' but found '%@'", [SPKSPARQLToken nameOfSPARQLTokenOfType:type], string, t.value] withErrors:errors];
@@ -2713,7 +2718,7 @@ cleanup:
     if (t.type != type) {
         return nil;
     } else {
-        if ([t.value isEqual: string]) {
+        if ([t.value isEqualToString: string]) {
             [self nextNonCommentToken];
             return t;
         } else {
@@ -2810,7 +2815,7 @@ cleanup:
             return [[GTWLiteral alloc] initWithValue:value datatype:dt.value];
         }
         return [[GTWLiteral alloc] initWithValue:value];
-    } else if ((t.type == KEYWORD) && [t.value isEqual:@"A"]) {
+    } else if ((t.type == KEYWORD) && [t.value isEqualToString:@"A"]) {
         return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
     } else if (t.type == BOOLEAN) {
         return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
