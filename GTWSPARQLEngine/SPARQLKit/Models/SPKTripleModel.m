@@ -112,52 +112,7 @@
     return YES;
 }
 
-#pragma mark - Query Planning
-
-- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
-//    NSLog(@"SPKTripleModel planning algebra: %@", algebra);
-    NSArray* graphs = [self.graphs allKeys];
-    NSMutableArray* plans   = [NSMutableArray array];
-    NSUInteger customPlans  = 0;
-    for (NSString* graph in graphs) {
-        GTWIRI* defaultGraph        = [[GTWIRI alloc] initWithValue:graph];
-        GTWDataset* subDataset      = [GTWDataset datasetFromDataset:dataset withDefaultGraphs:@[defaultGraph]];
-        id<GTWTripleStore> store    = self.graphs[graph];
-//        NSLog(@"-> planning with store %@", store);
-        if ([store conformsToProtocol:@protocol(SPKQueryPlanner)]) {
-            id<SPKTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: subDataset withModel: model options:options];
-            if (plan) {
-                customPlans++;
-                [plans addObject:plan];
-                continue;
-            }
-        } else {
-//            NSLog(@"-> %@ is not a query planning store", store);
-        }
-        
-        // The triple store couldn't plan this pattern, so plan it using the master query planner, restricted to just this graph name
-        id<SPKQueryPlanner> planner = options[@"queryPlanner"];
-        NSMutableDictionary* replanningOptions  = [NSMutableDictionary dictionaryWithDictionary:options];
-        replanningOptions[@"disableCustomPlanning"] = @YES;
-        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra: algebra usingDataset: subDataset withModel: model options:replanningOptions];
-        if (!plan)
-            return nil;
-        [plans addObject:plan];
-        continue;
-    }
-    
-    if (customPlans == 0)
-        return nil;
-    
-    if ([plans count]) {
-        if ([plans count] == 1) {
-            return plans[0];
-        } else {
-            return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
-        }
-    }
-    return nil;
-}
+#pragma mark - Mutable Model Methods
 
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
     id<GTWTerm> graph    = q.graph;
@@ -231,7 +186,15 @@
     id<GTWTripleStore> store   = (self.graphs)[graph.value];
     if (store) {
         if ([store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
-            // TODO: remove all triples from store
+            @autoreleasepool {
+                NSMutableArray* triples = [NSMutableArray array];
+                [store enumerateTriplesMatchingSubject:nil predicate:nil object:nil usingBlock:^(id<GTWTriple> t) {
+                    [triples addObject:t];
+                } error:error];
+                for (id<GTWTriple> t in triples) {
+                    [(id<GTWMutableTripleStore>)store removeTriple:t error:error];
+                }
+            }
             return YES;
         } else {
             if (error) {
@@ -247,6 +210,53 @@
         }
         return NO;
     }
+}
+
+#pragma mark - Query Planning
+
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+//    NSLog(@"SPKTripleModel planning algebra: %@", algebra);
+    NSArray* graphs = [self.graphs allKeys];
+    NSMutableArray* plans   = [NSMutableArray array];
+    NSUInteger customPlans  = 0;
+    for (NSString* graph in graphs) {
+        GTWIRI* defaultGraph        = [[GTWIRI alloc] initWithValue:graph];
+        GTWDataset* subDataset      = [GTWDataset datasetFromDataset:dataset withDefaultGraphs:@[defaultGraph]];
+        id<GTWTripleStore> store    = self.graphs[graph];
+//        NSLog(@"-> planning with store %@", store);
+        if ([store conformsToProtocol:@protocol(SPKQueryPlanner)]) {
+            id<SPKTree,GTWQueryPlan> plan   = [(id<SPKQueryPlanner>)store queryPlanForAlgebra: algebra usingDataset: subDataset withModel: model options:options];
+            if (plan) {
+                customPlans++;
+                [plans addObject:plan];
+                continue;
+            }
+        } else {
+//            NSLog(@"-> %@ is not a query planning store", store);
+        }
+        
+        // The triple store couldn't plan this pattern, so plan it using the master query planner, restricted to just this graph name
+        id<SPKQueryPlanner> planner = options[@"queryPlanner"];
+        NSMutableDictionary* replanningOptions  = [NSMutableDictionary dictionaryWithDictionary:options];
+        replanningOptions[@"disableCustomPlanning"] = @YES;
+        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra: algebra usingDataset: subDataset withModel: model options:replanningOptions];
+        if (!plan)
+            return nil;
+        [plans addObject:plan];
+        continue;
+    }
+    
+    if (customPlans == 0)
+        return nil;
+    
+    if ([plans count]) {
+        if ([plans count] == 1) {
+            return plans[0];
+        } else {
+            return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:plans];
+        }
+    }
+    return nil;
 }
 
 @end
