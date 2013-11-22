@@ -374,6 +374,9 @@
         return [self queryPlanForPathAlgebra:algebra usingDataset:dataset withModel:model];
     } else if (algebra.type == kTreeResultSet) {
         return (id<SPKTree, GTWQueryPlan>) algebra;
+    } else if (algebra.type == kAlgebraLoad) {
+        id<SPKTree> list    = algebra.treeValue;
+        return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:[list copyWithZone:nil] arguments:nil];
     } else {
         NSLog(@"cannot plan query algebra of type %@\n", [algebra treeTypeName]);
     }

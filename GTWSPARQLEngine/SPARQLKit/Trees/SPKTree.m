@@ -35,6 +35,7 @@ SPKTreeType __strong const kPlanOneOrMorePath           = @"PlanOneOrMorePath";
 SPKTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
 SPKTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
 SPKTreeType __strong const kPlanConstruct               = @"PlanConstruct";
+SPKTreeType __strong const kPlanLoad                    = @"PlanLoad";
 SPKTreeType __strong const kPlanCustom                  = @"PlanCustom";
 
 // Algebras
@@ -59,6 +60,12 @@ SPKTreeType __strong const kAlgebraToMultiset			= @"AlgebraToMultiset";
 SPKTreeType __strong const kAlgebraDescribe				= @"AlgebraDescribe";
 SPKTreeType __strong const kAlgebraConstruct            = @"AlgebraConstruct";
 SPKTreeType __strong const kAlgebraDataset              = @"AlgebraDataset";
+SPKTreeType __strong const kAlgebraInsertData           = @"AlgebraInsertData";
+SPKTreeType __strong const kAlgebraDeleteData           = @"AlgebraDeleteData";
+SPKTreeType __strong const kAlgebraLoad                 = @"AlgebraLoad";
+SPKTreeType __strong const kAlgebraClear                = @"AlgebraClear";
+SPKTreeType __strong const kAlgebraDrop                 = @"AlgebraDrop";
+SPKTreeType __strong const kAlgebraCreate               = @"AlgebraCreate";
 
 // Leaving the tree value space
 SPKTreeType __strong const kTreeSet						= @"TreeSet";

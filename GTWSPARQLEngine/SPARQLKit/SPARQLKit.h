@@ -26,7 +26,7 @@
 
 #pragma mark -
 
-@protocol SPKTree<NSObject,GTWRewriteable>
+@protocol SPKTree<NSObject,NSCopying,GTWRewriteable>
 typedef id(^SPKTreeAccessorBlock)(id<SPKTree> node, id<SPKTree> parent, NSUInteger level, BOOL* stop);
 typedef NSString* SPKTreeType;
 @property BOOL leaf;

@@ -81,6 +81,13 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return t;
 }
 
+//[1]  	QueryUnit	  ::=  	Query
+//[2]  	Query	  ::=  	Prologue ( SelectQuery | ConstructQuery | DescribeQuery | AskQuery ) ValuesClause
+//[3]  	UpdateUnit	  ::=  	Update
+//[4]  	Prologue	  ::=  	( BaseDecl | PrefixDecl )*
+//[29]  	Update	  ::=  	Prologue ( Update1 ( ';' Update )? )?
+//[30]  	Update1	  ::=  	Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify
+
 - (id<SPKTree>) parseWithError: (NSError**) error {
     SPKSPARQLToken* t;
     id<SPKTree> algebra;
@@ -114,6 +121,68 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
             algebra = [self parseAskQueryWithError:errors];
             if ([errors count])
                 goto cleanup;
+        } else if ([t.value rangeOfString:@"^(LOAD|CLEAR|DROP|ADD|MOVE|COPY|CREATE|INSERT|DELETE|WITH)$" options:NSRegularExpressionSearch].location != NSNotFound) {
+            if ([t.value isEqual: @"LOAD"]) {
+                algebra     = [self parseLoadWithErrors: errors];
+                if ([errors count])
+                    goto cleanup;
+            } else if ([t.value isEqual: @"CLEAR"] || [t.value isEqual: @"DROP"]) {
+                algebra = [self parseClearOrDropWithErrors: errors];
+                if ([errors count])
+                    goto cleanup;
+            } else if ([t.value isEqual: @"CREATE"]) {
+                [self nextNonCommentToken];
+                if ([errors count])
+                    goto cleanup;
+                SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
+                [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
+                if ([errors count])
+                    goto cleanup;
+                id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
+                if ([errors count])
+                    goto cleanup;
+                
+                NSMutableArray* list    = [NSMutableArray array];
+                id<GTWTerm> silentTerm  = silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral];
+                id<SPKTree> silentTree  = [[SPKTree alloc] initWithType:kTreeNode value:silentTerm arguments:nil];
+                [list addObject:silentTree];
+                [list addObject:graph];
+                id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
+                algebra     = [[SPKTree alloc] initWithType:kAlgebraCreate treeValue:data arguments:nil];
+            } else if ([t.value isEqual: @"INSERT"]) {
+                [self parseExpectedTokenOfType:KEYWORD withValue:@"INSERT" withErrors:errors];
+                if ([errors count])
+                    goto cleanup;
+                SPKSPARQLToken* data    = [self parseOptionalTokenOfType:KEYWORD withValue:@"DATA"];
+                if (data) {
+                    id<SPKTree> quads   = [self parseQuadDataWithErrors: errors];
+                    if ([errors count])
+                        goto cleanup;
+                    algebra = [[SPKTree alloc] initWithType:kAlgebraInsertData arguments:@[quads]];
+                } else {
+                    // TODO: parse INSERT pattern
+                    [self errorMessage:@"INSERT not implemented yet" withErrors:errors];
+                    goto cleanup;
+                }
+            } else if ([t.value isEqual: @"DELETE"]) {
+                [self parseExpectedTokenOfType:KEYWORD withValue:@"DELETE" withErrors:errors];
+                if ([errors count])
+                    goto cleanup;
+                SPKSPARQLToken* data    = [self parseOptionalTokenOfType:KEYWORD withValue:@"DATA"];
+                if (data) {
+                    id<SPKTree> quads   = [self parseQuadDataWithErrors: errors];
+                    if ([errors count])
+                        goto cleanup;
+                    algebra = [[SPKTree alloc] initWithType:kAlgebraDeleteData arguments:@[quads]];
+                } else {
+                    // TODO: parse DELETE pattern
+                    [self errorMessage:@"DELETE not implemented yet" withErrors:errors];
+                    goto cleanup;
+                }
+            } else {
+                [self errorMessage:[NSString stringWithFormat:@"%@ not implemented yet", t.value] withErrors:errors];
+                goto cleanup;
+            }
         } else {
             [self errorMessage:[NSString stringWithFormat:@"expected query method not found: %@", t] withErrors:errors];
             goto cleanup;
@@ -1017,6 +1086,103 @@ cleanup:
     } else {
         return algebra;
     }
+}
+
+//[31]  	Load	  ::=  	'LOAD' 'SILENT'? iri ( 'INTO' GraphRef )?
+- (SPKTree*) parseLoadWithErrors: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:KEYWORD withValue:@"LOAD" withErrors:errors];
+    ASSERT_EMPTY(errors);
+    SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
+    id<SPKTree> iri         = [self parseVarOrTermWithErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    NSMutableArray* list    = [NSMutableArray array];
+    id<GTWTerm> silentTerm  = silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral];
+    id<SPKTree> silentTree  = [[SPKTree alloc] initWithType:kTreeNode value:silentTerm arguments:nil];
+    [list addObject:silentTree];
+    [list addObject:iri];
+    
+    SPKSPARQLToken* into   = [self parseOptionalTokenOfType:KEYWORD withValue:@"INTO"];
+    NSLog(@"into: %@", into);
+    NSLog(@"%@", [self peekNextNonCommentToken]);
+    if (into) {
+        NSLog(@"INTO named graph");
+        [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
+        ASSERT_EMPTY(errors);
+        id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
+        ASSERT_EMPTY(errors);
+        [list addObject:graph];
+    } else {
+        NSLog(@"INTO default graph");
+    }
+    id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
+    return [[SPKTree alloc] initLeafWithType:kAlgebraLoad treeValue:data];
+}
+
+- (SPKTree*) parseClearOrDropWithErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self nextNonCommentToken];
+    ASSERT_EMPTY(errors);
+    SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
+    
+    NSMutableArray* list    = [NSMutableArray array];
+    id<GTWTerm> silentTerm  = silent ? [GTWLiteral trueLiteral] : [GTWLiteral falseLiteral];
+    id<SPKTree> silentTree  = [[SPKTree alloc] initWithType:kTreeNode value:silentTerm arguments:nil];
+    [list addObject:silentTree];
+    
+    // treeValue -> List(SilentFlagBooleanTerm, String(DEFAULT|NAMED|ALL|GRAPH), [iri])
+    SPKSPARQLToken* token   = [self parseExpectedTokenOfType:KEYWORD withErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    id<SPKTree> opType  = [[SPKTree alloc] initWithType: kTreeString value:token.value arguments:nil];
+    [list addObject:opType];
+    
+    if ([token.value isEqual: @"GRAPH"]) {
+        id<SPKTree> graph    = [self parseVarOrTermWithErrors:errors];
+        ASSERT_EMPTY(errors);
+        [list addObject:graph];
+    }
+    
+    SPKTreeType type;
+    if ([t.value isEqual: @"CLEAR"]) {
+        type    = kAlgebraClear;
+    } else {
+        type    = kAlgebraDrop;
+    }
+    id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
+    return [[SPKTree alloc] initWithType:type treeValue:data arguments:nil];
+}
+
+//[49]  	QuadData	  ::=  	'{' Quads '}'
+- (id<SPKTree>) parseQuadDataWithErrors: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:LBRACE withErrors:errors];
+    ASSERT_EMPTY(errors);
+    NSArray* quads = [self parseQuadsWithErrors: errors];
+    ASSERT_EMPTY(errors);
+    [self parseExpectedTokenOfType:RBRACE withErrors:errors];
+    ASSERT_EMPTY(errors);
+    return [[SPKTree alloc] initWithType:kTreeList arguments:quads];
+}
+
+//[50]  	Quads	  ::=  	TriplesTemplate? ( QuadsNotTriples '.'? TriplesTemplate? )*
+//[51]  	QuadsNotTriples	  ::=  	'GRAPH' VarOrIri '{' TriplesTemplate? '}'
+//[52]  	TriplesTemplate	  ::=  	TriplesSameSubject ( '.' TriplesTemplate? )?
+- (NSArray*) parseQuadsWithErrors: (NSMutableArray*) errors {
+    
+    // TODO: parse TriplesTemplate?
+    while (YES) {
+        // TODO: what's the stopping condition here?
+        SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+        if (t.type == KEYWORD && [t.value isEqualToString:@"GRAPH"]) {
+            [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
+            ASSERT_EMPTY(errors);
+            id<SPKTree> graph   = [self parseVarOrIRIWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            // TODO: parse '{' TriplesTemplate? '}'
+            // TODO: parse  '.'? TriplesTemplate?
+        }
+        break;
+    }
+    return [self errorMessage:@"parsing Quads not implemented yet" withErrors:errors];
 }
 
 

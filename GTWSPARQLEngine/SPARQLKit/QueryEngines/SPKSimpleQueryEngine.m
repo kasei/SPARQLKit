@@ -18,8 +18,12 @@
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
 
 static NSString* OSVersionNumber ( void ) {
-    NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-    NSString *productVersion = version[@"ProductVersion"];
+    static NSString* productVersion    = nil;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+        NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+        productVersion = version[@"ProductVersion"];
+    });
     return productVersion;
 }
 

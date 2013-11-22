@@ -36,6 +36,7 @@ extern SPKTreeType __strong const kPlanOneOrMorePath;
 extern SPKTreeType __strong const kPlanZeroOrOnePath;
 extern SPKTreeType __strong const kPlanNPSPath;
 extern SPKTreeType __strong const kPlanConstruct;
+extern SPKTreeType __strong const kPlanLoad;
 extern SPKTreeType __strong const kPlanCustom;
 
 // algebra tree nodes:
@@ -49,13 +50,7 @@ extern SPKTreeType __strong const kAlgebraGraph;				// Graph( IRI|var, P )
 extern SPKTreeType __strong const kAlgebraService;				// Service( IRI|var, P )
 extern SPKTreeType __strong const kAlgebraExtend;				// Extend( P, var, expr )
 extern SPKTreeType __strong const kAlgebraMinus;				// Minus( P, Q )
-//extern SPKTreeType __strong const kAlgebraZeroLengthPath;		// ZeroLengthPath( term|var, path, term|var )
-//extern SPKTreeType __strong const kAlgebraZeroOrMorePath;		// ZeroOrMorePath( term|var, path, term|var )
-//extern SPKTreeType __strong const kAlgebraOneOrMorePath;		// OneOrMorePath( term|var, path, term|var )
-//extern SPKTreeType __strong const kAlgebraNegatedPropertySet;	// NegatedPropertySet( term|var, IRIset, term|var )
 extern SPKTreeType __strong const kAlgebraGroup;				// Group( exprlist, P )
-//extern SPKTreeType __strong const kAlgebraAggregation;		// Aggregation( args, aggregate, scalarvals, G )
-//extern SPKTreeType __strong const kAlgebraAggregateJoin;		// AggregateJoin( aggregates )
 extern SPKTreeType __strong const kAlgebraToList;				// ToList( P )
 extern SPKTreeType __strong const kAlgebraOrderBy;			// OrderBy( M, cond )
 extern SPKTreeType __strong const kAlgebraProject;			// Project( M, vars )
@@ -66,6 +61,12 @@ extern SPKTreeType __strong const kAlgebraToMultiset;			// ToMultiSet( M )
 extern SPKTreeType __strong const kAlgebraDescribe;			//
 extern SPKTreeType __strong const kAlgebraConstruct;
 extern SPKTreeType __strong const kAlgebraDataset;
+extern SPKTreeType __strong const kAlgebraInsertData;
+extern SPKTreeType __strong const kAlgebraDeleteData;
+extern SPKTreeType __strong const kAlgebraLoad;
+extern SPKTreeType __strong const kAlgebraClear;
+extern SPKTreeType __strong const kAlgebraDrop;
+extern SPKTreeType __strong const kAlgebraCreate;
 
 // these are the algebra types that "leave" the algebra/plan value space
 extern SPKTreeType __strong const kTreeSet;					// SPKTree* arguments[size]
@@ -79,7 +80,7 @@ extern SPKTreeType __strong const kTreeNode;					// id<GTWTerm> ptr
 extern SPKTreeType __strong const kTreePath;					// @@ ?
 extern SPKTreeType __strong const kTreeOrderCondition;		// @@ ?
 extern SPKTreeType __strong const kTreeSolutionSequence;		// solutionset* ptr
-extern SPKTreeType __strong const kTreeString;				// char* ptr
+extern SPKTreeType __strong const kTreeString;				// NSString*
 // Property Path types
 extern SPKTreeType __strong const kPathIRI;
 extern SPKTreeType __strong const kPathInverse;
