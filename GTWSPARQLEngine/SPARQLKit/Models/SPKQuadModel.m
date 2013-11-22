@@ -64,4 +64,74 @@
     return [self.store enumerateGraphsUsingBlock:block error:error];
 }
 
+#pragma mark - Mutable Model Methods
+
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
+    if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
+        return [(id<GTWMutableQuadStore>)_store addQuad:q error:error];
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Quad store backing model is not mutable: %@", _store];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:2 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+}
+
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+    if ([_store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+        return [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Quad store backing model is not mutable: %@", _store];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:2 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+}
+
+- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    @autoreleasepool {
+        NSMutableSet* graphs    = [NSMutableSet set];
+        [_store enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
+            [graphs addObject:g];
+        } error:error];
+        if ([graphs containsObject:graph]) {
+            if (error) {
+                NSString* desc  = [NSString stringWithFormat:@"Quad store backing model already contains graph: %@", graph];
+                *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:5 userInfo:@{@"description": desc}];
+            }
+            return NO;
+        }
+    }
+    // This is a no-op because quad stores don't distinguish between empty and non-existent graphs
+    return YES;
+}
+
+- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    if ([_store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+        @autoreleasepool {
+            NSMutableArray* quads = [NSMutableArray array];
+            [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
+                [quads addObject:q];
+            } error:error];
+            for (id<GTWQuad> q in quads) {
+                [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
+            }
+        }
+        return YES;
+    } else {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Quad store backing model is not mutable: %@", _store];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:2 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
+}
+
+- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError **)error {
+    // Clearing a graph is the same as dropping a graph because quad stores don't distinguish between empty and non-existent graphs
+    return [self dropGraph:graph error:error];
+}
+
 @end
