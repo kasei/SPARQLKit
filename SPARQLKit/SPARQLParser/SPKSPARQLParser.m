@@ -336,7 +336,7 @@ cleanup:
 - (id<SPKTree>) rewriteTree: (id<SPKTree>) tree withAggregateMapping: (NSDictionary*) mapping withErrors: (NSMutableArray*) errors {
     if (!tree)
         return nil;
-    if (tree.type == kAlgebraExtend) {
+    if ([tree.type isEqual:kAlgebraExtend]) {
         id<SPKTree> tv          = tree.treeValue;
         id<SPKTree> expr        = [self rewriteTree:tv.arguments[0] withAggregateMapping:mapping withErrors:errors];
         GTWVariable* v          = [mapping objectForKey:expr];
@@ -514,7 +514,7 @@ cleanup:
 }
 
 - (id<SPKTree>) algebraVerifyingExtend: (id<SPKTree>) algebra withErrors: (NSMutableArray*) errors {
-    if (algebra.type == kAlgebraExtend) {
+    if ([algebra.type isEqual:kAlgebraExtend]) {
         id<SPKTree> list    = algebra.treeValue;
         id<SPKTree> n       = list.arguments[1];
         id<GTWTerm> t       = n.value;
@@ -538,7 +538,7 @@ cleanup:
     id<SPKTree> pattern     = algebra.arguments[0];
     NSSet* scopeVars        = [pattern inScopeVariables];
     for (id<SPKTree> v in plist) {
-        if (v.type == kAlgebraExtend) {
+        if ([v.type isEqual:kAlgebraExtend]) {
             id<SPKTree> list    = v.treeValue;
             id<SPKTree> n   = list.arguments[1];
             id<GTWTerm> t   = n.value;
@@ -564,7 +564,7 @@ cleanup:
         
         NSMutableSet* newProjection = [NSMutableSet set];
         for (id<SPKTree> v in plist) {
-            if (v.type == kTreeNode) {
+            if ([v.type isEqual:kTreeNode]) {
                 id<GTWTerm> t   = v.value;
                 if (![groupVars containsObject:t]) {
                     if (!([t isKindOfClass:[GTWVariable class]] && [t.value hasPrefix:@".agg"])) { // XXX this is a hack to recognize the fake variables (like ?.1) introduced by aggregation
@@ -584,7 +584,7 @@ cleanup:
                         }
                     }
                 }
-                if (v.type == kAlgebraExtend) {
+                if ([v.type isEqual:kAlgebraExtend]) {
                     id<SPKTree> list    = v.treeValue;
                     id<SPKTree> nt      = list.arguments[1];
                     id<GTWTerm> var     = nt.value;
@@ -676,9 +676,9 @@ cleanup:
 - (id<SPKTree>) reduceTriplePaths: (id<SPKTree>) paths {
     NSMutableArray* triples = [NSMutableArray array];
     for (id<SPKTree> t in paths.arguments) {
-        if (t.type == kTreeList) {
+        if ([t.type isEqual:kTreeList]) {
             id<SPKTree> path    = t.arguments[1];
-            if (path.type == kTreeNode) {
+            if ([path.type isEqual:kTreeNode]) {
                 id<SPKTree> subj    = t.arguments[0];
                 id<SPKTree> obj    = t.arguments[2];
                 id<GTWTriple> st    = [[GTWTriple alloc] initWithSubject:subj.value predicate:path.value object:obj.value];
@@ -933,7 +933,7 @@ cleanup:
         NSSet* scopeVars    = [algebra inScopeVariables];
         NSMutableArray* nonExtends  = [NSMutableArray array];
         for (id<SPKTree> proj in project) {
-            if (proj.type == kAlgebraExtend) {
+            if ([proj.type isEqual:kAlgebraExtend]) {
                 if ([self currentQuerySeenAggregates]) {
                     NSSet* nonAggVars   = [proj nonAggregatedVariables];
                     NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
@@ -1280,34 +1280,34 @@ cleanup:
     id<SPKTree> G       = [[SPKTree alloc] initWithType:kAlgebraBGP arguments:@[]];
     
     for (id<SPKTree> E in args) {
-        if (E.type == kAlgebraFilter) {
+        if ([E.type isEqual:kAlgebraFilter]) {
             [FS addObject:E];
         } else {
-            if (E.type == kAlgebraLeftJoin) {
+            if ([E.type isEqual:kAlgebraLeftJoin]) {
                 id<SPKTree> A   = E.arguments[0];
-                while (A.type == kTreeList && [A.arguments count] == 1) {
+                while ([A.type isEqual:kTreeList] && [A.arguments count] == 1) {
                     A   = A.arguments[0];
                 }
                 [self checkForSharedBlanksInPatterns:@[G, A] error:errors];
                 ASSERT_EMPTY(errors);
                 
-                if (A.type == kAlgebraFilter) {
+                if ([A.type isEqual:kAlgebraFilter]) {
                     G   = [[SPKTree alloc] initWithType:kAlgebraLeftJoin treeValue:A.treeValue arguments:@[G, A.arguments[0]]];
                 } else {
                     G   = [[SPKTree alloc] initWithType:kAlgebraLeftJoin treeValue:E.treeValue arguments:@[G, A]];
                 }
-            } else if (E.type == kAlgebraMinus) {
+            } else if ([E.type isEqual:kAlgebraMinus]) {
                 G   = [[SPKTree alloc] initWithType:kAlgebraMinus arguments:@[G, E.arguments[0]]];
-            } else if (E.type == kAlgebraExtend) {
+            } else if ([E.type isEqual:kAlgebraExtend]) {
                 id<SPKTree> pair    = E.treeValue;
                 id<SPKTree> algebra = [[SPKTree alloc] initWithType:kAlgebraExtend treeValue:pair arguments:@[G]];
                 G   = [self algebraVerifyingExtend:algebra withErrors:errors];
                 ASSERT_EMPTY(errors);
             } else {
-                if (G.type == kAlgebraBGP && [G.arguments count] == 0) {
+                if ([G.type isEqual:kAlgebraBGP] && [G.arguments count] == 0) {
                     G   = E;
                 } else {
-                    if (G.type == kAlgebraBGP && E.type == kAlgebraBGP) {
+                    if ([G.type isEqual:kAlgebraBGP] && [E.type isEqual:kAlgebraBGP]) {
                         NSMutableArray* triples = [NSMutableArray arrayWithArray:G.arguments];
                         [triples addObjectsFromArray:E.arguments];
                         G   = [[SPKTree alloc] initWithType:kAlgebraBGP arguments:triples];
@@ -2579,7 +2579,7 @@ cleanup:
             ASSERT_EMPTY(errors);
             if (!ggp)
                 return nil;
-            if (ggp.type == kAlgebraFilter) {
+            if ([ggp.type isEqual:kAlgebraFilter]) {
                 id<SPKTree> expr    = ggp.treeValue;
                 return [[SPKTree alloc] initWithType:kAlgebraLeftJoin treeValue: expr arguments:[ggp.arguments copy]];
             } else {

@@ -39,7 +39,7 @@ static BOOL isNumeric(id<GTWTerm> term) {
         return nil;
     id<GTWTerm> lhs, rhs;
     id<GTWTerm> value;
-    if (expr.type == kTreeNode) {
+    if ([expr.type isEqual: kTreeNode]) {
         if ([expr.value conformsToProtocol:@protocol(GTWVariable)]) {
             value   = result[[expr.value value]];
         } else {

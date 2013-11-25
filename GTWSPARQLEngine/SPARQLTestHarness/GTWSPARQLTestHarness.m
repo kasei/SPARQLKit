@@ -366,7 +366,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
 }
 
 - (void) loadDatasetFromAlgebra: (id<SPKTree>) algebra intoStore: (id<GTWQuadStore, GTWMutableQuadStore>) store defaultGraph: (GTWIRI*) defaultGraph base: (id<GTWIRI>) base {
-    if (algebra.type == kAlgebraDataset) {
+    if ([algebra.type isEqual:kAlgebraDataset]) {
         id<SPKTree> pair        = algebra.treeValue;
         id<SPKTree> defSet      = pair.arguments[0];
         id<SPKTree> namedSet    = pair.arguments[1];

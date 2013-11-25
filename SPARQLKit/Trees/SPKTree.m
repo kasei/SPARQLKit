@@ -229,7 +229,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
             [arguments addObject:n];
         }
         self.arguments  = arguments;
-        if (type == kPlanHashJoin && size >= 3) {
+        if ([type isEqual:kPlanHashJoin] && size >= 3) {
             SPKTree* n	= args[2];
             NSUInteger count	= [n.arguments count];
             if (count == 0) {
@@ -238,7 +238,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
     }
     
-    if (self.type == kTreeNode && !(self.value || self.treeValue)) {
+    if ([self.type isEqual:kTreeNode] && !(self.value || self.treeValue)) {
         NSLog(@"TreeNode without node!");
         return nil;
     }
@@ -349,12 +349,12 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (NSSet*) referencedBlanks {
-    if (self.type == kTreeNode) {
+    if ([self.type isEqual:kTreeNode]) {
         if ([self.value isKindOfClass:[GTWBlank class]]) {
             return [NSSet setWithObject:self.value];
         }
         return [NSSet set];
-    } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
+    } else if ([self.type isEqual:kTreeTriple] || [self.type isEqual:kTreeQuad]) {
         NSMutableSet* set   = [NSMutableSet set];
         NSArray* nodes  = [self.value allValues];
         for (id<GTWTerm> n in nodes) {
@@ -378,14 +378,14 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (NSSet*) inScopeNodesOfClass: (NSSet*) types {
-    if (self.type == kTreeNode) {
+    if ([self.type isEqual:kTreeNode]) {
         for (id type in types) {
             if ([self.value isKindOfClass:type]) {
                 return [NSSet setWithObject:self.value];
             }
         }
         return [NSSet set];
-    } else if (self.type == kTreeTriple || self.type == kTreeQuad) {
+    } else if ([self.type isEqual:kTreeTriple] || [self.type isEqual:kTreeQuad]) {
         NSMutableSet* set   = [NSMutableSet set];
         NSArray* nodes  = [self.value allValues];
         for (id<GTWTerm> n in nodes) {
@@ -396,7 +396,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
             }
         }
         return set;
-    } else if (self.type == kAlgebraGraph) {
+    } else if ([self.type isEqual:kAlgebraGraph]) {
         NSMutableSet* set   = [[self.arguments[0] inScopeNodesOfClass:types] mutableCopy];
         id<SPKTree> tn      = self.treeValue;
         id<GTWTerm> term    = tn.value;
@@ -406,18 +406,18 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
             }
         }
         return set;
-    } else if (self.type == kAlgebraProject || self.type == kPlanProject) {
+    } else if ([self.type isEqual:kAlgebraProject] || [self.type isEqual:kPlanProject]) {
 //        NSLog(@"computing in-scope nodes for projection: %@", self);
         id<SPKTree> project = self.treeValue;
         NSMutableSet* set   = [NSMutableSet set];
         for (id<SPKTree> t in project.arguments) {
-            if (t.type == kTreeNode) {
+            if ([t.type isEqual:kTreeNode]) {
                 for (id type in types) {
                     if ([t.value isKindOfClass:type]) {
                         [set addObject:t.value];
                     }
                 }
-            } else if (t.type == kAlgebraExtend) {
+            } else if ([t.type isEqual:kAlgebraExtend]) {
                 id<SPKTree> list    = t.treeValue;
                 id<SPKTree> node    = list.arguments[1];
                 for (id type in types) {
@@ -433,7 +433,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
         }
 //        NSLog(@"---> %@", set);
         return set;
-    } else if (self.type == kAlgebraExtend || self.type == kPlanExtend) {
+    } else if ([self.type isEqual:kAlgebraExtend] || [self.type isEqual:kPlanExtend]) {
         id<SPKTree> list    = self.treeValue;
         NSMutableSet* set   = [NSMutableSet setWithSet:[self.arguments[0] inScopeNodesOfClass:types]];
         id<SPKTree> node    = list.arguments[1];
@@ -453,7 +453,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (Class) planResultClass {
-    if (self.type == kPlanConstruct || self.type == kPlanDescribe) {
+    if ([self.type isEqual:kPlanConstruct] || [self.type isEqual:kPlanDescribe]) {
         return [GTWTriple class];
     } else {
         return [NSDictionary class];
@@ -467,14 +467,14 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
  while the expressions ?y, (COUNT(?x) + ?y), and FLOOR(?y) would all return the set { ?y }.
  */
 - (NSSet*) nonAggregatedVariables {
-    if (self.type == kTreeNode) {
+    if ([self.type isEqual:kTreeNode]) {
         id<GTWTerm> t   = self.value;
         if ([t isKindOfClass:[GTWVariable class]]) {
             return [NSSet setWithObject:self.value];
         } else {
             return [NSSet set];
         }
-    } else if (self.type == kAlgebraExtend) {
+    } else if ([self.type isEqual:kAlgebraExtend]) {
         id<SPKTree> list    = self.treeValue;
         id<SPKTree> expr    = list.arguments[0];
         return [expr nonAggregatedVariables];
@@ -568,7 +568,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (NSString*) description {
-    if (self.type == kTreeNode || self.type == kTreeQuad || self.type == kTreeList) {
+    if ([self.type isEqual:kTreeNode] || [self.type isEqual:kTreeQuad] || [self.type isEqual:kTreeList]) {
         return [self conciseDescription];
     } else {
         return [self longDescription];
@@ -594,20 +594,20 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
     for (i = 0; i < indentLevel; i++) {
         [indent appendString:@"  "];
     }
-    if (algebra.type == kTreeTriple) {
+    if ([algebra.type isEqual:kTreeTriple]) {
         id<GTWTriple> t = algebra.value;
         return [NSString stringWithFormat:@"%@%@", indent, [t description]];
-    } else if (algebra.type == kTreeList || algebra.type == kAlgebraBGP) {
+    } else if ([algebra.type isEqual:kTreeList] || [algebra.type isEqual:kAlgebraBGP]) {
         NSMutableArray* s   = [NSMutableArray array];
         for (id<SPKTree> t in algebra.arguments) {
             [s addObject:[self sparqlForAlgebra:t isProjected:isProjected indentLevel:indentLevel+1]];
         }
         return [NSString stringWithFormat:@"%@%@", indent, [s componentsJoinedByString:@"\n"]];
-    } else if (algebra.type == kAlgebraLeftJoin) {
+    } else if ([algebra.type isEqual:kAlgebraLeftJoin]) {
         NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
         NSString* rhs   = [self sparqlForAlgebra:algebra.arguments[1] isProjected:isProjected indentLevel:indentLevel+1];
         return [NSString stringWithFormat:@"%@%@\n%@OPTIONAL {\n%@\n%@}\n", indent, lhs, indent, indent, rhs];
-    } else if (algebra.type == kAlgebraService) {
+    } else if ([algebra.type isEqual:kAlgebraService]) {
         id<SPKTree> list        = algebra.treeValue;
         id<SPKTree> eptree      = list.arguments[0];
         id<SPKTree> silenttree  = list.arguments[1];
@@ -618,7 +618,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
         NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];
         NSString* sparql    = [NSString stringWithFormat:@"%@SERVICE %@%@ {\n%@\n%@}\n", indent, (silent ? @"SILENT " : @""), epterm, indent, lhs];
         return sparql;
-    } else if (algebra.type == kAlgebraGraph) {
+    } else if ([algebra.type isEqual:kAlgebraGraph]) {
         id<SPKTree> gtree   = algebra.treeValue;
         id<GTWTerm> gterm   = gtree.value;
         NSString* lhs   = [self sparqlForAlgebra:algebra.arguments[0] isProjected:isProjected indentLevel:indentLevel+1];

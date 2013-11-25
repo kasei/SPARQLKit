@@ -88,7 +88,7 @@ static NSString* OSVersionNumber ( void ) {
 }
 
 - (NSEnumerator*) evaluateNLJoin:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
-    BOOL leftJoin       = (plan.type == kPlanNLLeftJoin);
+    BOOL leftJoin       = ([plan.type isEqual:kPlanNLLeftJoin]);
     NSEnumerator* lhs   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSArray* rhs        = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
     id<SPKTree> expr    = plan.treeValue;
@@ -175,7 +175,7 @@ static NSString* OSVersionNumber ( void ) {
         NSMutableDictionary* testResult = [NSMutableDictionary dictionaryWithDictionary:result];
         NSMutableDictionary* newResult  = [NSMutableDictionary dictionary];
         for (id<SPKTree> treenode in list) {
-            if (treenode.type == kTreeNode) {
+            if ([treenode.type isEqual:kTreeNode]) {
                 GTWVariable* v  = treenode.value;
                 NSString* name  = [v value];
                 if (result[name]) {
@@ -261,7 +261,7 @@ static NSString* OSVersionNumber ( void ) {
     for (NSDictionary* result in results) {
         NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
         for (id<SPKTree> g in groupList.arguments) {
-            if (g.type == kAlgebraExtend) {
+            if ([g.type isEqual:kAlgebraExtend]) {
                 id<SPKTree> list    = g.treeValue;
                 id<SPKTree> expr    = list.arguments[0];
                 id<SPKTree> tn      = list.arguments[1];
@@ -756,51 +756,51 @@ MORE_LOOP:
 
 - (NSEnumerator*) _evaluateQueryPlan: (id<SPKTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
     SPKTreeType type    = plan.type;
-    if (type == kPlanAsk) {
+    if ([type isEqual:kPlanAsk]) {
         return [self evaluateAsk:plan withModel:model];
-    } else if (type == kPlanHashJoin) {
+    } else if ([type isEqual:kPlanHashJoin]) {
         return [self evaluateHashJoin:plan withModel:model];
-    } else if (type == kPlanNLjoin || type == kPlanNLLeftJoin) {
+    } else if ([type isEqual:kPlanNLjoin] || [type isEqual:kPlanNLLeftJoin]) {
         return [self evaluateNLJoin:plan withModel:model];
-    } else if (type == kPlanMinus) {
+    } else if ([type isEqual:kPlanMinus]) {
         return [self evaluateMinus:plan withModel:model];
-    } else if (type == kPlanDistinct) {
+    } else if ([type isEqual:kPlanDistinct]) {
         return [self evaluateDistinct:plan withModel:model];
-    } else if (type == kPlanProject) {
+    } else if ([type isEqual:kPlanProject]) {
         return [self evaluateProject:plan withModel:model];
-    } else if (type == kTreeQuad) {
+    } else if ([type isEqual:kTreeQuad]) {
         return [self evaluateQuad:plan withModel:model];
-    } else if (type == kPlanOrder) {
+    } else if ([type isEqual:kPlanOrder]) {
         return [self evaluateOrder:plan withModel:model];
-    } else if (type == kPlanUnion) {
+    } else if ([type isEqual:kPlanUnion]) {
         return [self evaluateUnion:plan withModel:model];
-    } else if (type == kPlanFilter) {
+    } else if ([type isEqual:kPlanFilter]) {
         return [self evaluateFilter:plan withModel:model];
-    } else if (type == kPlanExtend) {
+    } else if ([type isEqual:kPlanExtend]) {
         return [self evaluateExtend:plan withModel:model];
-    } else if (type == kPlanSlice) {
+    } else if ([type isEqual:kPlanSlice]) {
         return [self evaluateSlice:plan withModel:model];
-    } else if (type == kPlanGraph) {
+    } else if ([type isEqual:kPlanGraph]) {
         return [self evaluateGraphPlan:plan withModel:model];
-    } else if (type == kPlanService) {
+    } else if ([type isEqual:kPlanService]) {
         return [self evaluateServicePlan:plan withModel:model];
-    } else if (type == kPlanGroup) {
+    } else if ([type isEqual:kPlanGroup]) {
         return [self evaluateGroupPlan:plan withModel:model];
-    } else if (type == kPlanJoinIdentity) {
+    } else if ([type isEqual:kPlanJoinIdentity]) {
         return [@[ @{} ] objectEnumerator];
-    } else if (type == kPlanEmpty) {
+    } else if ([type isEqual:kPlanEmpty]) {
         return [@[] objectEnumerator];
-    } else if (type == kPlanZeroOrOnePath) {
+    } else if ([type isEqual:kPlanZeroOrOnePath]) {
         return [self evaluatePathPlan:plan withModel:model includeZeroLengthResults:YES includeMoreLengthResults:NO];
-    } else if (type == kPlanOneOrMorePath) {
+    } else if ([type isEqual:kPlanOneOrMorePath]) {
         return [self evaluatePathPlan:plan withModel:model includeZeroLengthResults:NO includeMoreLengthResults:YES];
-    } else if (type == kPlanZeroOrMorePath) {
+    } else if ([type isEqual:kPlanZeroOrMorePath]) {
         return [self evaluatePathPlan:plan withModel:model includeZeroLengthResults:YES includeMoreLengthResults:YES];
-    } else if (type == kPlanNPSPath) {
+    } else if ([type isEqual:kPlanNPSPath]) {
         return [self evaluateNPSPathPlan:plan withModel:model];
-    } else if (type == kPlanConstruct) {
+    } else if ([type isEqual:kPlanConstruct]) {
         return [self evaluateConstructPlan:plan withModel:model];
-    } else if (type == kTreeResultSet) {
+    } else if ([type isEqual:kTreeResultSet]) {
         NSArray* resultsTree    = plan.arguments;
         NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];
         for (id<SPKTree> r in resultsTree) {

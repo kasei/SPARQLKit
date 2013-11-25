@@ -20,21 +20,21 @@
 - (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended {
     if ([self conformsToProtocol:@protocol(SPKTree)]) {
         id<SPKTree> tree    = (id<SPKTree>) self;
-        if (tree.type == kAlgebraGroup) {
+        if ([tree.type isEqual:kAlgebraGroup]) {
             id<SPKTree> grouping    = [tree.treeValue arguments][0];
             NSArray* groups         = grouping.arguments;
             NSMutableSet* groupVars = [NSMutableSet set];
             for (id<SPKTree> g in groups) {
-                if (g.type == kTreeNode) {
+                if ([g.type isEqual:kTreeNode]) {
                     [groupVars addObject:g.value];
-                } else if (g.type == kAlgebraExtend) {
+                } else if ([g.type isEqual:kAlgebraExtend]) {
                     id<SPKTree> list    = g.treeValue;
                     id<SPKTree> var     = list.arguments[1];
                     [groupVars addObject:var.value];
                 }
             }
             return groupVars;
-        } else if (withExtended && tree.type == kAlgebraExtend) {
+        } else if (withExtended && [tree.type isEqual:kAlgebraExtend]) {
             id<SPKTree> list    = tree.treeValue;
             id<SPKTree> var = list.arguments[1];
             NSMutableSet* groupVars = [NSMutableSet setWithObject:var.value];
@@ -43,7 +43,7 @@
                 [groupVars addObjectsFromArray:[subVars allObjects]];
             }
             return groupVars;
-        } else if (tree.type == kTreeNode) {
+        } else if ([tree.type isEqual:kTreeNode]) {
             NSMutableSet* groupVars = [NSMutableSet set];
             [groupVars addObject:tree.value];
             return groupVars;

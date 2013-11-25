@@ -17,7 +17,7 @@
 }
 
 - (NSArray*) statementsForTemplateAlgebra: (id<SPKTree>) algebra {
-    if (algebra.type == kTreeList || algebra.type == kAlgebraBGP) {
+    if ([algebra.type isEqual:kTreeList] || [algebra.type isEqual:kAlgebraBGP]) {
         NSMutableArray* triples = [NSMutableArray array];
         for (id<SPKTree> tree in algebra.arguments) {
             NSArray* t  = [self statementsForTemplateAlgebra:tree];
@@ -26,9 +26,9 @@
             }
         }
         return triples;
-    } else if (algebra.type == kTreeTriple) {
+    } else if ([algebra.type isEqual:kTreeTriple]) {
         return @[ algebra.value ];
-    } else if (algebra.type == kAlgebraProject) {
+    } else if ([algebra.type isEqual:kAlgebraProject]) {
         id<SPKTree> tree    = algebra.arguments[0];
         return [self statementsForTemplateAlgebra:tree];
     } else {
@@ -63,11 +63,11 @@
     NSSet* lhsVars  = nil;
     NSSet* rhsVars  = nil;
     
-    if (lhs.type == kTreeQuad && rhs.type == kPlanHashJoin) {
+    if ([lhs.type isEqual: kTreeQuad] && [rhs.type isEqual: kPlanHashJoin]) {
         id<SPKTree> temp    = lhs;
         lhs                 = rhs;
         rhs                 = temp;
-//    } else if (lhs.type == kTreeQuad && rhs.type == kTreeQuad) {
+//    } else if ([lhs.type isEqual:kTreeQuad] && [rhs.type isEqual:kTreeQuad]) {
 //        if ([[lhs inScopeVariables] count] < [[rhs inScopeVariables] count]) {
 //            id<SPKTree> temp    = lhs;
 //            lhs                 = rhs;
@@ -75,14 +75,14 @@
 //        }
     }
     
-    if (lhs.type == kTreeQuad || lhs.type == kPlanHashJoin || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
+    if ([lhs.type isEqual:kTreeQuad] || [lhs.type isEqual:kPlanHashJoin] || [lhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         lhsVars   = [lhs inScopeVariables];
-    } else if (lhs.type == kPlanUnion) {
+    } else if ([lhs.type isEqual:kPlanUnion]) {
         lhsVars = [self inScopeVariablesForUnionPlan:lhs];
     }
-    if (rhs.type == kTreeQuad || rhs.type == kPlanHashJoin || [rhs.treeTypeName isEqualToString:@"PlanCustom"]) {
+    if ([rhs.type isEqual:kTreeQuad] || [rhs.type isEqual:kPlanHashJoin] || [rhs.treeTypeName isEqualToString:@"PlanCustom"]) {
         rhsVars   = [rhs inScopeVariables];
-    } else if (rhs.type == kPlanUnion) {
+    } else if ([rhs.type isEqual:kPlanUnion]) {
         rhsVars = [self inScopeVariablesForUnionPlan:rhs];
     }
     if (lhsVars && rhsVars) {
@@ -140,7 +140,7 @@
     NSArray* defaultGraphs;
     
 //    NSLog(@"-------> %@", algebra);
-    if (algebra.type == kAlgebraDistinct || algebra.type == kAlgebraReduced) {
+    if ([algebra.type isEqual:kAlgebraDistinct] || [algebra.type isEqual:kAlgebraReduced]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"DISTINCT/REDUCED must be 1-ary");
             return nil;
@@ -149,11 +149,11 @@
         if (!plan)
             return nil;
         return [[SPKQueryPlan alloc] initWithType:kPlanDistinct arguments:@[plan]];
-    } else if (algebra.type == kAlgebraConstruct) {
+    } else if ([algebra.type isEqual:kAlgebraConstruct]) {
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         NSArray* st = [self statementsForTemplateAlgebra: algebra.arguments[0]];
         return [[SPKQueryPlan alloc] initWithType:kPlanConstruct value: st arguments:@[plan]];
-    } else if (algebra.type == kAlgebraAsk) {
+    } else if ([algebra.type isEqual:kAlgebraAsk]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"ASK must be 1-ary");
             return nil;
@@ -162,7 +162,7 @@
         if (!plan)
             return nil;
         return [[SPKQueryPlan alloc] initWithType:kPlanAsk arguments:@[plan]];
-    } else if (algebra.type == kAlgebraGroup) {
+    } else if ([algebra.type isEqual:kAlgebraGroup]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"Group must be 1-ary");
             return nil;
@@ -171,7 +171,7 @@
         if (!plan)
             return nil;
         return [[SPKQueryPlan alloc] initWithType:kPlanGroup treeValue: algebra.treeValue arguments:@[plan]];
-    } else if (algebra.type == kAlgebraDataset) {
+    } else if ([algebra.type isEqual:kAlgebraDataset]) {
         id<SPKTree> pair        = algebra.treeValue;
         id<SPKTree> defSet      = pair.arguments[0];
         id<SPKTree> namedSet    = pair.arguments[1];
@@ -179,7 +179,7 @@
         NSSet* namedGraphs      = namedSet.value;
         GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:[defaultGraphs allObjects] restrictedToGraphs:[namedGraphs allObjects]];
         return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model options:options];
-    } else if (algebra.type == kAlgebraService) {
+    } else if ([algebra.type isEqual:kAlgebraService]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"SERVICE must be 1-ary");
             return nil;
@@ -200,7 +200,7 @@
             NSLog(@"SERVICE not defined for non-IRIs");
             return nil;
         }
-    } else if (algebra.type == kAlgebraGraph) {
+    } else if ([algebra.type isEqual:kAlgebraGraph]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"GRAPH must be 1-ary");
             return nil;
@@ -246,7 +246,7 @@
 
             return gplan;
         }
-    } else if (algebra.type == kAlgebraUnion) {
+    } else if ([algebra.type isEqual:kAlgebraUnion]) {
         id<GTWQueryPlan> lhs    = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         id<GTWQueryPlan> rhs    = [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options];
         if (!(lhs && rhs)) {
@@ -254,7 +254,7 @@
             return nil;
         }
         return [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[lhs, rhs]];
-    } else if (algebra.type == kAlgebraProject) {
+    } else if ([algebra.type isEqual:kAlgebraProject]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"PROJECT must be 1-ary");
             return nil;
@@ -266,7 +266,7 @@
         }
         id<SPKTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[SPKQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
-    } else if (algebra.type == kAlgebraJoin || algebra.type == kTreeList) {
+    } else if ([algebra.type isEqual:kAlgebraJoin] || [algebra.type isEqual:kTreeList]) {
         if ([algebra.arguments count] == 0) {
             return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if ([algebra.arguments count] == 1) {
@@ -294,14 +294,14 @@
             }
             return plan;
         }
-    } else if (algebra.type == kAlgebraMinus) {
+    } else if ([algebra.type isEqual:kAlgebraMinus]) {
         if ([algebra.arguments count] != 2) {
             NSLog(@"MINUS must be 2-ary");
             return nil;
         }
         // should probably have a new plan type for MINUS blocks
         return [[SPKQueryPlan alloc] initWithType:kPlanMinus value: @"minus" arguments:@[[self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options], [self queryPlanForAlgebra:algebra.arguments[1] usingDataset:dataset withModel:model options:options]]];
-    } else if (algebra.type == kAlgebraLeftJoin) {
+    } else if ([algebra.type isEqual:kAlgebraLeftJoin]) {
         if ([algebra.arguments count] != 2) {
             NSLog(@"LEFT JOIN must be 2-ary");
             return nil;
@@ -316,9 +316,9 @@
         
         id<SPKTree,GTWQueryPlan> plan   = [[SPKQueryPlan alloc] initWithType:kPlanNLLeftJoin treeValue:expr arguments:@[lhs, rhs]];
         return plan;
-    } else if (algebra.type == kAlgebraBGP) {
+    } else if ([algebra.type isEqual:kAlgebraBGP]) {
         return [self planBGP: algebra.arguments usingDataset: dataset withModel:model options:nil];
-    } else if (algebra.type == kAlgebraFilter) {
+    } else if ([algebra.type isEqual:kAlgebraFilter]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"FILTER must be 1-ary");
             return nil;
@@ -328,7 +328,7 @@
             return nil;
         id<SPKTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[SPKQueryPlan alloc] initWithType:kPlanFilter treeValue: expr arguments:@[plan]];
-    } else if (algebra.type == kAlgebraExtend) {
+    } else if ([algebra.type isEqual:kAlgebraExtend]) {
         if ([algebra.arguments count] != 1) {
             NSLog(@"EXTEND must be 1-ary");
             NSLog(@"Extend: %@", algebra);
@@ -340,12 +340,12 @@
             return nil;
         id<SPKTree> expr    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
         return [[SPKQueryPlan alloc] initWithType:kPlanExtend treeValue: expr arguments:@[p]];
-    } else if (algebra.type == kAlgebraSlice) {
+    } else if ([algebra.type isEqual:kAlgebraSlice]) {
         id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         id<SPKTree> offset      = algebra.arguments[1];
         id<SPKTree> limit       = algebra.arguments[2];
         return [[SPKQueryPlan alloc] initWithType:kPlanSlice arguments:@[plan, offset, limit]];
-    } else if (algebra.type == kAlgebraOrderBy) {
+    } else if ([algebra.type isEqual:kAlgebraOrderBy]) {
         if ([algebra.arguments count] != 1)
             return nil;
         id<SPKTree> list    = [self treeByPlanningSubTreesOf:algebra.treeValue usingDataset:dataset withModel:model options:options];
@@ -354,7 +354,7 @@
             return nil;
         
         return [[SPKQueryPlan alloc] initWithType:kPlanOrder treeValue: list arguments:@[plan]];
-    } else if (algebra.type == kTreeTriple) {
+    } else if ([algebra.type isEqual:kTreeTriple]) {
         t   = algebra.value;
         defaultGraphs   = [dataset defaultGraphs];
         count   = [defaultGraphs count];
@@ -370,11 +370,11 @@
             }
             return plan;
         }
-    } else if (algebra.type == kTreePath) {
+    } else if ([algebra.type isEqual:kTreePath]) {
         return [self queryPlanForPathAlgebra:algebra usingDataset:dataset withModel:model];
-    } else if (algebra.type == kTreeResultSet) {
+    } else if ([algebra.type isEqual:kTreeResultSet]) {
         return (id<SPKTree, GTWQueryPlan>) algebra;
-    } else if (algebra.type == kAlgebraLoad) {
+    } else if ([algebra.type isEqual:kAlgebraLoad]) {
         id<SPKTree> list    = algebra.treeValue;
         return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:[list copyWithZone:nil] arguments:nil];
     } else {
@@ -422,7 +422,7 @@
         [self negationPath:path.arguments[0] forwardPredicates:fwd inversePredicates:inv negate:negate];
         [self negationPath:path.arguments[1] forwardPredicates:fwd inversePredicates:inv negate:negate];
         return;
-    } else if (path.type == kTreeNode) {
+    } else if ([path.type isEqual:kTreeNode]) {
         if (negate) {
             [inv addObject:path.value];
         } else {
@@ -522,7 +522,7 @@
     } else if (path.type == kPathInverse) {
         id<SPKTree> p   = [[SPKTree alloc] initWithType:kTreePath arguments:@[o, path.arguments[0], s]];
         return [self queryPlanForPathAlgebra:p usingDataset:dataset withModel:model];
-    } else if (path.type == kTreeNode) {
+    } else if ([path.type isEqual:kTreeNode]) {
         id<GTWTerm> subj    = s.value;
         id<GTWTerm> pred    = path.value;
         id<GTWTerm> obj     = o.value;
@@ -540,13 +540,13 @@
     NSMutableArray* reordered   = [NSMutableArray array];
     NSMutableDictionary* varsToTriples  = [NSMutableDictionary dictionary];
     for (id<SPKTree> triple in triples) {
-        if (triple.type == kAlgebraExtend || triple.type == kAlgebraFilter) {
+        if ([triple.type isEqual:kAlgebraExtend] || [triple.type isEqual:kAlgebraFilter]) {
             [reordered addObject:triple];
         } else {
             NSArray* terms;
-            if (triple.type == kTreeTriple) {
+            if ([triple.type isEqual:kTreeTriple]) {
                 terms   = [triple.value allValues];
-            } else if (triple.type == kTreePath) {
+            } else if ([triple.type isEqual:kTreePath]) {
                 // kTreePath
                 id<SPKTree> s   = triple.arguments[0];
                 id<SPKTree> o   = triple.arguments[2];
@@ -571,7 +571,7 @@
     }
     NSMutableDictionary* triplesToTriples  = [NSMutableDictionary dictionary];
     for (id<SPKTree,NSCopying> triple in triples) {
-        if (triple.type == kTreeTriple || triple.type == kTreePath) {
+        if ([triple.type isEqual:kTreeTriple] || [triple.type isEqual:kTreePath]) {
             NSMutableSet* connectedTriples   = [triplesToTriples objectForKey:triple];
             if (!connectedTriples) {
                 connectedTriples = [NSMutableSet set];
@@ -580,9 +580,9 @@
             
 //        NSLog(@"----------> triple: %@", triple);
             NSArray* terms;
-            if (triple.type == kTreeTriple) {
+            if ([triple.type isEqual:kTreeTriple]) {
                 terms   = [triple.value allValues];
-            } else if (triple.type == kTreePath) {
+            } else if ([triple.type isEqual:kTreePath]) {
                 // kTreePath
                 id<SPKTree> s   = triple.arguments[0];
                 id<SPKTree> o   = triple.arguments[2];
