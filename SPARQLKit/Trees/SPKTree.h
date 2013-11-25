@@ -37,6 +37,7 @@ extern SPKTreeType __strong const kPlanZeroOrOnePath;
 extern SPKTreeType __strong const kPlanNPSPath;
 extern SPKTreeType __strong const kPlanConstruct;
 extern SPKTreeType __strong const kPlanLoad;
+extern SPKTreeType __strong const kPlanInsertData;
 extern SPKTreeType __strong const kPlanCustom;
 
 // algebra tree nodes:

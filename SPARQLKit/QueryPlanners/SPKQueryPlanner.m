@@ -377,6 +377,8 @@
     } else if ([algebra.type isEqual:kAlgebraLoad]) {
         id<SPKTree> list    = algebra.treeValue;
         return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:[list copyWithZone:nil] arguments:nil];
+    } else if ([algebra.type isEqual:kAlgebraInsertData]) {
+        return [[SPKQueryPlan alloc] initWithType:kPlanLoad arguments:algebra.arguments];
     } else {
         NSLog(@"cannot plan query algebra of type %@\n", [algebra treeTypeName]);
     }

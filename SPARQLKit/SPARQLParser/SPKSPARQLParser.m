@@ -3,6 +3,7 @@
 #import "SPKTree.h"
 #import "NSObject+SPKTree.h"
 #import <GTWSWBase/GTWVariable.h>
+#import <GTWSWBase/GTWQuad.h>
 
 #define ASSERT_EMPTY(e) if ([e count] > 0) return nil;
 
@@ -1171,9 +1172,18 @@ cleanup:
 
 //[50]  	Quads	  ::=  	TriplesTemplate? ( QuadsNotTriples '.'? TriplesTemplate? )*
 //[51]  	QuadsNotTriples	  ::=  	'GRAPH' VarOrIri '{' TriplesTemplate? '}'
-//[52]  	TriplesTemplate	  ::=  	TriplesSameSubject ( '.' TriplesTemplate? )?
 - (NSArray*) parseQuadsWithErrors: (NSMutableArray*) errors {
-    // TODO: parse TriplesTemplate?
+    NSMutableArray* statements  = [NSMutableArray array];
+    NSArray* triples    = [self triplesByParsingTriplesTemplateWithErrors:errors];
+    ASSERT_EMPTY(errors);
+
+    if (triples) {
+        id<SPKTree> tree        = [[SPKTree alloc] initWithType:kTreeList arguments:triples];
+        id<SPKTree> reduced     = [self reduceTriplePaths:tree];
+        triples                 = reduced.arguments;
+        [statements addObjectsFromArray:triples];
+    }
+
     while (YES) {
         // TODO: what's the stopping condition here?
         SPKSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -1182,13 +1192,63 @@ cleanup:
             ASSERT_EMPTY(errors);
             id<SPKTree> graph   = [self parseVarOrIRIWithErrors:errors];
             ASSERT_EMPTY(errors);
-            // TODO: parse '{' TriplesTemplate? '}'
-            // TODO: parse  '.'? TriplesTemplate?
+            
+            [self parseExpectedTokenOfType:LBRACE withErrors:errors];
+            ASSERT_EMPTY(errors);
+            
+            NSArray* graphTriples    = [self triplesByParsingTriplesTemplateWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            
+            for (id<SPKTree> tree in graphTriples) {
+                id<GTWTriple> t = tree.value;
+                id<GTWQuad> q   = [GTWQuad quadFromTriple:t withGraph:graph.value];
+                id<SPKTree> qt  = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+                [statements addObject:qt];
+            }
+            [self parseExpectedTokenOfType:RBRACE withErrors:errors];
+            ASSERT_EMPTY(errors);
+            
+            [self parseOptionalTokenOfType:DOT];
+            
+            NSArray* triples    = [self triplesByParsingTriplesTemplateWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            if (triples) {
+                [statements addObjectsFromArray:triples];
+            }
+        } else {
+            break;
         }
-        break;
     }
-    return [self errorMessage:@"parsing Quads not implemented yet" withErrors:errors];
+    
+    return statements;
 }
+
+//[52]  	TriplesTemplate	  ::=  	TriplesSameSubject ( '.' TriplesTemplate? )?
+- (NSArray*) triplesByParsingTriplesTemplateWithErrors: (NSMutableArray*) errors {
+    NSArray* triples   = [self triplesArrayByParsingTriplesSameSubjectWithErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    if (!t || t.type != DOT) {
+        return triples;
+    } else {
+        [self parseExpectedTokenOfType:DOT withErrors:errors];
+        ASSERT_EMPTY(errors);
+        
+        t   = [self peekNextNonCommentToken];
+        // TODO: Check if TriplesBlock can be parsed (it's more than just tokenIsVarOrTerm:)
+        if ([self tokenIsVarOrTerm:t] || NO) {
+            NSArray* more    = [self triplesByParsingTriplesTemplateWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            NSMutableArray* moreTriples    = [NSMutableArray arrayWithArray:triples];
+            [moreTriples addObjectsFromArray:more];
+            return moreTriples;
+        } else {
+            return triples;
+        }
+    }
+}
+
 
 
 // [54]  	GroupGraphPatternSub	  ::=  	TriplesBlock? ( GraphPatternNotTriples '.'? TriplesBlock? )*
@@ -1489,6 +1549,102 @@ cleanup:
     return values;
 }
 
+
+//[75]  	TriplesSameSubject	  ::=  	VarOrTerm PropertyListNotEmpty |	TriplesNode PropertyList
+- (NSArray*) triplesArrayByParsingTriplesSameSubjectWithErrors: (NSMutableArray*) errors {
+    NSMutableArray* triples = [NSMutableArray array];
+    
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    id<SPKTree> node    = nil;
+    if ([self tokenIsVarOrTerm:t]) {
+        id<SPKTree> subject = [self parseVarOrTermWithErrors:errors];
+        ASSERT_EMPTY(errors);
+        id<SPKTree> propertyObjectTriples = [self parsePropertyListNotEmptyForSubject:subject withErrors:errors];
+        if (!propertyObjectTriples)
+            return nil;
+        [triples addObjectsFromArray:propertyObjectTriples.arguments];
+        return triples;
+    } else if (t.type == LPAREN || t.type == LBRACKET) {
+        id<SPKTree> nodetriples = [self parseTriplesNodeAsNode: &node withErrors:errors];
+        for (id<SPKTree> t in nodetriples.arguments) {
+            [triples addObject:t];
+        }
+        id<SPKTree> propertyObjectTriples = [self parsePropertyListForSubject:node withErrors:errors];
+        if (propertyObjectTriples) {
+            [triples addObjectsFromArray:propertyObjectTriples.arguments];
+        }
+        return triples;
+    }
+    return @[];
+}
+
+//[76]  	PropertyList	  ::=  	PropertyListNotEmpty?
+- (id<SPKTree>) parsePropertyListForSubject: (id<SPKTree>) subject withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    if ([self tokenIsVerb:t]) {
+        return [self parsePropertyListNotEmptyForSubject: subject withErrors:errors];
+    } else {
+        return nil;
+    }
+}
+
+//[77]  	PropertyListNotEmpty	  ::=  	Verb ObjectList ( ';' ( Verb ObjectList )? )*
+- (id<SPKTree>)parsePropertyListNotEmptyForSubject: (id<SPKTree>) subject withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    if (![self tokenIsVarOrTerm:t]) {
+        return [self errorMessage:[NSString stringWithFormat:@"Expecting Verb but found %@", t] withErrors:errors];
+    }
+    [self nextNonCommentToken];
+    id<GTWTerm> v    = [self tokenAsTerm:t withErrors:errors];
+    ASSERT_EMPTY(errors);
+    if (t.type != VAR) {
+        // make sure the token is an IRI
+        if (![v isKindOfClass:[GTWIRI class]]) {
+            return [self errorMessage:[NSString stringWithFormat:@"Expecting IRI Verb but found %@", v] withErrors:errors];
+        }
+    }
+    id<SPKTree> verb    = [[SPKTree alloc] initWithType:kTreeNode value:v arguments:nil];
+    
+    NSArray* objectList;
+    id<SPKTree> triples = [self parseObjectListAsNodes:&objectList withErrors:errors];
+    NSMutableArray* propertyObjects = [NSMutableArray arrayWithArray:triples.arguments];
+    for (id o in objectList) {
+        id<GTWTriple> t    = [[GTWTriple alloc] initWithSubject:subject.value predicate:verb.value object:o];
+        id<SPKTree> triple  = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+        [propertyObjects addObject:triple];
+    }
+    
+    t   = [self peekNextNonCommentToken];
+    while (t && t.type == SEMICOLON) {
+        [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
+        ASSERT_EMPTY(errors);
+        t   = [self peekNextNonCommentToken];
+        if (!(t.type == IRI || t.type == PREFIXNAME || (t.type == KEYWORD && [t.value isEqual: @"A"]))) {
+            break;
+        }
+        
+        if (![self tokenIsVarOrTerm:t]) {
+            return [self errorMessage:[NSString stringWithFormat:@"Expecting Verb but found %@", t] withErrors:errors];
+        }
+        [self nextNonCommentToken];
+        id<GTWTerm> v       = [self tokenAsTerm:t withErrors:errors];
+        id<SPKTree> verb    = [[SPKTree alloc] initWithType:kTreeNode value:v arguments:nil];
+        
+        NSArray* objectList;
+        id<SPKTree> triples = [self parseObjectListAsNodes:&objectList withErrors:errors];
+        [propertyObjects addObjectsFromArray:triples.arguments];
+        for (id o in objectList) {
+            id<GTWTriple> t    = [[GTWTriple alloc] initWithSubject:subject.value predicate:verb.value object:o];
+            id<SPKTree> triple  = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+            [propertyObjects addObject:triple];
+        }
+        t   = [self peekNextNonCommentToken];
+    }
+    
+    return [[SPKTree alloc] initWithType:kTreeList arguments:propertyObjects];
+}
+
+
 // Returns an NSArray of triples. Each item in the array is a kTreeList with three items, a subject term, an path (with a path tree type), and an object term.
 // TriplesSameSubjectPath	  ::=  	VarOrTerm PropertyListPathNotEmpty |	TriplesNodePath PropertyListPath
 - (NSArray*) triplesArrayByParsingTriplesSameSubjectPathWithErrors: (NSMutableArray*) errors {
@@ -1554,6 +1710,35 @@ cleanup:
     } else {
         return [self parseVarOrIRIWithErrors:errors];
     }
+}
+
+//[79]  	ObjectList	  ::=  	Object ( ',' Object )*
+- (id<SPKTree>) parseObjectListAsNodes: (NSArray**) nodes withErrors: (NSMutableArray*) errors {
+    id<SPKTree> node    = nil;
+    id<SPKTree> triplesTree     = [self parseObjectAsNode:&node withErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    NSMutableArray* triples     = [NSMutableArray arrayWithArray:triplesTree.arguments];
+    NSMutableArray* objects = [NSMutableArray arrayWithObject:node];
+    
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    while (t && t.type == COMMA) {
+        [self nextNonCommentToken];
+        
+        id<SPKTree> triplesTree     = [self parseObjectAsNode:&node withErrors:errors];
+        ASSERT_EMPTY(errors);
+        [triples addObjectsFromArray:triplesTree.arguments];
+        [objects addObject:node];
+        t   = [self peekNextNonCommentToken];
+    }
+    
+    *nodes  = objects;
+    return [[SPKTree alloc] initWithType:kTreeList arguments:triples];
+}
+
+//[80]  	Object	  ::=  	GraphNode
+- (id<SPKTree>) parseObjectAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+    return [self parseGraphNodeAsNode:node withErrors:errors];
 }
 
 // [82]  	PropertyListPath	  ::=  	PropertyListPathNotEmpty?
@@ -1813,6 +1998,28 @@ cleanup:
     }
 }
 
+//[98]  	TriplesNode	  ::=  	Collection |	BlankNodePropertyList
+- (id<SPKTree>) parseTriplesNodeAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    if (t.type == LPAREN) {
+        return [self triplesByParsingCollectionAsNode: (id<SPKTree>*) node withErrors: errors];
+    } else {
+        return [self parseBlankNodePropertyListAsNode:node withErrors:errors];
+    }
+}
+
+//[99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
+- (id<SPKTree>) parseBlankNodePropertyListAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:LBRACKET withErrors:errors];
+    ASSERT_EMPTY(errors);
+    GTWBlank* subj  = self.bnodeIDGenerator(nil);
+    *node   = [[SPKTree alloc] initWithType:kTreeNode value: subj arguments:nil];
+    id<SPKTree> path    = [self parsePropertyListNotEmptyForSubject:*node withErrors:errors];
+    [self parseExpectedTokenOfType:RBRACKET withErrors:errors];
+    ASSERT_EMPTY(errors);
+    return path;
+}
+
 // [100]  	TriplesNodePath	  ::=  	CollectionPath |	BlankNodePropertyListPath
 - (id<SPKTree>) parseTriplesNodePathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
@@ -1835,6 +2042,78 @@ cleanup:
     return path;
 }
 
+
+//[102]  	Collection	  ::=  	'(' GraphNode+ ')'
+- (id<SPKTree>) triplesByParsingCollectionAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+    [self parseExpectedTokenOfType:LPAREN withErrors:errors];
+    ASSERT_EMPTY(errors);
+    id<SPKTree> graphNodePath    = [self parseGraphNodeAsNode:node withErrors:errors];
+    ASSERT_EMPTY(errors);
+    NSMutableArray* triples = [NSMutableArray arrayWithArray:graphNodePath.arguments];
+    if (!(*node)) {
+        NSLog(@"no node in collection path");
+    }
+    NSMutableArray* nodes   = [NSMutableArray arrayWithObject:*node];
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    while (t.type != RPAREN) {
+        id<SPKTree> graphNode    = [self parseGraphNodeAsNode:node withErrors:errors];
+        ASSERT_EMPTY(errors);
+        [triples addObjectsFromArray:graphNode.arguments];
+        [nodes addObject:*node];
+        t   = [self peekNextNonCommentToken];
+    }
+    [self parseExpectedTokenOfType:RPAREN withErrors:errors];
+    ASSERT_EMPTY(errors);
+    
+    
+    GTWBlank* bnode  = self.bnodeIDGenerator(nil);
+    id<SPKTree> list    = [[SPKTree alloc] initWithType:kTreeNode value: bnode arguments:nil];
+    *node   = list;
+    
+    
+    GTWIRI* rdffirst    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"];
+    GTWIRI* rdfrest    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
+    GTWIRI* rdfnil    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
+    
+    if ([nodes count]) {
+        for (NSUInteger i = 0; i < [nodes count]; i++) {
+            id<SPKTree> o   = [nodes objectAtIndex:i];
+            GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:o.value];
+            id<SPKTree> ttree   = [[SPKTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
+            if (!ttree) {
+                return [self errorMessage:@"(1) no triple tree" withErrors:errors];
+            }
+            [triples addObject:ttree];
+            if (i == [nodes count]-1) {
+                GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:rdfnil];
+                id<SPKTree> ttree   = [[SPKTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
+                if (!ttree) {
+                    return [self errorMessage:@"(2) no triple tree" withErrors:errors];
+                }
+                [triples addObject:ttree];
+            } else {
+                GTWBlank* newbnode  = self.bnodeIDGenerator(nil);
+                id<SPKTree> newlist = [[SPKTree alloc] initWithType:kTreeNode value: newbnode arguments:nil];
+                GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdfrest object:newlist.value];
+                id<SPKTree> ttree   = [[SPKTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
+                if (!ttree) {
+                    return [self errorMessage:@"(3) no triple tree" withErrors:errors];
+                }
+                [triples addObject:ttree];
+                list    = newlist;
+            }
+        }
+    } else {
+        GTWTriple* triple   = [[GTWTriple alloc] initWithSubject:list.value predicate:rdffirst object:rdfnil];
+        id<SPKTree> ttree   = [[SPKTree alloc] initWithType:kTreeTriple value:triple arguments:nil];
+        if (!ttree) {
+            return [self errorMessage:@"(4) no triple tree" withErrors:errors];
+        }
+        [triples addObject:ttree];
+    }
+    
+    return [[SPKTree alloc] initWithType:kTreeList arguments:triples];
+}
 
 // [103]  	CollectionPath	  ::=  	'(' GraphNodePath+ ')'
 - (id<SPKTree>) triplesByParsingCollectionPathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
@@ -1907,6 +2186,21 @@ cleanup:
     
     return [[SPKTree alloc] initWithType:kTreeList arguments:triples];
 }
+
+
+//[104]  	GraphNode	  ::=  	VarOrTerm |	TriplesNode
+- (id<SPKTree>) parseGraphNodeAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+    if ([self tokenIsVarOrTerm:t]) {
+        *node   = [self parseVarOrTermWithErrors: errors];
+        ASSERT_EMPTY(errors);
+        return [[SPKTree alloc] initWithType:kTreeList arguments:@[]];
+    } else {
+        return [self parseTriplesNodeAsNode:node withErrors:errors];
+    }
+}
+
+
 
 // [105]  	GraphNodePath	  ::=  	VarOrTerm |	TriplesNodePath
 - (id<SPKTree>) parseGraphNodePathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
@@ -2860,15 +3154,4 @@ cleanup:
     return nil;
 }
 
-
 @end
-
-
-// Grammar rules whose implementation was removed because they weren't being used (all of them are the data-only rules that are meant to be called from things like the CONSTRUCT pattern path):
-// [77]  	PropertyListNotEmpty	  ::=  	Verb ObjectList ( ';' ( Verb ObjectList )? )*
-// [79]  	ObjectList	  ::=  	Object ( ',' Object )*
-// [80]  	Object	  ::=  	GraphNode
-// [98]  	TriplesNode	  ::=  	Collection |	BlankNodePropertyList
-// [99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
-// [102]  	Collection	  ::=  	'(' GraphNode+ ')'
-// [104]  	GraphNode	  ::=  	VarOrTerm |	TriplesNode

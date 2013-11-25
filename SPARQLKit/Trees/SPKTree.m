@@ -36,6 +36,7 @@ SPKTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
 SPKTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
 SPKTreeType __strong const kPlanConstruct               = @"PlanConstruct";
 SPKTreeType __strong const kPlanLoad                    = @"PlanLoad";
+SPKTreeType __strong const kPlanInsertData              = @"PlanInsertData";
 SPKTreeType __strong const kPlanCustom                  = @"PlanCustom";
 
 // Algebras
