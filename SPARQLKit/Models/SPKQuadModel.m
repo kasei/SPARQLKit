@@ -79,7 +79,7 @@
 }
 
 - (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
-    if ([_store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+    if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         return [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
     } else {
         if (error) {
@@ -109,7 +109,7 @@
 }
 
 - (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
-    if ([_store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {
+    if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         @autoreleasepool {
             NSMutableArray* quads = [NSMutableArray array];
             [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {

@@ -91,7 +91,7 @@ static dispatch_once_t mockToken;
         NSString* sparql = vars[@"query"];
         id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
-        id<SPKTree> algebra    = [parser parseSPARQL:sparql withBaseURI:defaultGraph.value error:&error];
+        id<SPKTree> algebra    = [parser parseSPARQLQuery:sparql withBaseURI:defaultGraph.value error:&error];
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];

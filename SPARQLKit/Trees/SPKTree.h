@@ -37,7 +37,12 @@ extern SPKTreeType __strong const kPlanZeroOrOnePath;
 extern SPKTreeType __strong const kPlanNPSPath;
 extern SPKTreeType __strong const kPlanConstruct;
 extern SPKTreeType __strong const kPlanLoad;
+extern SPKTreeType __strong const kPlanModify;
 extern SPKTreeType __strong const kPlanInsertData;
+extern SPKTreeType __strong const kPlanDeleteData;
+extern SPKTreeType __strong const kPlanCopy;                // TODO: remove this when the planner can produce the equivalent plan to an INSERT/WHERE
+extern SPKTreeType __strong const kPlanSequence;
+//********** WHEN a new plan type is added, make sure that [SPKTree planResultClass] is still accurate
 extern SPKTreeType __strong const kPlanCustom;
 
 // algebra tree nodes:
@@ -68,6 +73,10 @@ extern SPKTreeType __strong const kAlgebraLoad;
 extern SPKTreeType __strong const kAlgebraClear;
 extern SPKTreeType __strong const kAlgebraDrop;
 extern SPKTreeType __strong const kAlgebraCreate;
+extern SPKTreeType __strong const kAlgebraAdd;
+extern SPKTreeType __strong const kAlgebraCopy;
+extern SPKTreeType __strong const kAlgebraModify;
+extern SPKTreeType __strong const kAlgebraSequence;
 
 // these are the algebra types that "leave" the algebra/plan value space
 extern SPKTreeType __strong const kTreeSet;					// SPKTree* arguments[size]

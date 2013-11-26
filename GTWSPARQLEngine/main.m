@@ -177,7 +177,7 @@ int run_redland_parser_example (NSString* filename, NSString* base) {
 int runQueryWithModelAndDataset (NSString* query, NSString* base, id<GTWModel> model, id<GTWDataset> dataset, NSUInteger verbose) {
     id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
     NSError* error;
-    id<SPKTree> algebra    = [parser parseSPARQL:query withBaseURI:base error:&error];
+    id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:base error:&error];
     if (error) {
         NSLog(@"parser error: %@", error);
     }
@@ -211,7 +211,7 @@ int parseQuery(NSString* query, NSString* base) {
     GTWDataset* dataset         = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
     id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
     NSError* error;
-    id<SPKTree> algebra         = [parser parseSPARQL:query withBaseURI:base error:&error];
+    id<SPKTree> algebra         = [parser parseSPARQLQuery:query withBaseURI:base error:&error];
     if (error) {
         NSLog(@"Parse error: %@", error);
         return 1;

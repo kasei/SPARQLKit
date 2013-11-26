@@ -25,7 +25,7 @@
 - (void) _addQuad: (id<GTWQuad>) q toIndex: (NSMutableDictionary*) idx withPositions: (NSArray*) positions {
     // caller is responsible for using @synchronized(idx)
     NSObject<GTWQuad>* qq  = (NSObject<GTWQuad>*) q;
-    //    NSLog(@"indexing quad: %@\n", q);
+//    NSLog(@"indexing quad: %@\n", q);
     NSMutableArray* keyarray    = [NSMutableArray array];
     for (NSString* p in positions) {
         NSObject<GTWTerm>* t   = [qq valueForKey: p];

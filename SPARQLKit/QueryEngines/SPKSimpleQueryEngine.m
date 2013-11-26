@@ -457,7 +457,7 @@ static NSString* OSVersionNumber ( void ) {
     [model enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
         [graphs addObject: g];
     } error:nil];
-    NSLog(@"GRAPHs: %@", graphs);
+//    NSLog(@"GRAPHs: %@", graphs);
     if ([graphs count]) {
         NSMutableArray* results = [NSMutableArray array];
         for (id<GTWTerm> g in graphs) {
@@ -681,6 +681,109 @@ MORE_LOOP:
     }
 }
 
+- (NSEnumerator*) evaluateInsertData:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    NSError* error;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+    
+    for (id<SPKTree> tree in plan.arguments) {
+        id<GTWQuad> q   = tree.value;
+        [mmodel removeQuad:q error:&error];
+        if (error) {
+            NSLog(@"error removing quad: %@", error);
+        }
+    }
+
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
+
+- (NSEnumerator*) evaluateDeleteData:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    NSError* error;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+    
+    for (id<SPKTree> tree in plan.arguments) {
+        id<GTWQuad> q   = tree.value;
+        [mmodel removeQuad:q error:&error];
+        if (error) {
+            NSLog(@"error removing quad: %@", error);
+        }
+    }
+    
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
+
+- (NSEnumerator*) evaluateModifyPlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    id<SPKTree> delete  = plan.arguments[0];
+    id<SPKTree> insert  = plan.arguments[1];
+    id<SPKTree, GTWQueryPlan> subplan   = plan.arguments[2];
+    NSEnumerator* e     = [self evaluateQueryPlan:subplan withModel:model];
+    NSArray* results    = [e allObjects];
+//    NSLog(@"Modify matched results: %@", results);
+    
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    
+    NSError* error;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+    
+//    NSLog(@"DELETE pattern: %@", delete);
+    for (NSDictionary* result in results) {
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (NSString* varname in result) {
+            GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
+            mapping[v]    = result[varname];
+        }
+        for (id<SPKTree> tree in delete.arguments) {
+            id<GTWRewriteable> pattern  = tree.value;
+            id<GTWQuad, GTWRewriteable> st   = [pattern copyReplacingValues:mapping];
+            if (st) {
+                if ([st isGround]) {
+//                    NSLog(@"removing %@", st);
+                    [mmodel removeQuad:st error:&error];
+                    if (error) {
+                        NSLog(@"error removing quad: %@", error);
+                    }
+                }
+            }
+        }
+    }
+//    NSLog(@"INSERT pattern: %@", insert);
+    for (NSDictionary* result in results) {
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (NSString* varname in result) {
+            GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
+            mapping[v]    = result[varname];
+        }
+        for (id<SPKTree> tree in insert.arguments) {
+            id<GTWRewriteable> pattern  = tree.value;
+            id<GTWQuad, GTWRewriteable> st   = [pattern copyReplacingValues:mapping];
+            if (st) {
+                if ([st isGround]) {
+//                    NSLog(@"adding %@", st);
+                    [mmodel addQuad:st error:&error];
+                    if (error) {
+                        NSLog(@"error adding quad: %@", error);
+                    }
+                }
+            }
+        }
+    }
+    
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
+
 - (NSEnumerator*) evaluateConstructPlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
     NSMutableArray* triples = [NSMutableArray array];
@@ -800,6 +903,18 @@ MORE_LOOP:
         return [self evaluateNPSPathPlan:plan withModel:model];
     } else if ([type isEqual:kPlanConstruct]) {
         return [self evaluateConstructPlan:plan withModel:model];
+    } else if ([type isEqual:kPlanModify]) {
+        return [self evaluateModifyPlan:plan withModel:model];
+    } else if ([type isEqual:kPlanInsertData]) {
+        return [self evaluateInsertData:plan withModel:model];
+    } else if ([type isEqual:kPlanDeleteData]) {
+        return [self evaluateDeleteData:plan withModel:model];
+    } else if ([type isEqual:kPlanSequence]) {
+        NSEnumerator* e;
+        for (id<GTWQueryPlan> p in plan.arguments) {
+            e   = [self evaluateQueryPlan:p withModel:model];
+        }
+        return e;
     } else if ([type isEqual:kTreeResultSet]) {
         NSArray* resultsTree    = plan.arguments;
         NSMutableArray* results = [NSMutableArray arrayWithCapacity:[resultsTree count]];

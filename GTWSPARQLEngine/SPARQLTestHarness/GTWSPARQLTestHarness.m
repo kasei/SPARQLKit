@@ -127,19 +127,19 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 
                 
                 // Skip update tests
-                if ([f.value rangeOfString:@"add"].location != NSNotFound)
-                    continue;
-                if ([f.value rangeOfString:@"update"].location != NSNotFound) {
-                    if ([f.value rangeOfString:@"syntax"].location == NSNotFound) {
-                        continue;
-                    }
-                }
+//                if ([f.value rangeOfString:@"add"].location != NSNotFound)
+//                    continue;
+//                if ([f.value rangeOfString:@"update"].location != NSNotFound) {
+//                    if ([f.value rangeOfString:@"syntax"].location == NSNotFound) {
+//                        continue;
+//                    }
+//                }
                 if ([f.value rangeOfString:@"clear"].location != NSNotFound)
                     continue;
                 if ([f.value rangeOfString:@"copy"].location != NSNotFound)
                     continue;
-                if ([f.value rangeOfString:@"delete"].location != NSNotFound)
-                    continue;
+//                if ([f.value rangeOfString:@"delete"].location != NSNotFound)
+//                    continue;
                 if ([f.value rangeOfString:@"drop"].location != NSNotFound)
                     continue;
                 if ([f.value rangeOfString:@"move"].location != NSNotFound)
@@ -291,7 +291,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 } else {
                     return YES;
                 }
-            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"]) {
+            } else if ([testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#QueryEvaluationTest"] || [testtype.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#UpdateEvaluationTest"]) {
                 if (self.runEvalTests) {
                     BOOL ok     = [self runQueryEvalTest: test withModel: model];
                     [NSURLProtocol unregisterClass:[GTWSPARQLTestHarnessURLProtocol class]];
@@ -402,10 +402,18 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         GTWIRI* qtgraphdata     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#graphData"];
         GTWIRI* qtendpoint      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#endpoint"];
         GTWIRI* qtservicedata   = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-query#serviceData"];
+        GTWIRI* utrequest       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#request"];
+        GTWIRI* utdata          = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#data"];
+        GTWIRI* utgraph         = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#graph"];
+        GTWIRI* utgraphdata     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#graphData"];
+        GTWIRI* rdfslabel       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2000/01/rdf-schema#label"];
+        
+        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
         
         id<GTWTerm> query   = [model anyObjectForSubject:action predicate:qtquery graph:nil];
-        NSArray* data       = [model objectsForSubject:action predicate:qtdata graph:nil];
-        NSArray* graphData  = [model objectsForSubject:action predicate:qtgraphdata graph:nil];
+        id<GTWTerm> update  = [model anyObjectForSubject:action predicate:utrequest graph:nil];
+        NSArray* data       = [model objectsForSubject:action predicate:(update ? utdata : qtdata) graph:nil];
+        NSArray* graphData  = [model objectsForSubject:action predicate:(update ? utgraphdata : qtgraphdata) graph:nil];
         NSArray* serviceData    = [model objectsForSubject:action predicate:qtservicedata graph:nil];
         for (id<GTWIRI> datafile in data) {
             if (self.verbose) {
@@ -413,11 +421,23 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             }
             [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:defaultGraph base: datafile];
         }
-        for (id<GTWIRI> datafile in graphData) {
-            if (self.verbose) {
-                NSLog(@"named graph data file: %@", datafile.value);
+        if (update) {
+            for (id<GTWTerm> g in graphData) {
+                id<GTWIRI> datafile     = (id<GTWIRI>) [model anyObjectForSubject:g predicate:utgraph graph:nil];
+                id<GTWTerm> graphname   = [model anyObjectForSubject:g predicate:rdfslabel graph:nil];
+                if (self.verbose) {
+                    NSLog(@"named graph data file: %@ for graph %@", datafile.value, graphname.value);
+                }
+                GTWIRI* graph   = [[GTWIRI alloc] initWithValue:graphname.value];
+                [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:graph base: datafile];
             }
-            [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:datafile base: datafile];
+        } else {
+            for (id<GTWIRI> datafile in graphData) {
+                if (self.verbose) {
+                    NSLog(@"named graph data file: %@", datafile.value);
+                }
+                [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:testStore withGraph:datafile base: datafile];
+            }
         }
         for (id<GTWTerm> data in serviceData) {
             [NSURLProtocol registerClass:[GTWSPARQLTestHarnessURLProtocol class]];
@@ -433,23 +453,33 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             id<GTWModel> model  = [[SPKQuadModel alloc] initWithQuadStore:epstore];
             [GTWSPARQLTestHarnessURLProtocol mockEndpoint:endpoint withModel:model defaultGraph: defaultGraph];
         }
-        NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:query.value] error:nil];
+        NSString* requestType   = (update ? @"update" : @"query");
+        NSString* requestFile   = (update ? update.value : query.value);
+        
+        NSError* error;
+        NSFileHandle* fh            = [NSFileHandle fileHandleForReadingFromURL:[NSURL URLWithString:requestFile] error:&error];
+        if (error) {
+            NSLog(@"Failed to open %@ file: %@", requestType, error);
+            return nil;
+        }
         NSData* contents            = [fh readDataToEndOfFile];
         NSString* sparql            = [[NSString alloc] initWithData:contents encoding:NSUTF8StringEncoding];
         if (self.verbose)
-            NSLog(@"query file: %@", query.value);
-
-        
-        
-        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
+            NSLog(@"%@ file: %@", requestType, requestFile);
         
         if (self.verbose)
             NSLog(@"SPARQL:\n%@", sparql);
         
-        NSError* error;
-        id<SPKTree> algebra            = [parser parseSPARQL:sparql withBaseURI:query.value error:&error];
+        id<SPKTree> algebra     = (update)
+                                ? [parser parseSPARQLQuery:sparql withBaseURI:requestFile error:&error]
+                                : [parser parseSPARQLUpdate:sparql withBaseURI:requestFile error:&error];
+        if (error) {
+            NSLog(@"Failed to parse eval %@ file: %@", requestType, error);
+            return nil;
+        }
+        
         if (!algebra) {
-            NSLog(@"failed to parse eval query: %@", query.value);
+            NSLog(@"no algebra produced by parser for %@: %@", requestType, requestFile);
             return nil;
         }
         
@@ -468,7 +498,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         id<GTWModel> testModel  = [[SPKQuadModel alloc] initWithQuadStore:testStore];
         
         if (self.verbose)
-            NSLog(@"query:\n%@", algebra);
+            NSLog(@"%@:\n%@", requestType, algebra);
         
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
@@ -507,7 +537,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        id<SPKTree> algebra            = [parser parseSPARQL:sparql withBaseURI:action.value error:error];
+        id<SPKTree> algebra            = [parser parseSPARQLQuery:sparql withBaseURI:action.value error:error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;
@@ -600,55 +630,108 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSLog(@"%lu total quads\n", count);
         }
         
-        NSArray* got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
         id<GTWSerializer> s;
         Class resultsClass  = [(SPKTree*) plan planResultClass];
         if ([resultsClass isEqual: [NSDictionary class]]) {
             s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
-        } else {
+        } else if ([resultsClass isEqual: [GTWTriple class]]) {
             s   = [[SPKNTriplesSerializer alloc] init];
+        } else if ([resultsClass isEqual: [NSNumber class]]) {
+            // update operation
+        } else {
+            NSLog(@"*** Don't know how to handle results of type %@", resultsClass);
+            return NO;
         }
         
         GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
         id<GTWTerm> result          = [model anyObjectForSubject:test predicate:mfresult graph:nil];
-        NSString* resultsFilename   = [[NSURL URLWithString:result.value] path];
-        NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:resultsFilename];
+        // TODO: for update tests, this is a bnode with info on the resulting graphstore, not a results filename
         
         NSArray* expected;
         NSMutableSet* vars      = [NSMutableSet set];
-        if (self.verbose) {
-            NSLog(@"Results file: %@", resultsFilename);
-        }
-        
-        
-        Class RDFParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWRDFParser)];
-        Class SPARQLParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWSPARQLResultsParser)];
-        if (RDFParserClass) {
-//            NSLog(@"-> Parsing RDF results format from %@", resultsFilename);
-            NSMutableArray* triples = [NSMutableArray array];
-            GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
-            __block BOOL sparqlResults  = NO;
-            NSData* data                = [fh readDataToEndOfFile];
-            id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
-            NSError* error;
-            [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-                if ([t.object.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
-                    sparqlResults   = YES;
-                }
-                [triples addObject:t];
-            } error:&error];
-            
-            if (sparqlResults) {
-                expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
-            } else {
-                expected    = triples;
+
+
+        NSArray* got;
+        if ([result isKindOfClass:[GTWIRI class]]) {
+            got     = [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
+
+            NSString* resultsFilename   = [[NSURL URLWithString:result.value] path];
+            NSFileHandle* fh            = [NSFileHandle fileHandleForReadingAtPath:resultsFilename];
+            if (self.verbose) {
+                NSLog(@"Results file: %@", resultsFilename);
             }
-        } else if (SPARQLParserClass) {
-//            NSLog(@"-> Parsing SPARQL Results format from %@", resultsFilename);
-            NSData* data                = [fh readDataToEndOfFile];
-            id<GTWSPARQLResultsParser> parser   = [[SPARQLParserClass alloc] init];
-            expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
+            Class RDFParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWRDFParser)];
+            Class SPARQLParserClass   = [SPKSPARQLPluginHandler parserForFilename:resultsFilename conformingToProtocol:@protocol(GTWSPARQLResultsParser)];
+            if (RDFParserClass) {
+    //            NSLog(@"-> Parsing RDF results format from %@", resultsFilename);
+                NSMutableArray* triples = [NSMutableArray array];
+                GTWIRI* base                = [[GTWIRI alloc] initWithValue:[NSString stringWithFormat:@"file://%@", resultsFilename]];
+                __block BOOL sparqlResults  = NO;
+                NSData* data                = [fh readDataToEndOfFile];
+                id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
+                NSError* error;
+                [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+                    if ([t.object.value isEqualToString:@"http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"]) {
+                        sparqlResults   = YES;
+                    }
+                    [triples addObject:t];
+                } error:&error];
+                
+                if (sparqlResults) {
+                    expected    = [self SPARQLResultsEnumeratorFromTriples:triples settingVariables: vars];
+                } else {
+                    expected    = triples;
+                }
+            } else if (SPARQLParserClass) {
+    //            NSLog(@"-> Parsing SPARQL Results format from %@", resultsFilename);
+                NSData* data                = [fh readDataToEndOfFile];
+                id<GTWSPARQLResultsParser> parser   = [[SPARQLParserClass alloc] init];
+                expected    = [[parser parseResultsFromData: data settingVariables: vars] allObjects];
+            }
+        } else {
+            [[engine evaluateQueryPlan:plan withModel:testModel] allObjects];
+            {
+                NSMutableArray* quads   = [NSMutableArray array];
+                [testModel enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
+                    [quads addObject:q];
+                } error:nil];
+                got = [quads copy];
+//                NSLog(@"------> Got %@", got);
+            }
+            
+            GTWIRI* utdata          = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#data"];
+            GTWIRI* utgraph         = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#graph"];
+            GTWIRI* utgraphdata     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2009/sparql/tests/test-update#graphData"];
+            GTWIRI* rdfslabel       = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2000/01/rdf-schema#label"];
+            NSArray* data           = [model objectsForSubject:result predicate:utdata graph:nil];
+            NSArray* graphData      = [model objectsForSubject:result predicate:utgraphdata graph:nil];
+            SPKMemoryQuadStore* expectStore = [[SPKMemoryQuadStore alloc] init];
+            for (id<GTWIRI> datafile in data) {
+                if (self.verbose) {
+                    NSLog(@"data file: %@", datafile.value);
+                }
+                [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:expectStore withGraph:defaultGraph base: datafile];
+            }
+            for (id<GTWTerm> g in graphData) {
+                id<GTWIRI> datafile     = (id<GTWIRI>) [model anyObjectForSubject:g predicate:utgraph graph:nil];
+                id<GTWTerm> graphname   = [model anyObjectForSubject:g predicate:rdfslabel graph:nil];
+                if (self.verbose) {
+                    NSLog(@"named graph data file: %@ for graph %@", datafile.value, graphname.value);
+                }
+                GTWIRI* graph   = [[GTWIRI alloc] initWithValue:graphname.value];
+                [self loadFile:[[NSURL URLWithString:datafile.value] path] intoStore:expectStore withGraph:graph base: datafile];
+            }
+            
+            {
+                NSMutableArray* quads   = [NSMutableArray array];
+                [expectStore enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
+                    [quads addObject:q];
+                } error:nil];
+                expected    = [quads copy];
+//                NSLog(@"------> Expected %@", expected);
+            }
         }
+        
         
         NSError* reason;
         if ([GTWGraphIsomorphism graphEnumerator:[got objectEnumerator] isomorphicWith:[expected objectEnumerator] canonicalize:YES reason:&reason]) {
@@ -670,16 +753,18 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 
                 if (self.verbose) {
                     {
+//                        NSLog(@"plan: %@", plan);
                         NSSet* variables    = [plan inScopeVariables];
                         NSData* data;
                         if ([resultsClass isEqual: [GTWTriple class]]) {
                             data    = [(id<GTWTriplesSerializer>)s dataFromTriples:[got objectEnumerator]];
-                        } else {
+                        } else if ([resultsClass isEqual: [NSDictionary class]]) {
                             data    = [(id<GTWSPARQLResultsSerializer>)s dataFromResults:[got objectEnumerator] withVariables:variables];
+                        } else {
+                            data    = [[got description] dataUsingEncoding:NSUTF8StringEncoding];
                         }
                         fprintf(stderr, "got:\n");
                         fwrite([data bytes], [data length], 1, stderr);
-                        
                     }
                     
                     {
@@ -690,8 +775,10 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                         NSData* data;
                         if ([resultsClass isEqual: [GTWTriple class]]) {
                             data    = [(id<GTWTriplesSerializer>)s dataFromTriples:[expected objectEnumerator]];
-                        } else {
+                        } else if ([resultsClass isEqual: [NSDictionary class]]) {
                             data    = [(id<GTWSPARQLResultsSerializer>)s dataFromResults:[expected objectEnumerator] withVariables:variables];
+                        } else {
+                            data    = [[expected description] dataUsingEncoding:NSUTF8StringEncoding];
                         }
                         fprintf(stderr, "expected:\n");
                         fwrite([data bytes], [data length], 1, stderr);

@@ -36,7 +36,11 @@ SPKTreeType __strong const kPlanZeroOrOnePath           = @"PlanZeroOrOnePath";
 SPKTreeType __strong const kPlanNPSPath                 = @"PlanNPS";
 SPKTreeType __strong const kPlanConstruct               = @"PlanConstruct";
 SPKTreeType __strong const kPlanLoad                    = @"PlanLoad";
+SPKTreeType __strong const kPlanModify                  = @"PlanModify";
 SPKTreeType __strong const kPlanInsertData              = @"PlanInsertData";
+SPKTreeType __strong const kPlanDeleteData              = @"PlanDeleteData";
+SPKTreeType __strong const kPlanCopy                    = @"PlanCopy";
+SPKTreeType __strong const kPlanSequence                = @"PlanSequence";
 SPKTreeType __strong const kPlanCustom                  = @"PlanCustom";
 
 // Algebras
@@ -67,6 +71,10 @@ SPKTreeType __strong const kAlgebraLoad                 = @"AlgebraLoad";
 SPKTreeType __strong const kAlgebraClear                = @"AlgebraClear";
 SPKTreeType __strong const kAlgebraDrop                 = @"AlgebraDrop";
 SPKTreeType __strong const kAlgebraCreate               = @"AlgebraCreate";
+SPKTreeType __strong const kAlgebraAdd                  = @"AlgebraAdd";
+SPKTreeType __strong const kAlgebraCopy                 = @"AlgebraCopy";
+SPKTreeType __strong const kAlgebraModify               = @"AlgebraModify";
+SPKTreeType __strong const kAlgebraSequence             = @"AlgebraSequence";
 
 // Leaving the tree value space
 SPKTreeType __strong const kTreeSet						= @"TreeSet";
@@ -224,7 +232,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
             }
             
             if (![n conformsToProtocol:@protocol(SPKTree)]) {
-                NSLog(@"argument object isn't a tree object: %@", n);
+                NSLog(@"%@ argument[%d] object isn't a tree object : %@", type, i, n);
             }
             
             [arguments addObject:n];
@@ -454,7 +462,9 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (Class) planResultClass {
-    if ([self.type isEqual:kPlanConstruct] || [self.type isEqual:kPlanDescribe]) {
+    if ([self.type isEqual:kPlanSequence] || [self.type isEqual:kPlanLoad] || [self.type isEqual:kPlanModify] || [self.type isEqual:kPlanInsertData] || [self.type isEqual:kPlanDeleteData] || [self.type isEqual:kPlanCopy]) {
+        return [NSNumber class];
+    } else if ([self.type isEqual:kPlanConstruct] || [self.type isEqual:kPlanDescribe]) {
         return [GTWTriple class];
     } else {
         return [NSDictionary class];

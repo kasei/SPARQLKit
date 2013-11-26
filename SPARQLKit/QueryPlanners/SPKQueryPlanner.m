@@ -268,7 +268,11 @@
         return [[SPKQueryPlan alloc] initWithType:kPlanProject treeValue: list arguments:@[lhs]];
     } else if ([algebra.type isEqual:kAlgebraJoin] || [algebra.type isEqual:kTreeList]) {
         if ([algebra.arguments count] == 0) {
-            return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+            if ([algebra.type isEqual:kTreeList]) {
+                return [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:@[]];
+            } else {
+                return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
+            }
         } else if ([algebra.arguments count] == 1) {
             return [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:dataset withModel:model options:options];
         } else if ([algebra.arguments count] == 2) {
@@ -354,6 +358,8 @@
             return nil;
         
         return [[SPKQueryPlan alloc] initWithType:kPlanOrder treeValue: list arguments:@[plan]];
+    } else if ([algebra.type isEqual:kTreeQuad]) {
+        return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: algebra.value];
     } else if ([algebra.type isEqual:kTreeTriple]) {
         t   = algebra.value;
         defaultGraphs   = [dataset defaultGraphs];
@@ -377,8 +383,129 @@
     } else if ([algebra.type isEqual:kAlgebraLoad]) {
         id<SPKTree> list    = algebra.treeValue;
         return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:[list copyWithZone:nil] arguments:nil];
+    } else if ([algebra.type isEqual:kAlgebraAdd]) {
+        id<SPKTree> list        = algebra.treeValue;
+        id<SPKTree> silentTree  = list.arguments[0];
+        id<SPKTree> srcTree     = list.arguments[1];
+        id<SPKTree> dstTree     = list.arguments[2];
+        
+        GTWVariable* s          = [[GTWVariable alloc] initWithValue:@"s"];
+        GTWVariable* p          = [[GTWVariable alloc] initWithValue:@"p"];
+        GTWVariable* o          = [[GTWVariable alloc] initWithValue:@"o"];
+        id<SPKTree> ipattern, qpattern;
+        if ([srcTree.type isEqual: kTreeString]) {
+            // DEFAULT
+            GTWTriple* t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+            SPKTree* tt     = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+            qpattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[tt]];
+        } else {
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:srcTree.value];
+            SPKTree* qt     = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            qpattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[qt]];
+        }
+        
+        if ([dstTree.type isEqual: kTreeString]) {
+            // DEFAULT
+            GTWTriple* t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+            SPKTree* tt     = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+            ipattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[tt]];
+        } else {
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:dstTree.value];
+            SPKTree* qt     = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            ipattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[qt]];
+        }
+
+        id<SPKTree> dpattern    = [[SPKTree alloc] initWithType:kTreeList arguments:@[]];
+
+        id<SPKTree> algebra = [[SPKTree alloc] initWithType:kAlgebraModify treeValue:nil arguments:@[dpattern, ipattern, qpattern]];
+//        NSLog(@"ADD planning algebra: %@", algebra);
+        return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+//        id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:qpattern usingDataset:dataset withModel:model options:options];
+//        return [[SPKQueryPlan alloc] initWithType:kPlanModify treeValue:nil arguments:@[dpattern, ipattern, plan]];
+    } else if ([algebra.type isEqual:kAlgebraCopy]) {
+        // TODO: this should change Copy to be the same plan as: INSERT { ( GRAPH dst )? { ?s ?p ?o } } WHERE { ( GRAPH src )? { ?s ?p ?o } }
+        // TODO: check if src = dst; in that case, produce a no-op plan
+        id<SPKTree> list    = algebra.treeValue;
+        return [[SPKQueryPlan alloc] initWithType:kPlanCopy treeValue:[list copyWithZone:nil] arguments:nil];
     } else if ([algebra.type isEqual:kAlgebraInsertData]) {
-        return [[SPKQueryPlan alloc] initWithType:kPlanLoad arguments:algebra.arguments];
+        NSMutableArray* quads   = [NSMutableArray arrayWithCapacity:[algebra.arguments count]];
+        for (id<SPKTree> tree in algebra.arguments) {
+            id<GTWStatement> st = tree.value;
+            if (![st conformsToProtocol:@protocol(GTWQuad)]) {
+                NSArray* defaultGraphs   = [dataset defaultGraphs];
+                for (id<GTWIRI> dg in defaultGraphs) {
+                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+                    [quads addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                }
+            } else {
+                [quads addObject:tree];
+            }
+        }
+        return [[SPKQueryPlan alloc] initWithType:kPlanInsertData arguments:quads];
+    } else if ([algebra.type isEqual:kAlgebraDeleteData]) {
+        NSLog(@"DELETE DATA: %@", algebra);
+        NSMutableArray* quads   = [NSMutableArray arrayWithCapacity:[algebra.arguments count]];
+        for (id<SPKTree> tree in algebra.arguments) {
+            id<GTWStatement> st = tree.value;
+            if (![st conformsToProtocol:@protocol(GTWQuad)]) {
+                NSArray* defaultGraphs   = [dataset defaultGraphs];
+                for (id<GTWIRI> dg in defaultGraphs) {
+                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+//                    NSLog(@"DELETE DATA quad: %@", st);
+                    [quads addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                }
+            } else {
+                [quads addObject:tree];
+            }
+        }
+        return [[SPKQueryPlan alloc] initWithType:kPlanDeleteData arguments:quads];
+    } else if ([algebra.type isEqual:kAlgebraModify]) {
+        id<SPKTree> dpattern    = algebra.arguments[0];
+        id<SPKTree> ipattern    = algebra.arguments[1];
+        
+        NSMutableArray* dstatements    = [NSMutableArray array];
+        NSMutableArray* istatements    = [NSMutableArray array];
+        for (id<SPKTree> tst in dpattern.arguments) {
+            id<GTWStatement> st = tst.value;
+            if (![st conformsToProtocol:@protocol(GTWQuad)]) {
+                NSArray* defaultGraphs   = [dataset defaultGraphs];
+                for (id<GTWIRI> dg in defaultGraphs) {
+                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+                    [dstatements addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                }
+            } else {
+                [dstatements addObject:tst];
+            }
+        }
+        for (id<SPKTree> tst in ipattern.arguments) {
+            id<GTWStatement> st = tst.value;
+            if (![st conformsToProtocol:@protocol(GTWQuad)]) {
+                NSArray* defaultGraphs   = [dataset defaultGraphs];
+                for (id<GTWIRI> dg in defaultGraphs) {
+                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+                    [istatements addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                }
+            } else {
+                [istatements addObject:tst];
+            }
+        }
+        
+        id<SPKTree> dlist   = [[SPKTree alloc] initWithType:kTreeList arguments:dstatements];
+        id<SPKTree> ilist   = [[SPKTree alloc] initWithType:kTreeList arguments:istatements];
+        
+        id<SPKTree> qpattern    = algebra.arguments[2];
+        id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:qpattern usingDataset:dataset withModel:model options:options];
+        SPKQueryPlan* modify = [[SPKQueryPlan alloc] initWithType:kPlanModify treeValue:nil arguments:@[dlist, ilist, plan]];
+        return modify;
+    } else if ([algebra.type isEqual:kAlgebraSequence]) {
+        NSMutableArray* ops = [NSMutableArray array];
+        for (id<SPKTree> t in algebra.arguments) {
+            id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:t usingDataset:dataset withModel:model options:options];
+            if (!plan)
+                return nil;
+            [ops addObject:plan];
+        }
+        return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
     } else {
         NSLog(@"cannot plan query algebra of type %@\n", [algebra treeTypeName]);
     }
