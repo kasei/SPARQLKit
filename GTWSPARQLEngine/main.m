@@ -434,6 +434,50 @@ int main(int argc, const char * argv[]) {
         }
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
+    } else if ([op isEqual: @"repl"]) {
+        NSFileHandle* fh    = [NSFileHandle fileHandleWithStandardInput];
+        SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
+        SPKSPARQLParser* parser  = [[SPKSPARQLParser alloc] init];
+        NSError* error;
+        GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
+        Class c;
+        NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
+        id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        if (!model) {
+            NSLog(@"Failed to construct model for query");
+            return 1;
+        }
+        GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
+        SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
+        
+        while (YES) {
+            fprintf(stdout, "> ");
+            fflush(stdout);
+            id<SPKTree> algebra    = [parser parseSPARQLQueryFromLexer:l withBaseURI:kDefaultBase checkEOF:NO error:&error];
+            if (error) {
+                NSLog(@"parser error: %@", error);
+            }
+            if (verbose) {
+                NSLog(@"query:\n%@", algebra);
+            }
+            
+            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+            if (verbose) {
+                NSLog(@"plan:\n%@", plan);
+            }
+            
+            NSSet* variables    = [plan inScopeVariables];
+            if (verbose) {
+                NSLog(@"executing query...");
+            }
+            id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
+            NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
+            id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+            
+            NSData* data        = [s dataFromResults:e withVariables:variables];
+            fwrite([data bytes], [data length], 1, stdout);
+        }
+        return 0;
     } else if ([op isEqual: @"endpoint"]) {
         if (argc < (argi+1)) {
             NSLog(@"endpoint operation must be supplied with a data source configuration string.");
