@@ -152,7 +152,7 @@
                 (self.indexes)[name] = idx;
             } else {
                 NSString* desc  = [NSString stringWithFormat:@"Index on terms <%@> already exists", name];
-                _error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
+                _error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:2 userInfo:@{@"description": desc}];
 //                NSLog(@"%@", desc);
                 ok  = NO;
                 return;
@@ -187,7 +187,7 @@
     } else {
         NSString* desc  = [NSString stringWithFormat:@"Attempt to add unknown index type %@", type];
         if (error) {
-            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:1 userInfo:@{@"description": desc}];
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:3 userInfo:@{@"description": desc}];
         }
         return NO;
     }
@@ -265,6 +265,13 @@
 
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
 //    NSLog(@"+ %8lu %@", [self.quads count], q);
+    if (![q isGround]) {
+        NSString* desc  = [NSString stringWithFormat:@"Attempt to add a non-ground quad: %@", q];
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:4 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
     [self.quads addObject:q];
     dispatch_barrier_async(self.queue, ^{
         for (NSString* name in self.indexes) {
@@ -282,6 +289,13 @@
 }
 
 - (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+    if (![q isGround]) {
+        NSString* desc  = [NSString stringWithFormat:@"Attempt to remove a non-ground quad: %@", q];
+        if (error) {
+            *error  = [NSError errorWithDomain:@"us.kasei.sparql.store.memory" code:5 userInfo:@{@"description": desc}];
+        }
+        return NO;
+    }
     [self.quads removeObject:q];
     dispatch_barrier_async(self.queue, ^{
         for (NSString* name in self.indexes) {
