@@ -1329,7 +1329,6 @@ cleanup:
 //[40]  	DeleteWhere	  ::=  	'DELETE WHERE' QuadPattern
 - (id<SPKTree>) parseDelteWhereWithErrors: (NSMutableArray*) errors {
     id<SPKTree> dclause = [self parseQuadPatternWithErrors: errors];
-    NSLog(@"DELETE WHERE: %@", dclause);
     
     for (id<SPKTree> t in dclause.arguments) {
         id<GTWStatement> st = t.value;

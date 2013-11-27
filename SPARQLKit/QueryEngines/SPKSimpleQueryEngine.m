@@ -691,7 +691,7 @@ MORE_LOOP:
     
     for (id<SPKTree> tree in plan.arguments) {
         id<GTWQuad> q   = tree.value;
-        [mmodel removeQuad:q error:&error];
+        [mmodel addQuad:q error:&error];
         if (error) {
             NSLog(@"error removing quad: %@", error);
         }

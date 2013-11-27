@@ -491,6 +491,55 @@
             [ops addObject:dropSource];
         }
         return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
+    } else if ([algebra.type isEqual:kAlgebraClear]) {
+        //# Remove all triples from the graph named with the IRI denoted by IRIref.
+        //DELETE { GRAPH IRIref { ?s ?p ?o } } WHERE { GRAPH IRIref { ?s ?p ?o } }
+        id<SPKTree> list        = algebra.treeValue;
+        id<SPKTree> silentTree  = list.arguments[0];
+        id<SPKTree> srcTree     = list.arguments[1];
+        
+        GTWVariable* s          = [[GTWVariable alloc] initWithValue:@"s"];
+        GTWVariable* p          = [[GTWVariable alloc] initWithValue:@"p"];
+        GTWVariable* o          = [[GTWVariable alloc] initWithValue:@"o"];
+        GTWVariable* g          = [[GTWVariable alloc] initWithValue:@"g"];
+        
+        id<SPKTree> dpattern;
+        id<SPKTree> ipattern    = [[SPKTree alloc] initWithType:kTreeList arguments:@[]];
+        if ([srcTree.value isEqualToString:@"ALL"]) {
+            // CLEAR ALL
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:g];
+            id<SPKTree> pat = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            dpattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[pat]];
+            id<SPKTree> algebra     = [[SPKTree alloc] initWithType:kAlgebraModify treeValue:nil arguments:@[dpattern, ipattern, dpattern]];
+            return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+        } else if ([srcTree.value isEqualToString:@"GRAPH"]) {
+            id<SPKTree> graphTree   = list.arguments[2];
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:graphTree.value];
+            id<SPKTree> pat = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            dpattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[pat]];
+            id<SPKTree> algebra     = [[SPKTree alloc] initWithType:kAlgebraModify treeValue:nil arguments:@[dpattern, ipattern, dpattern]];
+            return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+        } else if ([srcTree.value isEqualToString:@"NAMED"] || [srcTree.value isEqualToString:@"DEFAULT"]) {
+            NSArray* graphs;
+            if ([srcTree.value isEqualToString:@"DEFAULT"]) {
+                // CLEAR DEFAULT
+                graphs  = [dataset defaultGraphs];
+            } else {
+                // CLEAR NAMED
+                graphs  = [dataset availableGraphsFromModel:model];
+            }
+            NSMutableArray* ops     = [NSMutableArray array];
+            for (id<GTWIRI> dg in graphs) {
+                GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:dg];
+                id<SPKTree> pat = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+                dpattern        = [[SPKTree alloc] initWithType:kTreeList arguments:@[pat]];
+                id<SPKTree> algebra     = [[SPKTree alloc] initWithType:kAlgebraModify treeValue:nil arguments:@[dpattern, ipattern, dpattern]];
+                id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+                [ops addObject:plan];
+            }
+            
+            return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
+        }
     } else if ([algebra.type isEqual:kAlgebraDrop]) {
         id<SPKTree> list        = algebra.treeValue;
         id<SPKTree> silentTree  = list.arguments[0];
