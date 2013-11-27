@@ -16,6 +16,47 @@
     return self;
 }
 
+- (id<SPKTree,GTWQueryPlan>) planQuad: (id<GTWQuad>) q usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
+//    NSLog(@"Planning quad with dataset: %@", dataset);
+    if (dataset.availabilityType == GTWRestrictedDataset) {
+//        NSLog(@"Restricted dataset");
+        // TODO: Need to restrict quad matching to restricted dataset
+        NSMutableArray* graphs = [[dataset availableGraphsFromModel:model] mutableCopy];
+        [graphs addObjectsFromArray:[dataset defaultGraphs]];
+        
+        id<GTWTerm> g    = q.graph;
+        if ([g isKindOfClass:[GTWVariable class]]) {
+//            NSLog(@"Quad has a variable graph %@", g);
+            id<SPKTree,GTWQueryPlan> plan   = [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: q];
+            
+            id<SPKTree> tn      = [[SPKTree alloc] initWithType:kTreeNode value:g arguments:nil];
+            NSMutableArray* graphTrees  = [NSMutableArray array];
+            for (id<GTWIRI> graph in graphs) {
+                id<SPKTree> tree    = [[SPKTree alloc] initWithType:kTreeNode value:graph arguments:nil];
+                [graphTrees addObject:tree];
+            }
+            id<SPKTree> list    = [[SPKTree alloc] initWithType:kTreeList arguments:graphTrees];
+            id<SPKTree> expr    = [[SPKTree alloc] initWithType:kExprIn arguments:@[tn, list]];
+            id<SPKTree> algebra = [[SPKTree alloc] initWithType:kAlgebraFilter treeValue:expr arguments:@[plan]];
+            return [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+        } else {
+//            NSLog(@"Quad has an IRI graph %@", g);
+            NSSet* graphsSet    = [NSSet setWithArray:graphs];
+//            NSLog(@"-> graphs from dataset: %@", graphsSet);
+            
+            if ([graphsSet containsObject:g]) {
+                return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: q];
+            } else {
+                return [[SPKQueryPlan alloc] initWithType:kPlanEmpty arguments:nil];
+            }
+        }
+        
+//        NSLog(@"Need to restrict quad matching to restricted dataset");
+    } else {
+        return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: q];
+    }
+}
+
 - (NSArray*) statementsForTemplateAlgebra: (id<SPKTree>) algebra {
     if ([algebra.type isEqual:kTreeList] || [algebra.type isEqual:kAlgebraBGP]) {
         NSMutableArray* triples = [NSMutableArray array];
@@ -208,14 +249,14 @@
         
         id<GTWTerm> graph       = graphtree.value;
         if ([graph isKindOfClass:[GTWIRI class]]) {
-            GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
+            GTWDataset* newDataset  = [GTWDataset datasetFromDataset:dataset withDefaultGraphs:@[graph]];
+//            GTWDataset* newDataset  = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[graph]];
             id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra.arguments[0] usingDataset:newDataset withModel:model options:options];
             if (!plan) {
                 NSLog(@"Failed to plan child of GRAPH <iri> pattern");
                 return nil;
             }
             
-            plan    = [[SPKQueryPlan alloc] initWithType:kPlanGraph treeValue: graphtree arguments:@[plan]];
             return plan;
         } else {
             NSArray* graphs = [dataset availableGraphsFromModel:model];
@@ -358,7 +399,7 @@
         
         return [[SPKQueryPlan alloc] initWithType:kPlanOrder treeValue: list arguments:@[plan]];
     } else if ([algebra.type isEqual:kTreeQuad]) {
-        return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: algebra.value];
+        return [self planQuad:algebra.value usingDataset:dataset withModel:model options:options];
     } else if ([algebra.type isEqual:kTreeTriple]) {
         t   = algebra.value;
         NSArray* defaultGraphs  = [dataset defaultGraphs];
@@ -366,12 +407,16 @@
         if (count == 0) {
             return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
         } else if (count == 1) {
-            return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
+            id<GTWQuad> q   = [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]];
+            return [self planQuad:q usingDataset:dataset withModel:model options:options];
         } else {
-            id<SPKTree,GTWQueryPlan> plan   = [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]]];
+            id<GTWQuad> q                   = [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[0]];
+            id<SPKTree,GTWQueryPlan> plan   = [self planQuad:q usingDataset:dataset withModel:model options:options];
             NSInteger i;
             for (i = 1; i < count; i++) {
-                plan    = [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]]]]];
+                id<GTWQuad> q   = [[GTWQuad alloc] initWithSubject:t.subject predicate:t.predicate object:t.object graph:defaultGraphs[i]];
+                id<SPKTree> qp  = [self planQuad:q usingDataset:dataset withModel:model options:options];
+                plan            = [[SPKQueryPlan alloc] initWithType:kPlanUnion arguments:@[plan, qp]];
             }
             return plan;
         }
@@ -584,7 +629,7 @@
         }
         return [[SPKQueryPlan alloc] initWithType:kPlanInsertData arguments:quads];
     } else if ([algebra.type isEqual:kAlgebraDeleteData]) {
-        NSLog(@"DELETE DATA: %@", algebra);
+//        NSLog(@"DELETE DATA: %@", algebra);
         NSMutableArray* quads   = [NSMutableArray arrayWithCapacity:[algebra.arguments count]];
         for (id<SPKTree> tree in algebra.arguments) {
             id<GTWStatement> st = tree.value;

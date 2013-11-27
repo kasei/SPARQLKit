@@ -1328,7 +1328,7 @@ cleanup:
 
 //[40]  	DeleteWhere	  ::=  	'DELETE WHERE' QuadPattern
 - (id<SPKTree>) parseDelteWhereWithErrors: (NSMutableArray*) errors {
-    id<SPKTree> dclause = [self parseQuadPatternWithErrors: errors];
+    id<SPKTree> dclause = [self parseQuadPatternWithDefaultGraph:nil errors:errors];
     
     for (id<SPKTree> t in dclause.arguments) {
         id<GTWStatement> st = t.value;
@@ -1347,7 +1347,7 @@ cleanup:
 //[42]  	DeleteClause	  ::=  	'DELETE' QuadPattern
 //[43]  	InsertClause	  ::=  	'INSERT' QuadPattern
 - (id<SPKTree>) parseModifyWithParsedVerb: (NSString*) verb withErrors: (NSMutableArray*) errors {
-    id<SPKTree> graph   = nil;
+    id<SPKTree> withGraph   = nil;
     id<SPKTree> dclause     = nil;
     id<SPKTree> iclause     = nil;
     SPKSPARQLToken* delete;
@@ -1355,17 +1355,17 @@ cleanup:
     if (!verb) {
         SPKSPARQLToken* with    = [self parseOptionalTokenOfType:KEYWORD withValue:@"WITH"];
         if (with) {
-            graph = [self parseVarOrTermWithErrors:errors];
+            withGraph = [self parseVarOrTermWithErrors:errors];
         }
         delete  = [self parseOptionalTokenOfType:KEYWORD withValue:@"DELETE"];
     }
     
     if (delete || (verb && [verb isEqualToString:@"DELETE"])) {
-        dclause = [self parseQuadPatternWithErrors: errors];
+        dclause = [self parseQuadPatternWithDefaultGraph: withGraph.value errors: errors];
         ASSERT_EMPTY(errors);
         SPKSPARQLToken* insert  = [self parseOptionalTokenOfType:KEYWORD withValue:@"INSERT"];
         if (insert) {
-            iclause = [self parseQuadPatternWithErrors: errors];
+            iclause = [self parseQuadPatternWithDefaultGraph: withGraph.value errors: errors];
             ASSERT_EMPTY(errors);
         }
     } else {
@@ -1373,7 +1373,7 @@ cleanup:
             [self parseExpectedTokenOfType:KEYWORD withValue:@"INSERT" withErrors:errors];
             ASSERT_EMPTY(errors);
         }
-        iclause = [self parseQuadPatternWithErrors: errors];
+        iclause = [self parseQuadPatternWithDefaultGraph: withGraph.value errors: errors];
         ASSERT_EMPTY(errors);
     }
     
@@ -1389,6 +1389,10 @@ cleanup:
     if (!iclause)
         iclause = [[SPKTree alloc] initWithType:kTreeList arguments:@[]];
 
+    if (withGraph) {
+        ggp     = [[SPKTree alloc] initWithType:kAlgebraGraph treeValue: withGraph arguments:@[ggp]];
+    }
+    
     if (dataset) {
         ggp = [[SPKTree alloc] initWithType:kAlgebraDataset treeValue: dataset arguments:@[ggp]];
     }
@@ -1425,10 +1429,24 @@ cleanup:
 }
 
 //[48]  	QuadPattern	  ::=  	'{' Quads '}'
-- (id<SPKTree>) parseQuadPatternWithErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseQuadPatternWithDefaultGraph:(id<GTWIRI>) graph errors:(NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LBRACE withErrors:errors];
     ASSERT_EMPTY(errors);
     NSArray* quads = [self parseQuadsWithErrors: errors];
+    if (graph) {
+        NSMutableArray* graphQuads  = [NSMutableArray array];
+        for (id<SPKTree> t in quads) {
+            if ([t.type isEqual:kTreeTriple]) {
+                id<GTWTriple> triple    = t.value;
+                GTWQuad* q  = [GTWQuad quadFromTriple:triple withGraph:graph];
+                id<SPKTree> qt  = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+                [graphQuads addObject:qt];
+            } else {
+                [graphQuads addObject:t];
+            }
+            quads   = [graphQuads copy];
+        }
+    }
     ASSERT_EMPTY(errors);
     [self parseExpectedTokenOfType:RBRACE withErrors:errors];
     ASSERT_EMPTY(errors);
@@ -1468,7 +1486,6 @@ cleanup:
     }
 
     while (YES) {
-        // TODO: what's the stopping condition here?
         SPKSPARQLToken* t   = [self peekNextNonCommentToken];
         if (t.type == KEYWORD && [t.value isEqualToString:@"GRAPH"]) {
             [self parseExpectedTokenOfType:KEYWORD withValue:@"GRAPH" withErrors:errors];
@@ -3185,7 +3202,7 @@ cleanup:
             if (!ggp)
                 return nil;
             id<SPKTree> graph   = [[SPKTree alloc] initWithType:kTreeNode value:g arguments:nil];
-            id<SPKTree> graphPattern    = [[SPKTree alloc] initWithType:kAlgebraGraph treeValue: graph arguments:@[ggp]];
+            id<SPKTree> graphPattern    = [[SPKTree alloc] initWithType:kAlgebraGraph treeValue:graph arguments:@[ggp]];
             return graphPattern;
         } else if ([kw isEqualToString:@"SERVICE"]) {
             // 'SERVICE' 'SILENT'? VarOrIri GroupGraphPattern
