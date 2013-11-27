@@ -91,18 +91,16 @@
 }
 
 - (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError **)error {
-    @autoreleasepool {
-        NSMutableSet* graphs    = [NSMutableSet set];
-        [_store enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
-            [graphs addObject:g];
-        } error:error];
-        if ([graphs containsObject:graph]) {
-            if (error) {
-                NSString* desc  = [NSString stringWithFormat:@"Quad store backing model already contains graph: %@", graph];
-                *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:5 userInfo:@{@"description": desc}];
-            }
-            return NO;
+    NSMutableSet* graphs    = [NSMutableSet set];
+    [_store enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
+        [graphs addObject:g];
+    } error:error];
+    if ([graphs containsObject:graph]) {
+        if (error) {
+            NSString* desc  = [NSString stringWithFormat:@"Quad store backing model already contains graph: %@", graph];
+            *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.quadmodel" code:5 userInfo:@{@"description": desc}];
         }
+        return NO;
     }
     // This is a no-op because quad stores don't distinguish between empty and non-existent graphs
     return YES;
@@ -110,14 +108,12 @@
 
 - (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
     if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
-        @autoreleasepool {
-            NSMutableArray* quads = [NSMutableArray array];
-            [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graph usingBlock:^(id<GTWQuad> q) {
-                [quads addObject:q];
-            } error:error];
-            for (id<GTWQuad> q in quads) {
-                [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
-            }
+        NSMutableArray* quads = [NSMutableArray array];
+        [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graph usingBlock:^(id<GTWQuad> q) {
+            [quads addObject:q];
+        } error:error];
+        for (id<GTWQuad> q in quads) {
+            [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
         }
         return YES;
     } else {

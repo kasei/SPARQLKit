@@ -638,6 +638,8 @@
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:qpattern usingDataset:dataset withModel:model options:options];
         SPKQueryPlan* modify = [[SPKQueryPlan alloc] initWithType:kPlanModify treeValue:nil arguments:@[dlist, ilist, plan]];
         return modify;
+    } else if ([algebra.type isEqual:kAlgebraCreate]) {
+        return [[SPKQueryPlan alloc] initWithType:kPlanCreate treeValue:algebra.treeValue arguments:nil];
     } else if ([algebra.type isEqual:kAlgebraSequence]) {
         NSMutableArray* ops = [NSMutableArray array];
         for (id<SPKTree> t in algebra.arguments) {

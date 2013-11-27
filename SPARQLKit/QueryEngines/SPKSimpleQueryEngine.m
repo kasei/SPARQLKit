@@ -410,7 +410,7 @@ static NSString* OSVersionNumber ( void ) {
 	if (data) {
 		NSInteger code	= [resp statusCode];
         if (code >= 300) {
-            //            NSLog(@"error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
+            //            NSLog(@"Error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
             NSDictionary* headers	= [resp allHeaderFields];
             NSString* type		= headers[@"Content-Type"];
             NSError* e;
@@ -693,10 +693,34 @@ MORE_LOOP:
         id<GTWQuad> q   = tree.value;
         [mmodel addQuad:q error:&error];
         if (error) {
-            NSLog(@"error removing quad: %@", error);
+            NSLog(@"Error removing quad: %@", error);
         }
     }
 
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
+
+
+- (NSEnumerator*) evaluateCreate:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    NSError* error  = nil;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+    
+    id<SPKTree> list        = plan.treeValue;
+    id<SPKTree> silentTree  = list.arguments[0];
+    id<GTWLiteral> silent   = silentTree.value;
+    id<SPKTree> graphTree   = list.arguments[1];
+    id<GTWIRI> graph        = graphTree.value;
+    [mmodel createGraph:graph error:&error];
+    if (error && ![silent booleanValue]) {
+        NSLog(@"Error creating graph: %@", error);
+        return nil;
+    }
+    
     NSNumber* r = [NSNumber numberWithBool:YES];
     return [@[r] objectEnumerator];
 }
@@ -716,7 +740,7 @@ MORE_LOOP:
 //        NSLog(@"DROPing graph %@", graph);
         [mmodel dropGraph:graph error:&error];
         if (error) {
-            NSLog(@"error dropping graph: %@", error);
+            NSLog(@"Error dropping graph: %@", error);
         }
     } else {
         // DROP ALL
@@ -725,13 +749,13 @@ MORE_LOOP:
             [graphs addObject:g];
         } error:&error];
         if (error) {
-            NSLog(@"error enumerating graphs for DROP: %@", error);
+            NSLog(@"Error enumerating graphs for DROP: %@", error);
         }
         for (id<GTWIRI> graph in graphs) {
 //            NSLog(@"DROPing graph %@", graph);
             [mmodel dropGraph:graph error:&error];
             if (error) {
-                NSLog(@"error dropping graph: %@", error);
+                NSLog(@"Error dropping graph: %@", error);
             }
         }
     }
@@ -751,7 +775,7 @@ MORE_LOOP:
         id<GTWQuad> q   = tree.value;
         [mmodel removeQuad:q error:&error];
         if (error) {
-            NSLog(@"error removing quad: %@", error);
+            NSLog(@"Error removing quad: %@", error);
         }
     }
     
@@ -790,7 +814,7 @@ MORE_LOOP:
 //                    NSLog(@"removing %@", st);
                     [mmodel removeQuad:st error:&error];
                     if (error) {
-                        NSLog(@"error removing quad: %@", error);
+                        NSLog(@"Error removing quad: %@", error);
                     }
                 }
             }
@@ -811,7 +835,7 @@ MORE_LOOP:
 //                    NSLog(@"adding %@", st);
                     [mmodel addQuad:st error:&error];
                     if (error) {
-                        NSLog(@"error adding quad: %@", error);
+                        NSLog(@"Error adding quad: %@", error);
                     }
                 }
             }
@@ -949,6 +973,8 @@ MORE_LOOP:
         return [self evaluateDeleteData:plan withModel:model];
     } else if ([type isEqual:kPlanDrop] || [type isEqual:kPlanDropAll]) {
         return [self evaluateDrop:plan withModel:model];
+    } else if ([type isEqual:kPlanCreate]) {
+        return [self evaluateCreate:plan withModel:model];
     } else if ([type isEqual:kPlanSequence]) {
         NSEnumerator* e;
         for (id<GTWQueryPlan> p in plan.arguments) {

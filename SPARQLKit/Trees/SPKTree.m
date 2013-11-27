@@ -39,6 +39,7 @@ SPKTreeType __strong const kPlanLoad                    = @"PlanLoad";
 SPKTreeType __strong const kPlanModify                  = @"PlanModify";
 SPKTreeType __strong const kPlanInsertData              = @"PlanInsertData";
 SPKTreeType __strong const kPlanDeleteData              = @"PlanDeleteData";
+SPKTreeType __strong const kPlanCreate                  = @"PlanCreate";
 SPKTreeType __strong const kPlanDrop                    = @"PlanDrop";
 SPKTreeType __strong const kPlanDropAll                 = @"PlanDropAll";
 SPKTreeType __strong const kPlanSequence                = @"PlanSequence";
