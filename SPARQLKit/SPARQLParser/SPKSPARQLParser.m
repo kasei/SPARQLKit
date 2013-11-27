@@ -147,8 +147,8 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
                 algebra = [self parseCreateWithErrors:errors];
             } else if ([t.value isEqualToString:@"ADD"]) {
                 algebra = [self parseAddWithErrors:errors];
-            } else if ([t.value isEqualToString:@"COPY"]) {
-                algebra = [self parseCopyWithErrors:errors];
+            } else if ([t.value isEqualToString:@"COPY"] || [t.value isEqualToString:@"MOVE"]) {
+                algebra = [self parseCopyOrMoveWithErrors:errors];
             } else if ([t.value isEqualToString:@"WITH"]) {
                 algebra = [self parseModifyWithParsedVerb:nil withErrors:errors];
             } else if ([t.value isEqualToString: @"INSERT"]) {
@@ -1267,9 +1267,13 @@ cleanup:
     return [[SPKTree alloc] initWithType:kAlgebraAdd treeValue:data arguments:nil];
 }
 
+//[36]  	Move	  ::=  	'MOVE' 'SILENT'? GraphOrDefault 'TO' GraphOrDefault
 //[37]  	Copy	  ::=  	'COPY' 'SILENT'? GraphOrDefault 'TO' GraphOrDefault
-- (SPKTree*) parseCopyWithErrors: (NSMutableArray*) errors {    // TODO: this is an identical production to ADD; merge the code, changing just the verb token and the algebra type that is produced
-    [self parseExpectedTokenOfType:KEYWORD withValue:@"COPY" withErrors:errors];
+- (SPKTree*) parseCopyOrMoveWithErrors: (NSMutableArray*) errors {    // TODO: this is an identical production to ADD; merge the code, changing just the verb token and the algebra type that is produced
+    SPKSPARQLToken* move    = [self parseOptionalTokenOfType:KEYWORD withValue:@"MOVE"];
+    if (!move) {
+        [self parseExpectedTokenOfType:KEYWORD withValue:@"COPY" withErrors:errors];
+    }
     ASSERT_EMPTY(errors);
     
     SPKSPARQLToken* silent  = [self parseOptionalTokenOfType:KEYWORD withValue:@"SILENT"];
@@ -1319,7 +1323,7 @@ cleanup:
     [list addObject:dst];
     
     id<SPKTree> data   = [[SPKTree alloc] initWithType:kTreeList arguments:list];
-    return [[SPKTree alloc] initWithType:kAlgebraCopy treeValue:data arguments:nil];
+    return [[SPKTree alloc] initWithType:(move ? kAlgebraMove : kAlgebraCopy) treeValue:data arguments:nil];
 }
 
 //[40]  	DeleteWhere	  ::=  	'DELETE WHERE' QuadPattern

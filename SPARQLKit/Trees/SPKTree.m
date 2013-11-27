@@ -74,6 +74,7 @@ SPKTreeType __strong const kAlgebraDrop                 = @"AlgebraDrop";
 SPKTreeType __strong const kAlgebraCreate               = @"AlgebraCreate";
 SPKTreeType __strong const kAlgebraAdd                  = @"AlgebraAdd";
 SPKTreeType __strong const kAlgebraCopy                 = @"AlgebraCopy";
+SPKTreeType __strong const kAlgebraMove                 = @"AlgebraMove";
 SPKTreeType __strong const kAlgebraModify               = @"AlgebraModify";
 SPKTreeType __strong const kAlgebraSequence             = @"AlgebraSequence";
 

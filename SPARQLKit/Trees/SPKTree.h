@@ -76,6 +76,7 @@ extern SPKTreeType __strong const kAlgebraDrop;
 extern SPKTreeType __strong const kAlgebraCreate;
 extern SPKTreeType __strong const kAlgebraAdd;
 extern SPKTreeType __strong const kAlgebraCopy;
+extern SPKTreeType __strong const kAlgebraMove;
 extern SPKTreeType __strong const kAlgebraModify;
 extern SPKTreeType __strong const kAlgebraSequence;
 
