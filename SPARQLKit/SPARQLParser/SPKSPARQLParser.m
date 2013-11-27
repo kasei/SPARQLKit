@@ -55,20 +55,28 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
-    
-    self.lexer      = [[SPKSPARQLLexer alloc] initWithString:unescaped];
+    SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:unescaped];
+    return [self parseSPARQLQueryFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+}
+
+- (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error {
+    self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
-    return [self parseWithError:error];
+    return [self parseCheckingEOF:checkEOF error:error];
 }
 
 - (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
-    
-    self.lexer      = [[SPKSPARQLLexer alloc] initWithString:unescaped];
+    SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:unescaped];
+    return [self parseSPARQLUpdateFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+}
+
+- (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error {
+    self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
-    return [self parseWithError:error];
+    return [self parseCheckingEOF: checkEOF error:error];
 }
 
 - (SPKSPARQLToken*) peekNextNonCommentToken {
@@ -99,7 +107,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 //[29]  	Update	  ::=  	Prologue ( Update1 ( ';' Update )? )?
 //[30]  	Update1	  ::=  	Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify
 
-- (id<SPKTree>) parseWithError: (NSError**) error {
+- (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF error:(NSError**) error {
     SPKSPARQLToken* t;
     id<SPKTree> algebra;
     [self beginQueryScope];
@@ -220,10 +228,16 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
                 [updateOperations addObject:algebra];
                 [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
                 ASSERT_EMPTY(errors);
-                goto UPDATE_LOOP;
+                if (!checkEOF) {
+                    goto UPDATE_BREAK;
+                } else {
+                    goto UPDATE_LOOP;
+                }
             }
-            [self errorMessage:[NSString stringWithFormat: @"Found extra content after parsed query: %@", t] withErrors:errors];
-            goto cleanup;
+            if (checkEOF) {
+                [self errorMessage:[NSString stringWithFormat: @"Found extra content after parsed query: %@", t] withErrors:errors];
+                goto cleanup;
+            }
         }
     UPDATE_BREAK:
         if ([updateOperations count]) {
