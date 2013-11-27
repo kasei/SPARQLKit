@@ -422,10 +422,63 @@
 //        id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:qpattern usingDataset:dataset withModel:model options:options];
 //        return [[SPKQueryPlan alloc] initWithType:kPlanModify treeValue:nil arguments:@[dpattern, ipattern, plan]];
     } else if ([algebra.type isEqual:kAlgebraCopy]) {
-        // TODO: this should change Copy to be the same plan as: INSERT { ( GRAPH dst )? { ?s ?p ?o } } WHERE { ( GRAPH src )? { ?s ?p ?o } }
-        // TODO: check if src = dst; in that case, produce a no-op plan
-        id<SPKTree> list    = algebra.treeValue;
-        return [[SPKQueryPlan alloc] initWithType:kPlanCopy treeValue:[list copyWithZone:nil] arguments:nil];
+        id<SPKTree> list        = algebra.treeValue;
+        id<SPKTree> silentTree  = list.arguments[0];
+        id<SPKTree> srcTree     = list.arguments[1];
+        id<SPKTree> dstTree     = list.arguments[2];
+        NSLog(@"COPY list: %@", [list longDescription]);
+        
+        GTWVariable* s          = [[GTWVariable alloc] initWithValue:@"s"];
+        GTWVariable* p          = [[GTWVariable alloc] initWithValue:@"p"];
+        GTWVariable* o          = [[GTWVariable alloc] initWithValue:@"o"];
+        if ([srcTree isEqual:dstTree]) {
+            // no-op copy
+            return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:@[]];
+        }
+        
+        id<SPKTree> src, dst;
+        id<GTWQueryPlan> drop;
+        if ([srcTree.type isEqual:kTreeString]) {
+            // COPY from DEFAULT
+            GTWTriple* t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+            SPKTree* tt     = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+            src             = [[SPKTree alloc] initWithType:kTreeList arguments:@[tt]];
+        } else {
+            // COPY from GRAPH
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:srcTree.value];
+            SPKTree* qt     = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            src             = [[SPKTree alloc] initWithType:kTreeList arguments:@[qt]];
+        }
+        
+        if ([dstTree.type isEqual:kTreeString]) {
+            // COPY to DEFAULT
+            GTWTriple* t    = [[GTWTriple alloc] initWithSubject:s predicate:p object:o];
+            SPKTree* tt     = [[SPKTree alloc] initWithType:kTreeTriple value:t arguments:nil];
+            dst             = [[SPKTree alloc] initWithType:kTreeList arguments:@[tt]];
+            
+            NSArray* graphs = [dataset defaultGraphs];
+            NSMutableArray* ops     = [NSMutableArray array];
+            for (id<GTWIRI> dg in graphs) {
+                id<SPKTree> tn      = [[SPKTree alloc] initWithType:kTreeNode value:dg arguments:nil];
+                id<SPKTree> plan    = [[SPKQueryPlan alloc] initWithType:kPlanDrop treeValue:tn arguments:nil];
+                [ops addObject:plan];
+            }
+            drop    = [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
+        } else {
+            // COPY to GRAPH
+            GTWQuad* q      = [[GTWQuad alloc] initWithSubject:s predicate:p object:o graph:dstTree.value];
+            SPKTree* qt     = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+            dst             = [[SPKTree alloc] initWithType:kTreeList arguments:@[qt]];
+            drop            = [[SPKQueryPlan alloc] initWithType:kPlanDrop treeValue:dstTree arguments:nil];
+        }
+        
+        id<SPKTree> dpattern    = [[SPKTree alloc] initWithType:kTreeList arguments:@[]];
+        id<SPKTree> algebra     = [[SPKTree alloc] initWithType:kAlgebraModify treeValue:nil arguments:@[dpattern, dst, src]];
+
+        
+        
+        id<GTWQueryPlan> plan   = [self queryPlanForAlgebra:algebra usingDataset:dataset withModel:model options:options];
+        return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:@[drop, plan]];
     } else if ([algebra.type isEqual:kAlgebraDrop]) {
         id<SPKTree> list        = algebra.treeValue;
         id<SPKTree> silentTree  = list.arguments[0];

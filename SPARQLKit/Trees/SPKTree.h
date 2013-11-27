@@ -40,7 +40,6 @@ extern SPKTreeType __strong const kPlanLoad;
 extern SPKTreeType __strong const kPlanModify;
 extern SPKTreeType __strong const kPlanInsertData;
 extern SPKTreeType __strong const kPlanDeleteData;
-extern SPKTreeType __strong const kPlanCopy;                // TODO: remove this when the planner can produce the equivalent plan to an INSERT/WHERE
 extern SPKTreeType __strong const kPlanDrop;
 extern SPKTreeType __strong const kPlanDropAll;
 extern SPKTreeType __strong const kPlanSequence;

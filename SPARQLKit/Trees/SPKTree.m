@@ -41,7 +41,6 @@ SPKTreeType __strong const kPlanInsertData              = @"PlanInsertData";
 SPKTreeType __strong const kPlanDeleteData              = @"PlanDeleteData";
 SPKTreeType __strong const kPlanDrop                    = @"PlanDrop";
 SPKTreeType __strong const kPlanDropAll                 = @"PlanDropAll";
-SPKTreeType __strong const kPlanCopy                    = @"PlanCopy";
 SPKTreeType __strong const kPlanSequence                = @"PlanSequence";
 SPKTreeType __strong const kPlanCustom                  = @"PlanCustom";
 
@@ -464,7 +463,7 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (Class) planResultClass {
-    if ([self.type isEqual:kPlanSequence] || [self.type isEqual:kPlanLoad] || [self.type isEqual:kPlanModify] || [self.type isEqual:kPlanInsertData] || [self.type isEqual:kPlanDeleteData] || [self.type isEqual:kPlanCopy] || [self.type isEqual:kPlanDrop]) {
+    if ([self.type isEqual:kPlanSequence] || [self.type isEqual:kPlanLoad] || [self.type isEqual:kPlanModify] || [self.type isEqual:kPlanInsertData] || [self.type isEqual:kPlanDeleteData] || [self.type isEqual:kPlanDrop]) {
         return [NSNumber class];
     } else if ([self.type isEqual:kPlanConstruct] || [self.type isEqual:kPlanDescribe]) {
         return [GTWTriple class];
