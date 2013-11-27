@@ -31,7 +31,7 @@
 
 - (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
 - (SPKSPARQLLexer*) initWithString: (NSString*) string;
-- (SPKSPARQLToken*) getToken;
-- (SPKSPARQLToken*) peekToken;
+- (SPKSPARQLToken*) getTokenWithError:(NSError**)error;
+- (SPKSPARQLToken*) peekTokenWithError:(NSError**)error;
 
 @end

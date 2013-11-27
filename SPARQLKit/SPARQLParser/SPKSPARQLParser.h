@@ -19,6 +19,7 @@
 
 - (SPKSPARQLParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base;
 
+- (SPKSPARQLToken*) nextNonCommentToken;
 - (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error;
 - (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error;
 

@@ -5,6 +5,14 @@
 #import <GTWSWBase/GTWBlank.h>
 #import <GTWSWBase/GTWIRI.h>
 
+typedef NS_ENUM(NSInteger, SPKTurtleParserErrorCode) {
+    SPKTurtleParserError,
+	SPKTurtleUnexpectedTokenError,
+    SPKTurtleUndeclaredPrefixError,
+    SPKTurtleBadTokenError,
+};
+
+
 /**
  @description The SPKTurtleParser class provides a @c GTWRDFParser that parses Turtle data
               into a set of @c GTWTriple objects.

@@ -314,7 +314,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             [store addQuad:(id<GTWQuad>)[renamer renameObject:q inContext:ctx] error:nil];
         } error:&error];
         if (error) {
-            NSLog(@"parser error: %@", error);
+            NSLog(@"RDF parser error: %@", error);
         }
         //  NSLog(@"%lu total quads\n", count);
     } else {
@@ -340,7 +340,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         } error:&error];
         //  NSLog(@"%lu total quads\n", count);
         if (error) {
-            NSLog(@"parser error: %@", error);
+            NSLog(@"RDF parser error: %@", error);
         }
     }
 }

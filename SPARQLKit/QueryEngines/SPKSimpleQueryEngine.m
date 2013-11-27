@@ -796,6 +796,21 @@ MORE_LOOP:
         return nil;
     }
     
+    
+    NSUInteger counter = 0;
+    NSMutableSet* blanks    = [NSMutableSet set];
+    for (id<SPKTree> tree in insert.arguments) {
+        id<GTWStatement> st = tree.value;
+        for (id<GTWTerm> term in [st allValues]) {
+            if ([term isKindOfClass:[GTWBlank class]]) {
+                [blanks addObject:term];
+            }
+        }
+    }
+    
+    
+    
+    
     NSError* error;
     id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
     
@@ -821,12 +836,19 @@ MORE_LOOP:
         }
     }
 //    NSLog(@"INSERT pattern: %@", insert);
+    NSUInteger updateNumber = ++_updateOperationCounter;
     for (NSDictionary* result in results) {
+        NSUInteger loopCount    = counter++;
         NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (id<GTWTerm> b in blanks) {
+            id<GTWTerm> nb  = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"b%lu.%lu.%@", updateNumber, loopCount, b.value]];
+            mapping[b]      = nb;
+        }
         for (NSString* varname in result) {
             GTWVariable* v  = [[GTWVariable alloc] initWithValue:varname];
             mapping[v]    = result[varname];
         }
+//        NSLog(@"INSERT mapping: %@", mapping);
         for (id<SPKTree> tree in insert.arguments) {
             id<GTWRewriteable> pattern  = tree.value;
             id<GTWQuad, GTWRewriteable> st   = [pattern copyReplacingValues:mapping];
@@ -854,9 +876,7 @@ MORE_LOOP:
     NSUInteger counter = 0;
     NSMutableSet* blanks    = [NSMutableSet set];
     for (id<GTWTriple> t in template) {
-//        NSLog(@"triple ---> %@", t);
         for (id<GTWTerm> term in [t allValues]) {
-//            NSLog(@"triple term ---> %@", term);
             if ([term isKindOfClass:[GTWBlank class]]) {
                 [blanks addObject:term];
             }

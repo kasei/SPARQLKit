@@ -12,6 +12,7 @@
 
 @interface SPKSimpleQueryEngine : NSObject<GTWQueryEngine>
 
+@property NSUInteger updateOperationCounter;
 @property SPKExpressionEvaluationContext* evalctx;
 @property NSUInteger bnodeCounter;
 

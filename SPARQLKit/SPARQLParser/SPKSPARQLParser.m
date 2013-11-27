@@ -81,11 +81,12 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 
 - (SPKSPARQLToken*) peekNextNonCommentToken {
     while (YES) {
-        SPKSPARQLToken* t   = [self.lexer peekToken];
+        NSError* error;
+        SPKSPARQLToken* t   = [self.lexer peekTokenWithError:&error];
         if (!t)
             return nil;
         if (t.type == COMMENT) {
-            [self.lexer getToken];
+            [self.lexer getTokenWithError:&error];
         } else {
             return t;
         }
@@ -93,9 +94,10 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 }
 
 - (SPKSPARQLToken*) nextNonCommentToken {
-    SPKSPARQLToken* t   = [self.lexer getToken];
+    NSError* error;
+    SPKSPARQLToken* t   = [self.lexer getTokenWithError:&error];
     while (t.type == COMMENT) {
-        t   = [self.lexer getToken];
+        t   = [self.lexer getTokenWithError:&error];
     }
     return t;
 }
@@ -112,7 +114,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     id<SPKTree> algebra;
     [self beginQueryScope];
     NSMutableArray* errors  = [NSMutableArray array];
-    
+
     BOOL updateOK   = YES;
     
     @autoreleasepool {
@@ -122,6 +124,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
             goto cleanup;
     UPDATE_LOOP:
         t   = [self peekNextNonCommentToken];
+        
         if (!t) {
             goto UPDATE_BREAK;
         }
@@ -227,7 +230,8 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
             if (updateOK && t.type == SEMICOLON) {
                 [updateOperations addObject:algebra];
                 [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
-                ASSERT_EMPTY(errors);
+                if ([errors count])
+                    goto cleanup;
                 if (!checkEOF) {
                     goto UPDATE_BREAK;
                 } else {
@@ -242,8 +246,10 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     UPDATE_BREAK:
         if ([updateOperations count]) {
             [updateOperations addObject:algebra];
+//            NSLog(@"Updates: %@", updateOperations);
             [self checkForSharedBlanksInPatterns:updateOperations error:errors];
-            ASSERT_EMPTY(errors);
+            if ([errors count])
+                goto cleanup;
             algebra = [[SPKTree alloc] initWithType:kAlgebraSequence arguments:updateOperations];
         } else if (!algebra) {
             if (updateOK) {
@@ -1712,7 +1718,13 @@ cleanup:
 - (BOOL) checkForSharedBlanksInPatterns: (NSArray*) args error: (NSMutableArray*) errors {
     NSMutableSet* seen  = [NSMutableSet set];
     for (id<SPKTree> p in args) {
-        NSSet* blanks   = [p referencedBlanks];
+        NSSet* blanks;
+        if ([p.type isEqual:kAlgebraModify]) {
+            id<SPKTree> where   = p.arguments[2];
+            blanks   = [where referencedBlanks];
+        } else {
+            blanks   = [p referencedBlanks];
+        }
         NSMutableSet* intersection  = [seen mutableCopy];
         [intersection intersectSet:blanks];
         if ([intersection count]) {

@@ -152,6 +152,21 @@
     return algebra;
 }
 
+- (id<SPKTree>) replaceVariablesWithBlanks: (id<SPKTree>) algebra {
+    NSSet* vars   = [algebra inScopeVariables];
+    if ([vars count]) {
+        NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
+        for (id<GTWTerm> v in vars) {
+            if ([v.value hasPrefix:@".b"]) {
+                id<GTWTerm> b   = [[GTWBlank alloc] initWithValue:[NSString stringWithFormat:@"b%@", [v.value substringFromIndex:2]]];
+                mapping[v]      = b;
+            }
+        }
+        return [algebra copyReplacingValues:mapping];
+    }
+    return algebra;
+}
+
 - (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options {
     algebra = [self replaceBlanksWithVariables:algebra];
     BOOL customPlanning = YES;
@@ -620,11 +635,14 @@
             if (![st conformsToProtocol:@protocol(GTWQuad)]) {
                 NSArray* defaultGraphs   = [dataset defaultGraphs];
                 for (id<GTWIRI> dg in defaultGraphs) {
-                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
-                    [quads addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                    id<GTWQuad,GTWRewriteable> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+                    id<SPKTree> qt  = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+                    qt              = [self replaceVariablesWithBlanks:qt];
+                    [quads addObject:qt];
                 }
             } else {
-                [quads addObject:tree];
+                id<SPKTree> qt  = [self replaceVariablesWithBlanks:tree];
+                [quads addObject:qt];
             }
         }
         return [[SPKQueryPlan alloc] initWithType:kPlanInsertData arguments:quads];
@@ -636,12 +654,14 @@
             if (![st conformsToProtocol:@protocol(GTWQuad)]) {
                 NSArray* defaultGraphs   = [dataset defaultGraphs];
                 for (id<GTWIRI> dg in defaultGraphs) {
-                    id<GTWQuad> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
-//                    NSLog(@"DELETE DATA quad: %@", st);
-                    [quads addObject:[[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil]];
+                    id<GTWQuad,GTWRewriteable> q   = [GTWQuad quadFromTriple:(id<GTWTriple>)st withGraph:dg];
+                    id<SPKTree> qt  = [[SPKTree alloc] initWithType:kTreeQuad value:q arguments:nil];
+                    qt              = [self replaceVariablesWithBlanks:qt];
+                    [quads addObject:qt];
                 }
             } else {
-                [quads addObject:tree];
+                id<SPKTree> qt  = [self replaceVariablesWithBlanks:tree];
+                [quads addObject:qt];
             }
         }
         return [[SPKQueryPlan alloc] initWithType:kPlanDeleteData arguments:quads];
@@ -678,6 +698,8 @@
         
         id<SPKTree> dlist   = [[SPKTree alloc] initWithType:kTreeList arguments:dstatements];
         id<SPKTree> ilist   = [[SPKTree alloc] initWithType:kTreeList arguments:istatements];
+        
+        ilist   = [self replaceVariablesWithBlanks:ilist];
         
         id<SPKTree> qpattern    = algebra.arguments[2];
         id<SPKTree,GTWQueryPlan> plan   = [self queryPlanForAlgebra:qpattern usingDataset:dataset withModel:model options:options];

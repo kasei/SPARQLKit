@@ -832,6 +832,7 @@
 					"$(inherited)",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
@@ -850,8 +851,10 @@
 					/usr/local/Cellar/raptor/2.0.9/lib,
 					/usr/local/Cellar/redland/1.0.16/lib,
 				);
+				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUN_CLANG_STATIC_ANALYZER = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -876,6 +879,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SPARQLKit/SPARQLKit-Prefix.pch";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
@@ -896,6 +900,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUN_CLANG_STATIC_ANALYZER = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;
@@ -1002,6 +1007,7 @@
 					/usr/local/Cellar/rasqal/0.9.30/lib,
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
+				LLVM_LTO = NO;
 				PRODUCT_NAME = GTWSPARQLEngine;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = macosx10.8;

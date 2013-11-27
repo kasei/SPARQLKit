@@ -40,8 +40,12 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     
     if (NO) {
         SPKSPARQLToken* t;
-        while ((t = [l getToken])) {
+        NSError* error;
+        while ((t = [l getTokenWithError:&error])) {
             NSLog(@"token: %@\n", t);
+        }
+        if (error) {
+            NSLog(@"Error parsing RDF: %@", error);
         }
         return 0;
     }
@@ -232,8 +236,12 @@ int lexQuery(NSString* query, NSString* base) {
     
     NSLog(@"Query tokens:\n-----------------------\n");
     SPKSPARQLToken* t;
-    while ((t = [l getToken])) {
+    NSError* error;
+    while ((t = [l getTokenWithError:&error])) {
         NSLog(@"%@\n", t);
+    }
+    if (error) {
+        NSLog(@"Error parsing query: %@", error);
     }
     return 0;
 }
@@ -436,7 +444,7 @@ int main(int argc, const char * argv[]) {
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"repl"]) {
         NSFileHandle* fh    = [NSFileHandle fileHandleWithStandardInput];
-        SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
+        SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
         SPKSPARQLParser* parser  = [[SPKSPARQLParser alloc] init];
         NSError* error;
         GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
@@ -451,11 +459,22 @@ int main(int argc, const char * argv[]) {
         SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         
         while (YES) {
+        REPL_LOOP:
             fprintf(stdout, "> ");
             fflush(stdout);
-            id<SPKTree> algebra    = [parser parseSPARQLQueryFromLexer:l withBaseURI:kDefaultBase checkEOF:NO error:&error];
+            id<SPKTree> algebra    = [parser parseSPARQLQueryFromLexer:lexer withBaseURI:kDefaultBase checkEOF:NO error:&error];
             if (error) {
                 NSLog(@"parser error: %@", error);
+                [parser nextNonCommentToken];
+                while (YES) {
+                    NSData* data    = [fh readDataOfLength:1];
+                    NSLog(@"data: %@", data);
+                    if ([data length] == 0)
+                        break;
+                    char* bytes = (char*) [data bytes];
+                    if (bytes[0] == '\n')
+                        goto REPL_LOOP;
+                }
             }
             if (verbose) {
                 NSLog(@"query:\n%@", algebra);
@@ -539,11 +558,15 @@ int main(int argc, const char * argv[]) {
 //        GTWIRI* graph         = [[GTWIRI alloc] initWithValue:base];
         GTWIRI* baseuri         = [[GTWIRI alloc] initWithValue:base];
         SPKTurtleParser* p      = [[SPKTurtleParser alloc] initWithLexer:l base: baseuri];
+        NSError* error;
         if (p) {
             [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
 //                GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
                 fprintf(stdout, "%s\n", [[t description] UTF8String]);
-            } error:nil];
+            } error:&error];
+            if (error) {
+                NSLog(@"Error parsing RDF: %@", error);
+            }
         } else {
             NSLog(@"Could not construct parser");
         }
