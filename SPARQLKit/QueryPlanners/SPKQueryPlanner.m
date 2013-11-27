@@ -137,7 +137,6 @@
     }
     id<GTWTriple> t;
     NSInteger count;
-    NSArray* defaultGraphs;
     
 //    NSLog(@"-------> %@", algebra);
     if ([algebra.type isEqual:kAlgebraDistinct] || [algebra.type isEqual:kAlgebraReduced]) {
@@ -362,7 +361,7 @@
         return [[SPKQueryPlan alloc] initLeafWithType:kTreeQuad value: algebra.value];
     } else if ([algebra.type isEqual:kTreeTriple]) {
         t   = algebra.value;
-        defaultGraphs   = [dataset defaultGraphs];
+        NSArray* defaultGraphs  = [dataset defaultGraphs];
         count   = [defaultGraphs count];
         if (count == 0) {
             return [[SPKQueryPlan alloc] initWithType:kPlanJoinIdentity arguments:@[]];
@@ -427,6 +426,34 @@
         // TODO: check if src = dst; in that case, produce a no-op plan
         id<SPKTree> list    = algebra.treeValue;
         return [[SPKQueryPlan alloc] initWithType:kPlanCopy treeValue:[list copyWithZone:nil] arguments:nil];
+    } else if ([algebra.type isEqual:kAlgebraDrop]) {
+        id<SPKTree> list        = algebra.treeValue;
+        id<SPKTree> silentTree  = list.arguments[0];
+        id<SPKTree> dstTree     = list.arguments[1];
+        if ([dstTree.value isEqualToString:@"ALL"]) {
+            // DROP ALL
+            return [[SPKQueryPlan alloc] initWithType:kPlanDropAll arguments:nil];
+        } else if ([dstTree.value isEqualToString:@"NAMED"] || [dstTree.value isEqualToString:@"DEFAULT"]) {
+            NSArray* graphs;
+            if ([dstTree.value isEqualToString:@"DEFAULT"]) {
+                // DROP DEFAULT
+                graphs  = [dataset defaultGraphs];
+            } else {
+                // DROP NAMED
+                graphs  = [dataset availableGraphsFromModel:model];
+            }
+//            NSLog(@"DROP %@ graphs: %@", dstTree.value, graphs);
+            NSMutableArray* ops     = [NSMutableArray array];
+            for (id<GTWIRI> dg in graphs) {
+                id<SPKTree> tn      = [[SPKTree alloc] initWithType:kTreeNode value:dg arguments:nil];
+                id<SPKTree> plan    = [[SPKQueryPlan alloc] initWithType:kPlanDrop treeValue:tn arguments:nil];
+                [ops addObject:plan];
+            }
+            return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
+        } else if ([dstTree.value isEqualToString:@"GRAPH"]) {
+            id<SPKTree> graphTree   = list.arguments[2];
+            return [[SPKQueryPlan alloc] initWithType:kPlanDrop treeValue:graphTree arguments:nil];
+        }
     } else if ([algebra.type isEqual:kAlgebraInsertData]) {
         NSMutableArray* quads   = [NSMutableArray arrayWithCapacity:[algebra.arguments count]];
         for (id<SPKTree> tree in algebra.arguments) {

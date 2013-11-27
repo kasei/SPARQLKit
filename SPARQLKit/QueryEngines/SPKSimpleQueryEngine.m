@@ -701,6 +701,44 @@ MORE_LOOP:
     return [@[r] objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateDrop:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    NSError* error;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+
+    if ([plan.type isEqual:kPlanDrop]) {
+        // DROP
+        id<SPKTree> graphTree   = plan.treeValue;
+        id<GTWIRI> graph        = graphTree.value;
+//        NSLog(@"DROPing graph %@", graph);
+        [mmodel dropGraph:graph error:&error];
+        if (error) {
+            NSLog(@"error dropping graph: %@", error);
+        }
+    } else {
+        // DROP ALL
+        NSMutableSet* graphs    = [NSMutableSet set];
+        [model enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
+            [graphs addObject:g];
+        } error:&error];
+        if (error) {
+            NSLog(@"error enumerating graphs for DROP: %@", error);
+        }
+        for (id<GTWIRI> graph in graphs) {
+//            NSLog(@"DROPing graph %@", graph);
+            [mmodel dropGraph:graph error:&error];
+            if (error) {
+                NSLog(@"error dropping graph: %@", error);
+            }
+        }
+    }
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
+
 - (NSEnumerator*) evaluateDeleteData:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
         NSLog(@"Model is not mutable");
@@ -909,6 +947,8 @@ MORE_LOOP:
         return [self evaluateInsertData:plan withModel:model];
     } else if ([type isEqual:kPlanDeleteData]) {
         return [self evaluateDeleteData:plan withModel:model];
+    } else if ([type isEqual:kPlanDrop] || [type isEqual:kPlanDropAll]) {
+        return [self evaluateDrop:plan withModel:model];
     } else if ([type isEqual:kPlanSequence]) {
         NSEnumerator* e;
         for (id<GTWQueryPlan> p in plan.arguments) {

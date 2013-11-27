@@ -112,7 +112,7 @@
     if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         @autoreleasepool {
             NSMutableArray* quads = [NSMutableArray array];
-            [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:nil usingBlock:^(id<GTWQuad> q) {
+            [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graph usingBlock:^(id<GTWQuad> q) {
                 [quads addObject:q];
             } error:error];
             for (id<GTWQuad> q in quads) {
