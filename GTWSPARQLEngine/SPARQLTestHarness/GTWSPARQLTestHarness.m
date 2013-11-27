@@ -125,26 +125,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
                 if ([f.value rangeOfString:@"csv-tsv-res"].location != NSNotFound)
                     continue;
                 
-                
-                // Skip update tests
-//                if ([f.value rangeOfString:@"add"].location != NSNotFound)
-//                    continue;
-//                if ([f.value rangeOfString:@"update"].location != NSNotFound) {
-//                    if ([f.value rangeOfString:@"syntax"].location == NSNotFound) {
-//                        continue;
-//                    }
-//                }
-                if ([f.value rangeOfString:@"clear"].location != NSNotFound)
-                    continue;
-                if ([f.value rangeOfString:@"copy"].location != NSNotFound)
-                    continue;
-//                if ([f.value rangeOfString:@"delete"].location != NSNotFound)
-//                    continue;
-                if ([f.value rangeOfString:@"drop"].location != NSNotFound)
-                    continue;
-                if ([f.value rangeOfString:@"move"].location != NSNotFound)
-                    continue;
-                
                 // Skip federation tests as the NSURLProtocol system used to mock requests seems to hang on recursive calls.
                 if ([f.value rangeOfString:@"service"].location != NSNotFound)
                     continue;
