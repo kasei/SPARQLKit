@@ -229,6 +229,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
         if (t) {
             if (updateOK && t.type == SEMICOLON) {
                 [updateOperations addObject:algebra];
+                algebra = nil;
                 [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
                 if ([errors count])
                     goto cleanup;
@@ -245,7 +246,9 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
         }
     UPDATE_BREAK:
         if ([updateOperations count]) {
-            [updateOperations addObject:algebra];
+            if (algebra) {
+                [updateOperations addObject:algebra];
+            }
 //            NSLog(@"Updates: %@", updateOperations);
             [self checkForSharedBlanksInPatterns:updateOperations error:errors];
             if ([errors count])
@@ -705,6 +708,9 @@ cleanup:
         SPKSPARQLToken* named   = [self parseOptionalTokenOfType:KEYWORD withValue:@"NAMED"];
         t   = [self nextNonCommentToken];
         id<GTWTerm> iri   = [self tokenAsTerm:t withErrors:errors];
+        if (!iri) {
+            return [self errorMessage:[NSString stringWithFormat:@"Failed to parse IRI from token in dataset clause: %@", t] withErrors:errors];
+        }
         if (named) {
             [namedSet addObject:iri];
         } else {

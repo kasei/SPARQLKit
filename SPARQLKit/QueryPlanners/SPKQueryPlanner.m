@@ -440,8 +440,23 @@
     } else if ([algebra.type isEqual:kTreeResultSet]) {
         return (id<SPKTree, GTWQueryPlan>) algebra;
     } else if ([algebra.type isEqual:kAlgebraLoad]) {
-        id<SPKTree> list    = algebra.treeValue;
-        return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:[list copyWithZone:nil] arguments:nil];
+        id<SPKTree> list        = algebra.treeValue;
+        id<SPKTree> silentTree  = list.arguments[0];
+        id<SPKTree> srcTree     = list.arguments[1];
+        NSMutableArray* data    = [NSMutableArray array];
+        [data addObject:silentTree];
+        [data addObject:srcTree];
+        if ([list.arguments count] > 2) {
+            [data addObject:list.arguments[2]];
+        } else {
+            NSArray* graphs = [dataset defaultGraphs];
+            id<GTWIRI> dg   = [graphs firstObject];
+            id<SPKTree> tn  = [[SPKTree alloc] initWithType:kTreeNode value:dg arguments:nil];
+            [data addObject:tn];
+        }
+        
+        id<SPKTree> newList = [[SPKTree alloc] initWithType:kTreeList arguments:data];
+        return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:newList arguments:nil];
     } else if ([algebra.type isEqual:kAlgebraAdd]) {
         id<SPKTree> list        = algebra.treeValue;
         id<SPKTree> silentTree  = list.arguments[0];

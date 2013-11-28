@@ -16,6 +16,7 @@
 #import "SPKExpression.h"
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
+#import "SPKSPARQLPluginHandler.h"
 
 static NSString* OSVersionNumber ( void ) {
     static NSString* productVersion    = nil;
@@ -374,6 +375,16 @@ static NSString* OSVersionNumber ( void ) {
     }
 }
 
+- (NSMutableURLRequest*) requestForRetrievingURL: (NSURL*) url error:(NSError**)error {
+	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
+	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
+    //	[req setTimeoutInterval:5.0];
+    
+	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
+	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
+    return req;
+}
+
 - (NSEnumerator*) evaluateServicePlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     id<SPKTree> list        = plan.treeValue;
     id<SPKTree> eptree      = list.arguments[0];
@@ -391,18 +402,13 @@ static NSString* OSVersionNumber ( void ) {
     NSString* query     = [NSString stringWithString:(__bridge NSString*) escaped];
     CFRelease(escaped);
     
+	NSError* _error			= nil;
 	NSURL* url	= [NSURL URLWithString:[NSString stringWithFormat:@"%@?query=%@", endpoint, query]];
-	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
-	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
-//	[req setTimeoutInterval:5.0];
-    
-	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
-	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
+    NSMutableURLRequest* req    = [self requestForRetrievingURL:url error:&_error];
 	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
     
 	NSData* data	= nil;
 	NSHTTPURLResponse* resp	= nil;
-	NSError* _error			= nil;
     //	NSLog(@"request: %@", req);
 	data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&_error];
 	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
@@ -701,6 +707,56 @@ MORE_LOOP:
     return [@[r] objectEnumerator];
 }
 
+- (NSEnumerator*) evaluateLoad:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
+        NSLog(@"Model is not mutable");
+        return nil;
+    }
+    NSError* error  = nil;
+    id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
+    
+    id<SPKTree> list        = plan.treeValue;
+    id<SPKTree> silentTree  = list.arguments[0];
+    id<GTWLiteral> silent   = silentTree.value;
+    id<SPKTree> urlTree     = list.arguments[1];
+    id<GTWIRI> iri          = urlTree.value;
+    id<SPKTree> graphTree   = list.arguments[2];
+    id<GTWIRI> graph        = graphTree.value;
+    // TODO: this should be checking the media type first
+    Class RDFParserClass    = [SPKSPARQLPluginHandler parserForFilename:iri.value conformingToProtocol:@protocol(GTWRDFParser)];
+    GTWIRI* base            = iri;
+    NSURL* url              = [NSURL URLWithString:iri.value];
+    NSMutableURLRequest* req    = [self requestForRetrievingURL:url error:&error];
+//	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
+    
+	NSHTTPURLResponse* resp	= nil;
+	NSLog(@"request: %@", req);
+    NSError* e;
+	NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&e];
+	NSLog(@"response: %@", resp);
+    NSInteger code	= [resp statusCode];
+    if (code >= 200 && code < 300) {
+        id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
+        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+            NSError* e;
+            [mmodel addQuad:q error:&e];
+        } error:&error];
+        if (error && ![silent booleanValue]) {
+            NSLog(@"Error loading graph: %@", error);
+            return nil;
+        }
+    }
+    if (code >= 300) {
+        if (error && ![silent booleanValue]) {
+            NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
+            return nil;
+        }
+    }
+    
+    NSNumber* r = [NSNumber numberWithBool:YES];
+    return [@[r] objectEnumerator];
+}
 
 - (NSEnumerator*) evaluateCreate:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
@@ -995,6 +1051,8 @@ MORE_LOOP:
         return [self evaluateDrop:plan withModel:model];
     } else if ([type isEqual:kPlanCreate]) {
         return [self evaluateCreate:plan withModel:model];
+    } else if ([type isEqual:kPlanLoad]) {
+        return [self evaluateLoad:plan withModel:model];
     } else if ([type isEqual:kPlanSequence]) {
         NSEnumerator* e;
         for (id<GTWQueryPlan> p in plan.arguments) {
