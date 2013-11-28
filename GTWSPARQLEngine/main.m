@@ -17,6 +17,7 @@
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 
 #import "GTWSPARQLTestHarness.h"
+#import "SPKNTriplesSerializer.h"
 
 // SPARQL Endpoint
 #import "GTWSPARQLConnection.h"
@@ -480,7 +481,7 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"query:\n%@", algebra);
             }
             
-            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+            SPKTree<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
             if (verbose) {
                 NSLog(@"plan:\n%@", plan);
             }
@@ -491,10 +492,28 @@ int main(int argc, const char * argv[]) {
             }
             id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
             NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-            id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
-            
-            NSData* data        = [s dataFromResults:e withVariables:variables];
-            fwrite([data bytes], [data length], 1, stdout);
+
+            Class resultClass   = [plan planResultClass];
+            if ([resultClass isEqual:[NSNumber class]]) {
+                NSNumber* result    = [e nextObject];
+                if ([result boolValue]) {
+                    printf("ok\n");
+                } else {
+                    printf("not ok\n");
+                }
+            } else if ([resultClass isEqual:[GTWTriple class]]) {
+                id<GTWTriplesSerializer> s    = [[SPKNTriplesSerializer alloc] init];
+                NSData* data        = [s dataFromTriples:e];
+                fwrite([data bytes], [data length], 1, stdout);
+            } else if ([resultClass isEqual:[GTWQuad class]]) {
+                id<GTWQuadsSerializer> s    = [[SPKNQuadsSerializer alloc] init];
+                NSData* data        = [s dataFromQuads:e];
+                fwrite([data bytes], [data length], 1, stdout);
+            } else {
+                id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+                NSData* data        = [s dataFromResults:e withVariables:variables];
+                fwrite([data bytes], [data length], 1, stdout);
+            }
         }
         return 0;
     } else if ([op isEqual: @"endpoint"]) {
