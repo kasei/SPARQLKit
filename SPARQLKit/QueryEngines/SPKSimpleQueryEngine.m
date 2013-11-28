@@ -864,9 +864,6 @@ MORE_LOOP:
         }
     }
     
-    
-    
-    
     NSError* error;
     id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
     
@@ -1057,6 +1054,12 @@ MORE_LOOP:
         NSEnumerator* e;
         for (id<GTWQueryPlan> p in plan.arguments) {
             e   = [self evaluateQueryPlan:p withModel:model];
+        }
+        
+        if (!e) {
+            // this was a no-op update sequence, which trivially succeeds
+            NSNumber* r = [NSNumber numberWithBool:YES];
+            e   = [@[r] objectEnumerator];
         }
         return e;
     } else if ([type isEqual:kTreeResultSet]) {
