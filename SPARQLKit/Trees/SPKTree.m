@@ -465,7 +465,14 @@ SPKTreeType __strong const kTreeResultSet				= @"ResultSet";
 }
 
 - (Class) planResultClass {
-    if ([self.type isEqual:kPlanSequence] || [self.type isEqual:kPlanLoad] || [self.type isEqual:kPlanModify] || [self.type isEqual:kPlanInsertData] || [self.type isEqual:kPlanDeleteData] || [self.type isEqual:kPlanDrop]) {
+    if ([self.type isEqual:kPlanSequence]) {
+        if ([self.arguments count]) {
+            SPKTree* child  = self.arguments[0];
+            return [child planResultClass];
+        } else {
+            return [NSNumber class];
+        }
+    } else if ([self.type isEqual:kPlanLoad] || [self.type isEqual:kPlanModify] || [self.type isEqual:kPlanInsertData] || [self.type isEqual:kPlanDeleteData] || [self.type isEqual:kPlanDrop]) {
         return [NSNumber class];
     } else if ([self.type isEqual:kPlanConstruct] || [self.type isEqual:kPlanDescribe]) {
         return [GTWTriple class];
