@@ -731,10 +731,10 @@ MORE_LOOP:
 //	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
     
 	NSHTTPURLResponse* resp	= nil;
-	NSLog(@"request: %@", req);
+//	NSLog(@"request: %@", req);
     NSError* e;
 	NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&e];
-	NSLog(@"response: %@ (%lu bytes)", resp, [data length]);
+//	NSLog(@"response: %@ (%lu bytes)", resp, [data length]);
     if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
         NSInteger code	= [resp statusCode];
         if ([resp statusCode] >= 300) {

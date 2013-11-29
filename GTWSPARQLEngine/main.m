@@ -19,6 +19,8 @@
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
 
+#import <readline/readline.h>
+
 // SPARQL Endpoint
 #import "GTWSPARQLConnection.h"
 #import "GTWSPARQLServer.h"
@@ -444,12 +446,8 @@ int main(int argc, const char * argv[]) {
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         return runQueryWithModelAndDataset(query, kDefaultBase, model, dataset, verbose);
     } else if ([op isEqual: @"repl"]) {
-        NSFileHandle* fh    = [NSFileHandle fileHandleWithStandardInput];
-        SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
-        SPKSPARQLParser* parser  = [[SPKSPARQLParser alloc] init];
-        NSError* error;
-        GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
         Class c;
+        GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
         NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
         id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         if (!model) {
@@ -459,23 +457,18 @@ int main(int argc, const char * argv[]) {
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
         SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         
-        while (YES) {
-        REPL_LOOP:
-            fprintf(stdout, "> ");
-            fflush(stdout);
-            id<SPKTree> algebra    = [parser parseSPARQLQueryFromLexer:lexer withBaseURI:kDefaultBase checkEOF:NO error:&error];
+        char *line;
+        while ((line = readline("sparql> ")) != NULL) {
+            NSError* error      = nil;
+            NSString* sparql    = [NSString stringWithFormat:@"%s", line];
+//            NSLog(@"SPARQL:\n----------------\n%@\n----------------\n", sparql);
+            if (![sparql length])
+                continue;
+            SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
+            id<SPKTree> algebra     = [parser parseSPARQLQuery:sparql withBaseURI:kDefaultBase error:&error];
             if (error) {
                 NSLog(@"parser error: %@", error);
-                [parser nextNonCommentToken];
-                while (YES) {
-                    NSData* data    = [fh readDataOfLength:1];
-                    NSLog(@"data: %@", data);
-                    if ([data length] == 0)
-                        break;
-                    char* bytes = (char*) [data bytes];
-                    if (bytes[0] == '\n')
-                        goto REPL_LOOP;
-                }
+                continue;
             }
             if (verbose) {
                 NSLog(@"query:\n%@", algebra);
@@ -486,13 +479,17 @@ int main(int argc, const char * argv[]) {
                 NSLog(@"plan:\n%@", plan);
             }
             
+            if (!plan) {
+                continue;
+            }
+            
             NSSet* variables    = [plan inScopeVariables];
             if (verbose) {
                 NSLog(@"executing query...");
             }
             id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
             NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-
+            
             Class resultClass   = [plan planResultClass];
             if ([resultClass isEqual:[NSNumber class]]) {
                 NSNumber* result    = [e nextObject];

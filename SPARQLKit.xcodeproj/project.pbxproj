@@ -91,6 +91,7 @@
 		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
+		37F55954184952BC009B7B6D /* libreadline.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F55953184952BC009B7B6D /* libreadline.dylib */; };
 		37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F96DD517AD5CBF00235009 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
 
@@ -232,6 +233,7 @@
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		37F55953184952BC009B7B6D /* libreadline.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libreadline.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libreadline.dylib; sourceTree = DEVELOPER_DIR; };
 		37F96DD517AD5CBF00235009 /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = "../../../../../Library/Developer/Xcode/DerivedData/GTWSWBase-bpvpvhggcugdjxddhvalusjqdjts/Build/Products/Debug/GTWSWBase.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -249,6 +251,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				37F55954184952BC009B7B6D /* libreadline.dylib in Frameworks */,
 				3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */,
 				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
 				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
@@ -591,6 +594,7 @@
 		37E3D5E5172D647A00F54DC9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				37F55953184952BC009B7B6D /* libreadline.dylib */,
 				3757ADC4183DA9AD0062E484 /* libz.dylib */,
 				3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */,
 				37A6A02918386B22002604B0 /* Security.framework */,
