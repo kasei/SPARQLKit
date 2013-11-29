@@ -315,7 +315,8 @@ static NSString* OSVersionNumber ( void ) {
         for (NSDictionary* result in results) {
             if ([expr.arguments count]) {
                 id<GTWTerm> f   = [self.evalctx evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
-                [counter addObject:f];
+                if (f)
+                    [counter addObject:f];
             } else {
                 [counter addObject:@(1)];
             }
@@ -414,8 +415,8 @@ static NSString* OSVersionNumber ( void ) {
 	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
     //	NSLog(@"got response with %lu bytes", [data length]);
 	if (data) {
-		NSInteger code	= [resp statusCode];
-        if (code >= 300) {
+        if ([resp isKindOfClass:[NSHTTPURLResponse class]] && [resp statusCode] >= 300) {
+            NSInteger code	= [resp statusCode];
             //            NSLog(@"Error: (%03ld) %@\n", code, [NSHTTPURLResponse localizedStringForStatusCode:code]);
             NSDictionary* headers	= [resp allHeaderFields];
             NSString* type		= headers[@"Content-Type"];
@@ -733,27 +734,36 @@ MORE_LOOP:
 	NSLog(@"request: %@", req);
     NSError* e;
 	NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&e];
-	NSLog(@"response: %@", resp);
-    NSInteger code	= [resp statusCode];
-    if (code >= 200 && code < 300) {
-        id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
-        [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
-            GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
-            NSError* e;
-            [mmodel addQuad:q error:&e];
-        } error:&error];
+	NSLog(@"response: %@ (%lu bytes)", resp, [data length]);
+    if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
+        NSInteger code	= [resp statusCode];
+        if ([resp statusCode] >= 300) {
+            if (error && ![silent booleanValue]) {
+                NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
+                return nil;
+            }
+        }
+    } else {
         if (error && ![silent booleanValue]) {
-            NSLog(@"Error loading graph: %@", error);
+            NSLog(@"Error loading URL: %@", error);
             return nil;
         }
     }
-    if (code >= 300) {
-        if (error && ![silent booleanValue]) {
-            NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
-            return nil;
-        }
+
+    id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
+    __block NSUInteger count    = 0;
+    [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+        GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
+        NSError* e;
+        count++;
+        [mmodel addQuad:q error:&e];
+    } error:&error];
+    NSLog(@"loaded %lu quads", count);
+    if (error && ![silent booleanValue]) {
+        NSLog(@"Error loading graph: %@", error);
+        return nil;
     }
-    
+
     NSNumber* r = [NSNumber numberWithBool:YES];
     return [@[r] objectEnumerator];
 }
