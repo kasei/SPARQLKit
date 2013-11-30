@@ -591,6 +591,8 @@ int main(int argc, const char * argv[]) {
                     printf("OK\n");
                 }
                 continue;
+            } else if ([sparql isEqualToString:@"exit"]) {
+                goto REPL_EXIT;
             }
             
             SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
@@ -644,6 +646,8 @@ int main(int argc, const char * argv[]) {
                 fwrite([data bytes], [data length], 1, stdout);
             }
         }
+        printf("\n");
+    REPL_EXIT:
         return 0;
     } else if ([op isEqual: @"endpoint"]) {
         if (argc < (argi+1)) {
