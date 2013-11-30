@@ -54,7 +54,7 @@ static NSDictionary* SPARQLCharTokens() {
 //                                @":": [NSValue valueWithPointer:@selector(getPName)]
 //                                };
 //	});
-//	
+//
 //    return _SPARQLMethodTokens;
 //}
 
@@ -325,7 +325,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		NSArray* values	= [pname componentsSeparatedByString:@":"];
 		return [self newPName: values];
 	} else {
-		return nil;
+        return nil;
 	}
 }
 
@@ -865,7 +865,9 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) peekTokenWithError:(NSError**)error {
-    [self _lookaheadWithError:error];
+    BOOL ok = [self _lookaheadWithError:error];
+    if (!ok)
+        return nil;
     return self.lookahead;
 }
 
@@ -1044,18 +1046,22 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		}
         
         // KEYWORD / BOOLEAN
-		return [self _getKeywordWithError:error];
+		SPKSPARQLToken* t   = [self _getKeywordWithError:error];
+        return t;
     }
 }
 
 - (id)throwError: (NSString*) message withError:(NSError**)error {
     NSDictionary* dict  = @{@"description": message, @"line": @(self.line), @"column": @(self.column), @"buffer": self.buffer};
+    NSError* e  = [NSError errorWithDomain:@"us.kasei.sparql.lexer" code:1 userInfo:dict];
     if (error) {
-        *error  = [NSError errorWithDomain:@"us.kasei.sparql.lexer" code:1 userInfo:dict];
+        *error  = e;
+    } else {
+        NSLog(@"No error object to set for error: %@", e);
     }
-//	NSLog(@"%lu:%lu: %@\n", self.line, (unsigned long)self.column, message);
-//	NSLog(@"buffer: '%@'", self.buffer);
-	return nil;;
+    //	NSLog(@"%lu:%lu: %@\n", self.line, (unsigned long)self.column, message);
+    //	NSLog(@"buffer: '%@'", self.buffer);
+	return nil;
 }
 
 @end
