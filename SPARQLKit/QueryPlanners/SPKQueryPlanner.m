@@ -459,7 +459,7 @@
         return [[SPKQueryPlan alloc] initWithType:kPlanLoad treeValue:newList arguments:nil];
     } else if ([algebra.type isEqual:kAlgebraAdd]) {
         id<SPKTree> list        = algebra.treeValue;
-        id<SPKTree> silentTree  = list.arguments[0];
+//        id<SPKTree> silentTree  = list.arguments[0];
         id<SPKTree> srcTree     = list.arguments[1];
         id<SPKTree> dstTree     = list.arguments[2];
         
@@ -499,7 +499,7 @@
     } else if ([algebra.type isEqual:kAlgebraCopy] || [algebra.type isEqual:kAlgebraMove]) {
         BOOL move               = [algebra.type isEqual:kAlgebraMove];
         id<SPKTree> list        = algebra.treeValue;
-        id<SPKTree> silentTree  = list.arguments[0];
+//        id<SPKTree> silentTree  = list.arguments[0];
         id<SPKTree> srcTree     = list.arguments[1];
         id<SPKTree> dstTree     = list.arguments[2];
         
@@ -570,7 +570,7 @@
         //# Remove all triples from the graph named with the IRI denoted by IRIref.
         //DELETE { GRAPH IRIref { ?s ?p ?o } } WHERE { GRAPH IRIref { ?s ?p ?o } }
         id<SPKTree> list        = algebra.treeValue;
-        id<SPKTree> silentTree  = list.arguments[0];
+//        id<SPKTree> silentTree  = list.arguments[0];
         id<SPKTree> srcTree     = list.arguments[1];
         
         GTWVariable* s          = [[GTWVariable alloc] initWithValue:@"s"];
@@ -617,7 +617,7 @@
         }
     } else if ([algebra.type isEqual:kAlgebraDrop]) {
         id<SPKTree> list        = algebra.treeValue;
-        id<SPKTree> silentTree  = list.arguments[0];
+//        id<SPKTree> silentTree  = list.arguments[0];
         id<SPKTree> dstTree     = list.arguments[1];
         if ([dstTree.value isEqualToString:@"ALL"]) {
             // DROP ALL
