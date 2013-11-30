@@ -49,7 +49,10 @@
             id<GTWTerm> t   = r[vname];
             if (t) {
                 NSString* value = [self stringForTerm:t];
-                col_widths[i]   = MAX(col_widths[i], [value length]);
+                if (col_widths[i] < [value length]) {
+                    col_widths[i]   = [value length];
+                }
+//                col_widths[i]   = MAX(col_widths[i], [value length]);
             }
         }
     }
