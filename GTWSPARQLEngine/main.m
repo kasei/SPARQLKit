@@ -20,6 +20,7 @@
 #import "SPKNTriplesSerializer.h"
 
 #import <readline/readline.h>
+#import <readline/history.h>
 
 // SPARQL Endpoint
 #import "GTWSPARQLConnection.h"
@@ -28,7 +29,7 @@
 #import "DDLog.h"
 #import "DDTTYLogger.h"
 
-static NSString* kDefaultBase    = @"http://base.example.com/";
+static NSString* kDefaultBase   = @"http://base.example.com/";
 
 NSString* fileContents (NSString* filename) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
@@ -322,6 +323,48 @@ id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasourc
     return nil;
 }
 
+GTWSPARQLServer* startEndpoint (id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, UInt16 port) {
+    // Configure our logging framework.
+    // To keep things simple and fast, we're just going to log to the Xcode console.
+    [DDLog addLogger:[DDTTYLogger sharedInstance]];
+    
+    // Initalize our http server
+    GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
+    
+    // Tell server to use our custom MyHTTPConnection class.
+    [httpServer setConnectionClass:[GTWSPARQLConnection class]];
+    
+    // Tell the server to broadcast its presence via Bonjour.
+    // This allows browsers such as Safari to automatically discover our service.
+    [httpServer setType:@"_sparql._tcp."];
+    [httpServer setTXTRecordDictionary:@{ @"path": @"/sparql" }];
+    
+    // Normally there's no need to run our server on any specific port.
+    // Technologies like Bonjour allow clients to dynamically discover the server's port at runtime.
+    // However, for easy testing you may want force a certain port so you can just hit the refresh button.
+    if (port) {
+        [httpServer setPort:port];
+    }
+    
+    // Serve files from our embedded Web folder
+    //        NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Web"];
+    NSString *webPath = @"/Users/greg/Sites/kasei.us/";
+//    NSLog(@"Setting document root: %@", webPath);
+    
+    [httpServer setDocumentRoot:webPath];
+    
+    // Start the server (and check for problems)
+    
+    NSError *error;
+    BOOL success = [httpServer start:&error];
+    
+    if(!success) {
+        NSLog(@"Error starting HTTP Server: %@", error);
+        return nil;
+    }
+    return httpServer;
+}
+
 id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, NSString* config, GTWIRI* defaultGraph, Class* class) {
     NSData* data        = [config dataUsingEncoding:NSUTF8StringEncoding];
     NSError* error      = nil;
@@ -448,8 +491,13 @@ int main(int argc, const char * argv[]) {
     } else if ([op isEqual: @"repl"]) {
         Class c;
         GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
-        NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
-        id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        NSString* config;
+        if (argc == argi) {
+            config        = @"SPKMemoryQuadStore";
+        } else {
+            config        = [NSString stringWithFormat:@"%s", argv[argi++]];
+        }
+        id<GTWModel,GTWMutableModel> model      = (id<GTWModel,GTWMutableModel>) modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         if (!model) {
             NSLog(@"Failed to construct model for query");
             return 1;
@@ -458,12 +506,51 @@ int main(int argc, const char * argv[]) {
         SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         
         char *line;
+
+        
+        
+        NSString* historyPath       = @"Preferences/GTWSPARQLEngine";
+        NSString* historyFileName   = @"readline.history";
+        NSString* historyFile       = nil;
+        NSArray* prefsPath  = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
+        for (NSString* curPath in prefsPath) {
+            NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
+            NSLog(@"current path: %@", path);
+            if ([[NSFileManager defaultManager] fileExistsAtPath: path]) {
+                NSLog(@"-> exists");
+                historyFile = [path stringByAppendingPathComponent:historyFileName];
+                break;
+            }
+        }
+        
+        if (historyFile)
+            read_history([historyFile UTF8String]);
+        
         while ((line = readline("sparql> ")) != NULL) {
             NSError* error      = nil;
             NSString* sparql    = [NSString stringWithFormat:@"%s", line];
-//            NSLog(@"SPARQL:\n----------------\n%@\n----------------\n", sparql);
             if (![sparql length])
                 continue;
+            
+            dispatch_queue_t queue = dispatch_queue_create("us.kasei.sparql.repl", DISPATCH_QUEUE_CONCURRENT);
+            if ([sparql hasPrefix:@"endpoint"]) {
+                GTWSPARQLServer* httpServer = startEndpoint(model, dataset, 12345);
+                dispatch_async(queue, ^{
+                    if (httpServer) {
+                        GTWSPARQLServer* copy   = httpServer;
+                        while (YES) {
+                            sleep(1);
+                        }
+                    }
+                });
+                continue;
+            }
+            add_history([sparql UTF8String]);
+            
+            if (historyFile) {
+                write_history([historyFile UTF8String]);
+            }
+            
             SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
             id<SPKTree> algebra     = [parser parseSPARQLQuery:sparql withBaseURI:kDefaultBase error:&error];
             if (error) {
@@ -521,50 +608,18 @@ int main(int argc, const char * argv[]) {
         Class c;
         NSString* config        = [NSString stringWithFormat:@"%s", argv[argi++]];
         GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
-        id<GTWModel> model      = modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
+        id<GTWModel,GTWMutableModel> model      = (id<GTWModel,GTWMutableModel>) modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
         if (!model) {
             NSLog(@"Failed to construct model for query");
             return 1;
         }
         GTWDataset* dataset     = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        // Configure our logging framework.
-        // To keep things simple and fast, we're just going to log to the Xcode console.
-        [DDLog addLogger:[DDTTYLogger sharedInstance]];
         
-        // Initalize our http server
-        GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
-        
-        // Tell server to use our custom MyHTTPConnection class.
-        [httpServer setConnectionClass:[GTWSPARQLConnection class]];
-        
-        // Tell the server to broadcast its presence via Bonjour.
-        // This allows browsers such as Safari to automatically discover our service.
-        [httpServer setType:@"_http._tcp."];
-        
-        // Normally there's no need to run our server on any specific port.
-        // Technologies like Bonjour allow clients to dynamically discover the server's port at runtime.
-        // However, for easy testing you may want force a certain port so you can just hit the refresh button.
-        [httpServer setPort:12345];
-        
-        // Serve files from our embedded Web folder
-//        NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Web"];
-        NSString *webPath = @"/Users/greg/Sites/kasei.us/";
-        NSLog(@"Setting document root: %@", webPath);
-        
-        [httpServer setDocumentRoot:webPath];
-        
-        // Start the server (and check for problems)
-        
-        NSError *error;
-        BOOL success = [httpServer start:&error];
-        
-        if(!success)
-        {
-            NSLog(@"Error starting HTTP Server: %@", error);
-        }
-        
-        while (YES) {
-            sleep(1);
+        GTWSPARQLServer* httpServer = startEndpoint(model, dataset, 12345);
+        if (httpServer) {
+            while (YES) {
+                sleep(1);
+            }
         }
     } else if ([op isEqual: @"dparse"]) {
         NSString* filename      = [NSString stringWithFormat:@"%s", argv[argi++]];
