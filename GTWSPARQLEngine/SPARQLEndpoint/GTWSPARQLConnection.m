@@ -72,7 +72,7 @@
 }
 
 - (NSData *)preprocessResponse:(HTTPMessage *)response {
-    NSLog(@"preprocessResponse:");
+//    NSLog(@"preprocessResponse:");
     NSString* ae    = [request headerField:@"Accept-Encoding"];
     if (ae) {
         NSRange range   = [ae rangeOfString:@"gzip" options:NSRegularExpressionSearch];
@@ -243,11 +243,13 @@
 	// Free data structures that were dynamically created for the stream.
 	deflateEnd(&zlibStreamStruct);
 	[compressedData setLength: zlibStreamStruct.total_out];
-	if ([compressedData length] < 1024) {
-		NSLog(@"%s: Compressed file from %lu B to %lu B", __func__, [pUncompressedData length], [compressedData length]);
-	} else {
-		NSLog(@"%s: Compressed file from %lu KB to %lu KB", __func__, [pUncompressedData length]/1024, [compressedData length]/1024);
-	}
+    if (NO) {
+        if ([compressedData length] < 1024) {
+            NSLog(@"%s: Compressed file from %lu B to %lu B", __func__, [pUncompressedData length], [compressedData length]);
+        } else {
+            NSLog(@"%s: Compressed file from %lu KB to %lu KB", __func__, [pUncompressedData length]/1024, [compressedData length]/1024);
+        }
+    }
     
 	return compressedData;
 }
