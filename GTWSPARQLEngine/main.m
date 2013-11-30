@@ -21,6 +21,7 @@
 
 #import <readline/readline.h>
 #import <readline/history.h>
+#include <sys/stat.h>
 
 // SPARQL Endpoint
 #import "GTWSPARQLConnection.h"
@@ -324,10 +325,6 @@ id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasourc
 }
 
 GTWSPARQLServer* startEndpoint (id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, UInt16 port) {
-    // Configure our logging framework.
-    // To keep things simple and fast, we're just going to log to the Xcode console.
-    [DDLog addLogger:[DDTTYLogger sharedInstance]];
-    
     // Initalize our http server
     GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
     
@@ -416,6 +413,10 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
 }
 
 int main(int argc, const char * argv[]) {
+    // Configure our logging framework.
+    // To keep things simple and fast, we're just going to log to the Xcode console.
+//    [DDLog addLogger:[DDTTYLogger sharedInstance]];
+    
     srand([[NSDate date] timeIntervalSince1970]);
 //	librdf_world_ptr	= librdf_new_world();
 //    raptor_world_ptr    = raptor_new_world();
@@ -508,29 +509,42 @@ int main(int argc, const char * argv[]) {
         char *line;
 
         
-        
         NSString* historyPath       = @"Preferences/GTWSPARQLEngine";
         NSString* historyFileName   = @"readline.history";
         NSString* historyFile       = nil;
-        NSArray* prefsPath  = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
-        for (NSString* curPath in prefsPath) {
-            NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
-            NSLog(@"current path: %@", path);
-            if ([[NSFileManager defaultManager] fileExistsAtPath: path]) {
-                NSLog(@"-> exists");
-                historyFile = [path stringByAppendingPathComponent:historyFileName];
-                break;
+        NSArray* prefsPath          = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
+        if ([prefsPath count]) {
+            for (NSString* curPath in prefsPath) {
+                NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
+                if ([[NSFileManager defaultManager] fileExistsAtPath: path]) {
+                    historyFile = [path stringByAppendingPathComponent:historyFileName];
+                    break;
+                }
+            }
+            if (!historyFile) {
+                NSString* curPath   = [prefsPath objectAtIndex:0];
+                if (!mkdir([curPath UTF8String], S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
+                    NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
+                    historyFile = [path stringByAppendingPathComponent:historyFileName];
+                }
             }
         }
+        
         
         if (historyFile)
             read_history([historyFile UTF8String]);
         
+        NSMutableArray* jobs            = [NSMutableArray array];
         while ((line = readline("sparql> ")) != NULL) {
             NSError* error      = nil;
             NSString* sparql    = [NSString stringWithFormat:@"%s", line];
             if (![sparql length])
                 continue;
+            
+            add_history([sparql UTF8String]);
+            if (historyFile) {
+                write_history([historyFile UTF8String]);
+            }
             
             dispatch_queue_t queue = dispatch_queue_create("us.kasei.sparql.repl", DISPATCH_QUEUE_CONCURRENT);
             if ([sparql hasPrefix:@"endpoint"]) {
@@ -541,21 +555,42 @@ int main(int argc, const char * argv[]) {
                     port    = atoi(s+9);
                 }
                 GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port);
-                dispatch_async(queue, ^{
-                    if (httpServer) {
-                        // We need to keep the httpServer object retained by this block; if it is released by ARC, the endpoint will stop working
-                        GTWSPARQLServer* copy   = httpServer;
-                        while (YES) {
+                if (httpServer) {
+                    jobs[[jobs count]]  = @[ httpServer, @(port) ];
+                    __weak GTWSPARQLServer* server  = httpServer;
+                    dispatch_async(queue, ^{
+                        while (server) {
                             sleep(1);
                         }
-                    }
-                });
+                    });
+                }
                 continue;
-            }
-            add_history([sparql UTF8String]);
-            
-            if (historyFile) {
-                write_history([historyFile UTF8String]);
+            } else if ([sparql hasPrefix:@"jobs"]) {
+                NSUInteger i   = 0;
+                for (i = 0; i < [jobs count]; i++) {
+                    NSArray* pair   = jobs[i];
+                    if (![pair isKindOfClass:[NSNull class]]) {
+                        NSNumber* port  = pair[1];
+                        printf("[%lu] Endpoint on port %d\n", i+1, [port intValue]);
+                    }
+                }
+                continue;
+            } else if ([sparql rangeOfString:@"^kill (\\d+)$" options:NSRegularExpressionSearch].location != NSNotFound) {
+                const char* s   = [sparql UTF8String];
+                NSUInteger job  = atoi(s+5);
+                if (job >= [jobs count]) {
+                    printf("No such job.\n");
+                    continue;
+                }
+                NSArray* pair   = jobs[job-1];
+                if (pair && ![pair isKindOfClass:[NSNull class]]) {
+                    GTWSPARQLServer* httpServer = pair[0];
+//                    NSLog(@"stopping server %@", httpServer);
+                    [httpServer stop];
+                    jobs[job-1]     = [NSNull null];
+                    printf("OK\n");
+                }
+                continue;
             }
             
             SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
@@ -575,6 +610,9 @@ int main(int argc, const char * argv[]) {
             
             if (!plan) {
                 continue;
+            } else if ([plan.type isEqual:kPlanSequence] && [plan.arguments count] == 0) {
+                // Empty update sequence
+                continue;
             }
             
             NSSet* variables    = [plan inScopeVariables];
@@ -588,9 +626,9 @@ int main(int argc, const char * argv[]) {
             if ([resultClass isEqual:[NSNumber class]]) {
                 NSNumber* result    = [e nextObject];
                 if ([result boolValue]) {
-                    printf("ok\n");
+                    printf("OK\n");
                 } else {
-                    printf("not ok\n");
+                    printf("Not OK\n");
                 }
             } else if ([resultClass isEqual:[GTWTriple class]]) {
                 id<GTWTriplesSerializer> s    = [[SPKNTriplesSerializer alloc] init];
