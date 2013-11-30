@@ -72,12 +72,12 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
     return self;
 }
 
-- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error {
+- (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError*__autoreleasing*)error {
     self.tripleBlock    = block;
     return [self parseWithError:error];
 }
 
-- (SPKSPARQLToken*) peekNextNonCommentTokenWithError:(NSError**)error {
+- (SPKSPARQLToken*) peekNextNonCommentTokenWithError:(NSError*__autoreleasing*)error {
     while (YES) {
         SPKSPARQLToken* t   = [self.lexer peekTokenWithError:error];
         if (!t)
@@ -90,7 +90,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
     }
 }
 
-- (SPKSPARQLToken*) nextNonCommentTokenWithError:(NSError**)error {
+- (SPKSPARQLToken*) nextNonCommentTokenWithError:(NSError*__autoreleasing*)error {
     SPKSPARQLToken* t   = [self.lexer getTokenWithError:error];
     while (t.type == COMMENT) {
         t   = [self.lexer getTokenWithError:error];
@@ -105,7 +105,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
 //[5]	base	::=	'@base' IRIREF '.'
 //[5s]	sparqlBase	::=	"BASE" IRIREF
 //[6s]	sparqlPrefix	::=	"PREFIX" PNAME_NS IRIREF
-- (BOOL) parseWithError: (NSError**) error {
+- (BOOL) parseWithError: (NSError*__autoreleasing*) error {
     NSMutableArray* errors  = [NSMutableArray array];
     NSError* e;
     @autoreleasepool {
@@ -506,7 +506,7 @@ cleanup:
     }
 }
 
-- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type error:(NSError**)error {
+- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type error:(NSError*__autoreleasing*)error {
     SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:error];
     if (*error) {
         return nil;
@@ -546,7 +546,7 @@ cleanup:
     }
 }
 
-- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type withValue: (NSString*) string error:(NSError**)error {
+- (SPKSPARQLToken*) parseOptionalTokenOfType: (SPKSPARQLTokenType) type withValue: (NSString*) string error:(NSError*__autoreleasing*)error {
     SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:error];
     if (*error) {
         return nil;

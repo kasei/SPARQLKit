@@ -25,7 +25,7 @@
     _graphs[graph.value] = store;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError*__autoreleasing*)error {
     if (g) {
         id<GTWTripleStore> store   = (self.graphs)[g.value];
         @autoreleasepool {
@@ -58,7 +58,7 @@
     }
 }
 
-- (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError **)error {
+- (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError*__autoreleasing*)error {
     //    NSLog(@"%@ %@ %@ %@", s, p, o, g);
     NSMutableDictionary* vars  = [NSMutableDictionary dictionary];
     if ([s conformsToProtocol:@protocol(GTWVariable)]) {
@@ -102,7 +102,7 @@
     return ok;
 }
 
-- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
+- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError*__autoreleasing*)error {
     @autoreleasepool {
         for (NSString* graph in [self.graphs allKeys]) {
             GTWIRI* iri = [[GTWIRI alloc] initWithValue:graph];
@@ -114,7 +114,7 @@
 
 #pragma mark - Mutable Model Methods
 
-- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
     id<GTWTerm> graph    = q.graph;
     id<GTWTripleStore> store   = (self.graphs)[graph.value];
     if (store) {
@@ -138,7 +138,7 @@
     
 }
 
-- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
     id<GTWTerm> graph    = q.graph;
     id<GTWTripleStore> store   = (self.graphs)[graph.value];
     if (store) {
@@ -161,7 +161,7 @@
     }
 }
 
-- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     if (error) {
         NSString* desc  = [NSString stringWithFormat:@"SPKTripleModel cannot create empty graphs."];
         *error          = [NSError errorWithDomain:@"us.kasei.sparql.model.triplemodel" code:3 userInfo:@{@"description": desc}];
@@ -169,7 +169,7 @@
     return NO;
 }
 
-- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     id<GTWTripleStore> store   = (self.graphs)[graph.value];
     if (!store) {
         if (error) {
@@ -182,7 +182,7 @@
     return YES;
 }
 
-- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     id<GTWTripleStore> store   = (self.graphs)[graph.value];
     if (store) {
         if ([store conformsToProtocol:@protocol(GTWMutableTripleStore)]) {

@@ -96,8 +96,8 @@ typedef NSString* SPKTreeType;
 #pragma mark -
 
 @protocol SPKSPARQLParser
-- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
-- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error;
+- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error;
+- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error;
 @end
 
 #pragma mark -

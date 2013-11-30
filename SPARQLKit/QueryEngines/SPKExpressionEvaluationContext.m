@@ -786,13 +786,17 @@ static BOOL isNumeric(id<GTWTerm> term) {
         }
         id<SPKTree,GTWQueryPlan> plan    = expr.arguments[0];
         plan                            = [plan copyReplacingValues:mapping];
-        NSEnumerator* e     = [self.queryengine evaluateQueryPlan:plan withModel:model];
-        id result           = [e nextObject];
-        if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
-            return [GTWLiteral trueLiteral];
-        } else {
-            return [GTWLiteral falseLiteral];
+        id<GTWQueryEngine> queryengine  = self.queryengine;
+        if (queryengine) {
+            NSEnumerator* e     = [queryengine evaluateQueryPlan:plan withModel:model];
+            id result           = [e nextObject];
+            if ((result && expr.type == kExprExists) || (!result && expr.type == kExprNotExists)) {
+                return [GTWLiteral trueLiteral];
+            } else {
+                return [GTWLiteral falseLiteral];
+            }
         }
+        return nil;
     } else if (expr.type == kExprIn) {
         id<GTWTerm> term    = [self evaluateExpression:expr.arguments[0] withResult:result usingModel: model];
         id<SPKTree> list    = expr.arguments[1];

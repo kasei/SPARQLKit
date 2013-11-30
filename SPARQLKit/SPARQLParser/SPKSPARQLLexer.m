@@ -211,7 +211,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return c;
 }
 
-- (NSString*) _getCharSafe: (NSString*) expected error:(NSError**)error {
+- (NSString*) _getCharSafe: (NSString*) expected error:(NSError*__autoreleasing*)error {
 	NSString* c	= [self _getChar];
 	if ([c isNotEqualTo:expected]) {
 		return [self throwError:[NSString stringWithFormat:@"Expected '%@' but got '%@'", expected, c] withError:error];
@@ -239,7 +239,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return c;
 }
 
-- (BOOL) _readWord: (NSString*) word error:(NSError**)error {
+- (BOOL) _readWord: (NSString*) word error:(NSError*__autoreleasing*)error {
 	while ([self.buffer length] < [word length]) {
 		NSUInteger len	= [self.buffer length];
 		[self _fillBuffer];
@@ -266,7 +266,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return YES;
 }
 
-- (NSString*) _readLength: (NSUInteger) length error:(NSError**)error {
+- (NSString*) _readLength: (NSUInteger) length error:(NSError*__autoreleasing*)error {
 	while ([self.buffer length] < length) {
 		[self _fillBuffer];
 	}
@@ -295,7 +295,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self newTokenOfType:PREFIXNAME withArgs:pname];
 }
 
-- (SPKSPARQLToken*) getPNameWithError:(NSError**)error {
+- (SPKSPARQLToken*) getPNameWithError:(NSError*__autoreleasing*)error {
 	NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
 	NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
 	NSRange range	= [self.buffer rangeOfString:r_PNAME_LN options:NSRegularExpressionSearch];
@@ -329,7 +329,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getBnodeWithError:(NSError**)error {
+- (SPKSPARQLToken*) getBnodeWithError:(NSError*__autoreleasing*)error {
 	[self _getCharSafe:@"_" error:error];
 	[self _getCharSafe:@":" error:error];
     NSString* r_bnode   = @"^([0-9A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])(([A-Za-z_\\x{00C0}-\\x{00D6}\\x{00D8}-\\x{00F6}\\x{00F8}-\\x{02FF}\\x{0370}-\\x{037D}\\x{037F}-\\x{1FFF}\\x{200C}-\\x{200D}\\x{2070}-\\x{218F}\\x{2C00}-\\x{2FEF}\\x{3001}-\\x{D7FF}\\x{F900}-\\x{FDCF}\\x{FDF0}-\\x{FFFD}\\x{10000}-\\x{EFFFF}])|([-0-9\\x{00B7}\\x{0300}-\\x{036F}\\x{203F}-\\x{2040}]))*";
@@ -342,7 +342,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) _getCommentWithError:(NSError**)error {
+- (SPKSPARQLToken*) _getCommentWithError:(NSError*__autoreleasing*)error {
 	[self _getCharSafe:@"#" error:error];
 	NSMutableString* comment	= [NSMutableString string];
 	NSString* c	= [self _peekChar];
@@ -358,7 +358,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self newTokenOfType:COMMENT withArgs:@[comment]];
 }
 
-- (SPKSPARQLToken*) _getNumberWithError:(NSError**)error {
+- (SPKSPARQLToken*) _getNumberWithError:(NSError*__autoreleasing*)error {
 	NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
     NSRange double_range	= [self.buffer rangeOfString:@"[+-]?(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
 	if (integer_range.location == 0) {
@@ -381,7 +381,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getVariableWithError:(NSError**)error {
+- (SPKSPARQLToken*) getVariableWithError:(NSError*__autoreleasing*)error {
 	NSString* c	= [self _getChar];
 	NSRange range	= [self.buffer rangeOfString:@"((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9])(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])*)" options:NSRegularExpressionSearch];
     
@@ -397,7 +397,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self newTokenOfType:VAR withArgs:@[name]];
 }
 
-- (SPKSPARQLToken*) _getKeywordWithError:(NSError**)error {
+- (SPKSPARQLToken*) _getKeywordWithError:(NSError*__autoreleasing*)error {
 	NSArray* keywords	= SPARQLKeywords();
 	for (NSString* kw in keywords) {
 		NSRange range	= [self.buffer rangeOfString:kw options:NSAnchoredSearch|NSCaseInsensitiveSearch];
@@ -423,7 +423,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return [self throwError:@"Expected keyword" withError:error];
 }
 
-- (SPKSPARQLToken*) getBangWithError:(NSError**)error {
+- (SPKSPARQLToken*) getBangWithError:(NSError*__autoreleasing*)error {
 	if ([self.buffer hasPrefix:@"!="]) {
 		if ([self _readWord:@"!=" error:error]) {
 			return [self newTokenOfType:NOTEQUALS withArgs:@[]];
@@ -436,7 +436,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getOrWithError:(NSError**)error {
+- (SPKSPARQLToken*) getOrWithError:(NSError*__autoreleasing*)error {
 	if ([self.buffer hasPrefix:@"||"]) {
 		if ([self _readWord:@"||" error:error]) {
 			return [self newTokenOfType:OROR withArgs:@[]];
@@ -449,7 +449,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getLanguageWithError:(NSError**)error {
+- (SPKSPARQLToken*) getLanguageWithError:(NSError*__autoreleasing*)error {
 	[self _getCharSafe:@"@" error:error];
 	NSRange kwrange	= [self.buffer rangeOfString:@"(prefix|base)\\b" options:NSRegularExpressionSearch];
     NSRange range	= [self.buffer rangeOfString:@"[a-zA-Z]+(-[a-zA-Z0-9]+)*\\b" options:NSRegularExpressionSearch];
@@ -464,7 +464,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getDoubleLiteralWithError:(NSError**)error {
+- (SPKSPARQLToken*) getDoubleLiteralWithError:(NSError*__autoreleasing*)error {
 	[self _getCharSafe: @"\"" error:error];
 	if ([self.buffer hasPrefix: @"\"\""]) {
 		// #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
@@ -615,7 +615,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getSingleLiteralWithError:(NSError**)error {
+- (SPKSPARQLToken*) getSingleLiteralWithError:(NSError*__autoreleasing*)error {
 	[self _getCharSafe: @"'" error:error];
 	if ([self.buffer hasPrefix: @"''"]) {
 		if (![self _readWord:@"''" error:error]) {
@@ -764,7 +764,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (SPKSPARQLToken*) getIRIRefOrRelationalWithError:(NSError**)error {
+- (SPKSPARQLToken*) getIRIRefOrRelationalWithError:(NSError*__autoreleasing*)error {
 	NSRange iri_range		= [self.buffer rangeOfString:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:NSRegularExpressionSearch];
 	if (iri_range.location == 0) {
 		[self _getCharSafe:@"<" error:error];
@@ -854,7 +854,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	}
 }
 
-- (BOOL) _lookaheadWithError:(NSError**)error {
+- (BOOL) _lookaheadWithError:(NSError*__autoreleasing*)error {
     if (!self.lookahead) {
         SPKSPARQLToken* t   = [self _getTokenWithError:error];
         if (*error)
@@ -864,21 +864,21 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
     return YES;
 }
 
-- (SPKSPARQLToken*) peekTokenWithError:(NSError**)error {
+- (SPKSPARQLToken*) peekTokenWithError:(NSError*__autoreleasing*)error {
     BOOL ok = [self _lookaheadWithError:error];
     if (!ok)
         return nil;
     return self.lookahead;
 }
 
-- (SPKSPARQLToken*) getTokenWithError:(NSError**)error {
+- (SPKSPARQLToken*) getTokenWithError:(NSError*__autoreleasing*)error {
     [self _lookaheadWithError:error];
     SPKSPARQLToken* t   = self.lookahead;
     self.lookahead      = nil;
     return t;
 }
 
-- (SPKSPARQLToken*) _getTokenWithError:(NSError**)error {
+- (SPKSPARQLToken*) _getTokenWithError:(NSError*__autoreleasing*)error {
 	NSDictionary* charTokens	= SPARQLCharTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
 	while (1) {
@@ -1051,7 +1051,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
     }
 }
 
-- (id)throwError: (NSString*) message withError:(NSError**)error {
+- (id)throwError: (NSString*) message withError:(NSError*__autoreleasing*)error {
     NSDictionary* dict  = @{@"description": message, @"line": @(self.line), @"column": @(self.column), @"buffer": self.buffer};
     NSError* e  = [NSError errorWithDomain:@"us.kasei.sparql.lexer" code:1 userInfo:dict];
     if (error) {

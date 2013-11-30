@@ -9,7 +9,7 @@
 @property NSMutableDictionary* indexes;
 @property NSMutableDictionary* indexKeys;
 
-- (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError**) error;
+- (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError*__autoreleasing*) error;
 - (NSString*) bestIndexForMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g;
 
 @end

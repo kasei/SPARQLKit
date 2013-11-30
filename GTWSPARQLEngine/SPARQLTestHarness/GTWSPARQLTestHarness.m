@@ -499,7 +499,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
     return nil;
 }
 
-- (id<SPKTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError**) error {
+- (id<SPKTree>) queryAlgebraForSyntaxTest: (id<GTWTerm>) test withModel: (id<GTWModel>) model error: (NSError*__autoreleasing*) error {
     GTWIRI* mfaction = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#action"];
     id<GTWTerm> action  = [model anyObjectForSubject:test predicate:mfaction graph:nil];
     if (action) {

@@ -15,7 +15,7 @@
 
 @implementation NSDate (W3CDTFSupport)
 
-+(NSDate*)   dateWithW3CDTFString:(NSString*)dateAndTimeFormat havingTimeZone: (NSTimeZone**) tz
++(NSDate*)   dateWithW3CDTFString:(NSString*)dateAndTimeFormat havingTimeZone: (NSTimeZone*__autoreleasing*) tz
 {
   NSTimeInterval interval;
   @autoreleasepool {

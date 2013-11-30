@@ -376,7 +376,7 @@ static NSString* OSVersionNumber ( void ) {
     }
 }
 
-- (NSMutableURLRequest*) requestForRetrievingURL: (NSURL*) url error:(NSError**)error {
+- (NSMutableURLRequest*) requestForRetrievingURL: (NSURL*) url error:(NSError*__autoreleasing*)error {
 	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
 	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
     //	[req setTimeoutInterval:5.0];

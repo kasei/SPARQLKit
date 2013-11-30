@@ -51,7 +51,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return self;
 }
 
-- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error {
+- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
@@ -59,13 +59,13 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return [self parseSPARQLQueryFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
 }
 
-- (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error {
+- (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
     self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
     return [self parseCheckingEOF:checkEOF error:error];
 }
 
-- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError**) error {
+- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
@@ -73,7 +73,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return [self parseSPARQLUpdateFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
 }
 
-- (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError**) error {
+- (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
     self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
     return [self parseCheckingEOF: checkEOF error:error];
@@ -109,7 +109,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 //[29]  	Update	  ::=  	Prologue ( Update1 ( ';' Update )? )?
 //[30]  	Update1	  ::=  	Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify
 
-- (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF error:(NSError**) error {
+- (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF error:(NSError*__autoreleasing*) error {
     SPKSPARQLToken* t;
     id<SPKTree> algebra;
     [self beginQueryScope];
@@ -2045,7 +2045,7 @@ cleanup:
 }
 
 //[79]  	ObjectList	  ::=  	Object ( ',' Object )*
-- (id<SPKTree>) parseObjectListAsNodes: (NSArray**) nodes withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseObjectListAsNodes: (NSArray*__autoreleasing*) nodes withErrors: (NSMutableArray*) errors {
     id<SPKTree> node        = nil;
     id<SPKTree> triplesTree = [self parseObjectAsNode:&node withErrors:errors];
     ASSERT_EMPTY(errors);
@@ -2069,7 +2069,7 @@ cleanup:
 }
 
 //[80]  	Object	  ::=  	GraphNode
-- (id<SPKTree>) parseObjectAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseObjectAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     return [self parseGraphNodeAsNode:node withErrors:errors];
 }
 
@@ -2148,7 +2148,7 @@ cleanup:
 }
 
 // [86]  	ObjectListPath	  ::=  	ObjectPath ( ',' ObjectPath )*
-- (id<SPKTree>) parseObjectListPathAsNodes: (NSArray**) nodes withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseObjectListPathAsNodes: (NSArray*__autoreleasing*) nodes withErrors: (NSMutableArray*) errors {
     id<SPKTree> node    = nil;
     id<SPKTree> triplesTree     = [self parseObjectPathAsNode:&node withErrors:errors];
     ASSERT_EMPTY(errors);
@@ -2177,7 +2177,7 @@ cleanup:
 }
 
 // [87]  	ObjectPath	  ::=  	GraphNodePath
-- (id<SPKTree>) parseObjectPathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseObjectPathAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     return [self parseGraphNodePathAsNode:node withErrors:errors];
 }
 
@@ -2331,7 +2331,7 @@ cleanup:
 }
 
 //[98]  	TriplesNode	  ::=  	Collection |	BlankNodePropertyList
-- (id<SPKTree>) parseTriplesNodeAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseTriplesNodeAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (t.type == LPAREN) {
         return [self triplesByParsingCollectionAsNode: (id<SPKTree>*) node withErrors: errors];
@@ -2341,7 +2341,7 @@ cleanup:
 }
 
 //[99]  	BlankNodePropertyList	  ::=  	'[' PropertyListNotEmpty ']'
-- (id<SPKTree>) parseBlankNodePropertyListAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseBlankNodePropertyListAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LBRACKET withErrors:errors];
     ASSERT_EMPTY(errors);
     GTWBlank* subj  = self.bnodeIDGenerator(nil);
@@ -2353,7 +2353,7 @@ cleanup:
 }
 
 // [100]  	TriplesNodePath	  ::=  	CollectionPath |	BlankNodePropertyListPath
-- (id<SPKTree>) parseTriplesNodePathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseTriplesNodePathAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if (t.type == LPAREN) {
         return [self triplesByParsingCollectionPathAsNode: (id<SPKTree>*) node withErrors: errors];
@@ -2363,7 +2363,7 @@ cleanup:
 }
 
 // [101]  	BlankNodePropertyListPath	  ::=  	'[' PropertyListPathNotEmpty ']'
-- (id<SPKTree>) parseBlankNodePropertyListPathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseBlankNodePropertyListPathAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LBRACKET withErrors:errors];
     ASSERT_EMPTY(errors);
     GTWBlank* subj  = self.bnodeIDGenerator(nil);
@@ -2376,7 +2376,7 @@ cleanup:
 
 
 //[102]  	Collection	  ::=  	'(' GraphNode+ ')'
-- (id<SPKTree>) triplesByParsingCollectionAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) triplesByParsingCollectionAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LPAREN withErrors:errors];
     ASSERT_EMPTY(errors);
     id<SPKTree> graphNodePath    = [self parseGraphNodeAsNode:node withErrors:errors];
@@ -2448,7 +2448,7 @@ cleanup:
 }
 
 // [103]  	CollectionPath	  ::=  	'(' GraphNodePath+ ')'
-- (id<SPKTree>) triplesByParsingCollectionPathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) triplesByParsingCollectionPathAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     [self parseExpectedTokenOfType:LPAREN withErrors:errors];
     ASSERT_EMPTY(errors);
     id<SPKTree> graphNodePath    = [self parseGraphNodePathAsNode:node withErrors:errors];
@@ -2521,7 +2521,7 @@ cleanup:
 
 
 //[104]  	GraphNode	  ::=  	VarOrTerm |	TriplesNode
-- (id<SPKTree>) parseGraphNodeAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseGraphNodeAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if ([self tokenIsVarOrTerm:t]) {
         *node   = [self parseVarOrTermWithErrors: errors];
@@ -2535,7 +2535,7 @@ cleanup:
 
 
 // [105]  	GraphNodePath	  ::=  	VarOrTerm |	TriplesNodePath
-- (id<SPKTree>) parseGraphNodePathAsNode: (id<SPKTree>*) node withErrors: (NSMutableArray*) errors {
+- (id<SPKTree>) parseGraphNodePathAsNode: (id<SPKTree>__autoreleasing*) node withErrors: (NSMutableArray*) errors {
     SPKSPARQLToken* t   = [self peekNextNonCommentToken];
     if ([self tokenIsVarOrTerm:t]) {
         *node   = [self parseVarOrTermWithErrors: errors];

@@ -123,7 +123,7 @@
     return self;
 }
 
-- (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError**) error {
+- (BOOL) addIndexType: (NSString*) type value: (NSArray*) positions synchronous: (BOOL) sync error: (NSError*__autoreleasing*) error {
     if ([type isEqualToString:@"term"]) {
         for (NSString* p in positions) {
             if (!([p isEqualToString:@"subject"] || [p isEqualToString:@"predicate"] || [p isEqualToString:@"object"] || [p isEqualToString:@"graph"])) {
@@ -194,7 +194,7 @@
     return YES;
 }
 
-- (NSArray*) getGraphsWithOutError:(NSError **)error {
+- (NSArray*) getGraphsWithOutError:(NSError*__autoreleasing*)error {
     NSMutableArray* graphs  = [NSMutableArray array];
     NSMutableSet* seen  = [NSMutableSet set];
     for (id<GTWQuad> q in self.quads) {
@@ -206,7 +206,7 @@
     return graphs;
 }
 
-- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
+- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError*__autoreleasing*)error {
     NSMutableSet* seen  = [NSMutableSet set];
     [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
         if (![seen containsObject:q.graph]) {
@@ -217,7 +217,7 @@
     return YES;
 }
 
-- (NSArray*) getQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error {
+- (NSArray*) getQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError*__autoreleasing*)error {
     NSMutableArray* quads    = [NSMutableArray array];
     [self enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q){
         [quads addObject:q];
@@ -225,7 +225,7 @@
     return quads;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError*__autoreleasing*)error {
     [self.quads enumerateObjectsUsingBlock:^(id<GTWQuad> q, BOOL* stop){
 //        NSLog(@"checking quad: %@", q);
         if (s && ![s isKindOfClass:[GTWVariable class]]) {
@@ -258,12 +258,12 @@
     return YES;
 }
 
-- (NSEnumerator*) quadEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError **)error {
+- (NSEnumerator*) quadEnumeratorMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError*__autoreleasing*)error {
     NSArray* quads  = [self getQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
     return [quads objectEnumerator];
 }
 
-- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
 //    NSLog(@"+ %8lu %@", [self.quads count], q);
     if (![q isGround]) {
         NSString* desc  = [NSString stringWithFormat:@"Attempt to add a non-ground quad: %@", q];
@@ -288,7 +288,7 @@
     return YES;
 }
 
-- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
     if (![q isGround]) {
         NSString* desc  = [NSString stringWithFormat:@"Attempt to remove a non-ground quad: %@", q];
         if (error) {

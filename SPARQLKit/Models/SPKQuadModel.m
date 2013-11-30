@@ -10,12 +10,12 @@
     return self;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError **)error {
+- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError*__autoreleasing*)error {
 //    NSLog(@"SPKQuadModel enumerateQuadsMatching...");
     return [self.store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:block error:error];
 }
 
-- (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError **)error {
+- (BOOL) enumerateBindingsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(NSDictionary* q)) block error:(NSError*__autoreleasing*)error {
 //    NSLog(@"%@ %@ %@ %@", s, p, o, g);
     NSMutableDictionary* vars  = [NSMutableDictionary dictionary];
     if ([s conformsToProtocol:@protocol(GTWVariable)]) {
@@ -60,13 +60,13 @@
     return ok;
 }
 
-- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError **)error {
+- (BOOL) enumerateGraphsUsingBlock: (void (^)(id<GTWTerm> g)) block error:(NSError*__autoreleasing*)error {
     return [self.store enumerateGraphsUsingBlock:block error:error];
 }
 
 #pragma mark - Mutable Model Methods
 
-- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
     if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         return [(id<GTWMutableQuadStore>)_store addQuad:q error:error];
     } else {
@@ -78,7 +78,7 @@
     }
 }
 
-- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError **)error {
+- (BOOL) removeQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
     if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         return [(id<GTWMutableQuadStore>)_store removeQuad:q error:error];
     } else {
@@ -90,7 +90,7 @@
     }
 }
 
-- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) createGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     NSMutableSet* graphs    = [NSMutableSet set];
     [_store enumerateGraphsUsingBlock:^(id<GTWTerm> g) {
         [graphs addObject:g];
@@ -106,7 +106,7 @@
     return YES;
 }
 
-- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) dropGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     if ([_store conformsToProtocol:@protocol(GTWMutableQuadStore)]) {
         NSMutableArray* quads = [NSMutableArray array];
         [_store enumerateQuadsMatchingSubject:nil predicate:nil object:nil graph:graph usingBlock:^(id<GTWQuad> q) {
@@ -125,7 +125,7 @@
     }
 }
 
-- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError **)error {
+- (BOOL) clearGraph: (id<GTWIRI>) graph error:(NSError*__autoreleasing*)error {
     // Clearing a graph is the same as dropping a graph because quad stores don't distinguish between empty and non-existent graphs
     return [self dropGraph:graph error:error];
 }
