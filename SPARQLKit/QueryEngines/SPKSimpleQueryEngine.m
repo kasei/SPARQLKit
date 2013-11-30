@@ -749,7 +749,7 @@ MORE_LOOP:
             return nil;
         }
     }
-
+    
     id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
     __block NSUInteger count    = 0;
     [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
@@ -758,7 +758,7 @@ MORE_LOOP:
         count++;
         [mmodel addQuad:q error:&e];
     } error:&error];
-    NSLog(@"loaded %lu quads", count);
+//    NSLog(@"loaded %lu quads", count);
     if (error && ![silent booleanValue]) {
         NSLog(@"Error loading graph: %@", error);
         return nil;
