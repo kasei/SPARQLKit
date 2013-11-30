@@ -534,9 +534,16 @@ int main(int argc, const char * argv[]) {
             
             dispatch_queue_t queue = dispatch_queue_create("us.kasei.sparql.repl", DISPATCH_QUEUE_CONCURRENT);
             if ([sparql hasPrefix:@"endpoint"]) {
-                GTWSPARQLServer* httpServer = startEndpoint(model, dataset, 12345);
+                UInt16 port = 12345;
+                NSRange range   = [sparql rangeOfString:@"^endpoint (\\d+)$" options:NSRegularExpressionSearch];
+                if (range.location != NSNotFound) {
+                    const char* s   = [sparql UTF8String];
+                    port    = atoi(s+9);
+                }
+                GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port);
                 dispatch_async(queue, ^{
                     if (httpServer) {
+                        // We need to keep the httpServer object retained by this block; if it is released by ARC, the endpoint will stop working
                         GTWSPARQLServer* copy   = httpServer;
                         while (YES) {
                             sleep(1);
