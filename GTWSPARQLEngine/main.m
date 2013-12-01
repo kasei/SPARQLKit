@@ -437,12 +437,10 @@ NSDictionary* prefixes (void) {
         [req setValue:@"text/json" forHTTPHeaderField:@"Accept"];
         NSHTTPURLResponse* resp	= nil;
         NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&error];
-//        NSLog(@"json response: %@", resp);
         if (resp) {
             NSInteger code	= [resp statusCode];
             if (code >= 200 && code < 300) {
                 prefixes = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-//                NSLog(@"JSON: %@", prefixes);
             }
         }
     });
@@ -452,31 +450,47 @@ NSDictionary* prefixes (void) {
 void completion(const char *buf, linenoiseCompletions *lc) {
     NSError* error;
     NSString* s = [NSString stringWithFormat:@"%s", buf];
-    NSDictionary* p = prefixes();
-
     NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"PREFIX (\\w+):$" options:0 error:&error];
     NSRange rangeOfFirstMatch   = [regex rangeOfFirstMatchInString:s options:0 range:NSMakeRange(0, [s length])];
     if (rangeOfFirstMatch.location != NSNotFound) {
-        NSString* substr    = [s substringWithRange:rangeOfFirstMatch];
-        NSString* substr2   = [substr substringFromIndex:7];
-        NSString* ns        = [substr2 substringToIndex:[substr2 length]-1];
-        if (p[ns]) {
-            NSString* c = [NSString stringWithFormat:@"%@ <%@> ", s, p[ns]];
-            linenoiseAddCompletion(lc,(char*)[c UTF8String]);
+        NSDictionary* p = prefixes();
+        if (p) {
+            NSString* substr    = [s substringWithRange:rangeOfFirstMatch];
+            NSString* substr2   = [substr substringFromIndex:7];
+            NSString* ns        = [substr2 substringToIndex:[substr2 length]-1];
+            if (p[ns]) {
+                NSString* c = [NSString stringWithFormat:@"%@ <%@> ", s, p[ns]];
+                linenoiseAddCompletion(lc,(char*)[c UTF8String]);
+            }
         }
     }
     
-    // 	fprintf(stderr, "\ncompleting '%s'...\n", buf);
+    static NSArray* keywords;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+        NSMutableArray* kw  = [SPKSPARQLKeywords() mutableCopy];
+        [kw addObject:@"endpoint"];
+        [kw addObject:@"kill"];
+        [kw addObject:@"jobs"];
+        keywords    = [kw copy];
+    });
+    NSRegularExpression* kwregex    = [NSRegularExpression regularExpressionWithPattern:@"(\\w+)$" options:0 error:&error];
+    NSRange rangeOfKW               = [kwregex rangeOfFirstMatchInString:s options:0 range:NSMakeRange(0, [s length])];
+    if (rangeOfKW.location != NSNotFound) {
+        NSString* kwPrefix    = [[s substringWithRange:rangeOfKW] uppercaseString];
+        for (NSString* kw in keywords) {
+            NSString* uckw    = [kw uppercaseString];
+            if ([uckw hasPrefix:kwPrefix]) {
+                NSString* prefix    = [s substringToIndex:rangeOfKW.location];
+                linenoiseAddCompletion(lc,(char*)[[NSString stringWithFormat:@"%@%@", prefix, kw] UTF8String]);
+            }
+        }
+    }
 }
 
 int main(int argc, const char * argv[]) {
-    // Configure our logging framework.
-    // To keep things simple and fast, we're just going to log to the Xcode console.
 //    [DDLog addLogger:[DDTTYLogger sharedInstance]];
-    
     srand([[NSDate date] timeIntervalSince1970]);
-//	librdf_world_ptr	= librdf_new_world();
-//    raptor_world_ptr    = raptor_new_world();
     
     // ------------------------------------------------------------------------------------------------------------------------
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
@@ -489,14 +503,11 @@ int main(int argc, const char * argv[]) {
     }
     // ------------------------------------------------------------------------------------------------------------------------
     
-    
     if (argc == 1) {
         return usage(argc, argv);
     } else if (argc == 2 && !strcmp(argv[1], "--help")) {
         return usage(argc, argv);
     }
-    
-    
     
     [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsXMLParser class]];
     [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsJSONParser class]];

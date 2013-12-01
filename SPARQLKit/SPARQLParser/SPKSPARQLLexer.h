@@ -1,5 +1,7 @@
 #import "SPKSPARQLToken.h"
 
+NSArray* SPKSPARQLKeywords(void);
+
 @interface SPKSPARQLLexer : NSObject {
 	NSFileHandle* _file;
 	NSString* _string;
