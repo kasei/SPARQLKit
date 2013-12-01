@@ -19,8 +19,6 @@
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
 
-//#import <readline/readline.h>
-//#import <readline/history.h>
 #include <sys/stat.h>
 
 // SPARQL Endpoint
@@ -424,9 +422,85 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
     }
 }
 
+NSString* cacheDirectory (void) {
+    NSString* cachePath     = @"Application Support/GTWSPARQLEngine/Cache";
+    NSArray* searchPaths    = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
+//    NSLog(@"search paths: %@", searchPaths);
+    NSString* cacheFullPath;
+    if ([searchPaths count]) {
+        for (NSString* curPath in searchPaths) {
+            NSString* path  = [curPath stringByAppendingPathComponent:cachePath];
+//            NSLog(@"checking: %@", path);
+            if ([[NSFileManager defaultManager] fileExistsAtPath: path]) {
+//                NSLog(@"-> ok");
+                cacheFullPath   = path;
+                break;
+            }
+        }
+        if (!cacheFullPath) {
+            NSString* curPath   = [searchPaths objectAtIndex:0];
+            NSString* path  = [curPath stringByAppendingPathComponent:cachePath];
+//            NSLog(@"-> creating %@", path);
+            if (!mkdir([path UTF8String], S_IRUSR|S_IXUSR|S_IWUSR|S_IRGRP|S_IXGRP)) {
+                cacheFullPath   = path;
+            } else {
+                perror("Failed to create cache directory: ");
+            }
+        }
+    }
+    return cacheFullPath;
+}
+
+NSDictionary* loadCachedPrefixes (void) {
+    NSString* fileName      = @"Prefixes.json";
+    NSString* cacheFullPath = cacheDirectory();
+    if (cacheFullPath) {
+        NSError* error;
+        NSString* cacheFile = [cacheFullPath stringByAppendingPathComponent:fileName];
+        if ([[NSFileManager defaultManager] fileExistsAtPath: cacheFile]) {
+            NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:cacheFile];
+            NSData* data        = [fh readDataToEndOfFile];
+            return [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        }
+    }
+    
+    return nil;
+}
+
+BOOL storeCachedPrefixes (NSDictionary* prefixes) {
+    NSString* fileName      = @"Prefixes.json";
+    NSString* cacheFullPath = cacheDirectory();
+    if (cacheFullPath) {
+        NSError* error;
+        NSString* cacheFile = [cacheFullPath stringByAppendingPathComponent:fileName];
+        NSLog(@"writing prefixes data to cache file %@", cacheFile);
+        int fd              = open([cacheFile UTF8String], O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
+        if (fd == -1) {
+            perror("Failed to open prefix cache file for writing: ");
+            return NO;
+        }
+//        NSFileHandle* fh    = [NSFileHandle fileHandleForWritingAtPath:cacheFile];
+        NSFileHandle* fh    = [[NSFileHandle alloc] initWithFileDescriptor:fd];
+        if (fh) {
+            NSData* data        = [NSJSONSerialization dataWithJSONObject:prefixes options:NSJSONWritingPrettyPrinted error:&error];
+            if (error) {
+                NSLog(@"Error writing prefixes cache file: %@", error);
+                return NO;
+            }
+            [fh writeData:data];
+            return YES;
+        }
+    }
+    
+    return NO;
+}
+
 NSDictionary* prefixes (void) {
     static NSDictionary* prefixes;
 	static dispatch_once_t onceToken;
+    prefixes    = loadCachedPrefixes();
+    if (prefixes)
+        return prefixes;
 	dispatch_once(&onceToken, ^{
         NSError* error;
         NSURL* url  = [NSURL URLWithString:@"http://prefix.cc/popular/all.file.json"];
@@ -436,6 +510,7 @@ NSDictionary* prefixes (void) {
         [req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
         [req setValue:@"text/json" forHTTPHeaderField:@"Accept"];
         NSHTTPURLResponse* resp	= nil;
+//        NSLog(@"sending request for prefixes");
         NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&error];
         if (resp) {
             NSInteger code	= [resp statusCode];
@@ -444,6 +519,8 @@ NSDictionary* prefixes (void) {
             }
         }
     });
+    if (prefixes)
+        storeCachedPrefixes(prefixes);
     return prefixes;
 }
 
@@ -577,7 +654,6 @@ int main(int argc, const char * argv[]) {
         char *line;
 
         NSString* historyPath       = @"Preferences/GTWSPARQLEngine";
-        NSString* historyFileName   = @"readline.history";
         NSString* lnHistoryFileName = @"history.linenoise";
         NSArray* prefsPaths         = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
         NSString* prefsPath;
@@ -591,20 +667,15 @@ int main(int argc, const char * argv[]) {
             }
             if (!prefsPath) {
                 NSString* curPath   = [prefsPaths objectAtIndex:0];
-                if (!mkdir([curPath UTF8String], S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
+                if (!mkdir([curPath UTF8String], S_IRUSR|S_IXUSR|S_IWUSR|S_IRGRP|S_IXGRP)) {
                     NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
                     prefsPath   = path;
                 }
             }
         }
         
-        NSString* historyFile;
         NSString* lnHistoryFile;
         if (prefsPath) {
-            historyFile = [prefsPath stringByAppendingPathComponent:historyFileName];
-            
-            linenoiseHistoryLoad((char*) [historyFile UTF8String]);
-            
             lnHistoryFile = [prefsPath stringByAppendingPathComponent:lnHistoryFileName];
             linenoiseHistoryLoad((char*) [lnHistoryFile UTF8String]);
         }
@@ -616,6 +687,7 @@ int main(int argc, const char * argv[]) {
         
         linenoiseSetCompletionCallback(completion);
         NSMutableArray* jobs            = [NSMutableArray array];
+        
         while ((line = linenoise("sparql> ")) != NULL) {
             NSError* error      = nil;
             NSString* sparql    = [NSString stringWithFormat:@"%s", line];
@@ -624,7 +696,7 @@ int main(int argc, const char * argv[]) {
                 continue;
             
             linenoiseHistoryAdd([sparql UTF8String]);
-            if (historyFile) {
+            if (lnHistoryFile) {
                 linenoiseHistorySave((char*) [lnHistoryFile UTF8String]);
             }
             
