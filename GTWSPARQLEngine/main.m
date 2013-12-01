@@ -423,7 +423,7 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
 }
 
 NSString* cacheDirectory (void) {
-    NSString* cachePath     = @"Application Support/GTWSPARQLEngine/Cache";
+    NSString* cachePath     = @"Caches/us.kasei.GTWSPARQLEngine";
     NSArray* searchPaths    = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
 //    NSLog(@"search paths: %@", searchPaths);
     NSString* cacheFullPath;
@@ -473,7 +473,7 @@ BOOL storeCachedPrefixes (NSDictionary* prefixes) {
     if (cacheFullPath) {
         NSError* error;
         NSString* cacheFile = [cacheFullPath stringByAppendingPathComponent:fileName];
-        NSLog(@"writing prefixes data to cache file %@", cacheFile);
+//        NSLog(@"writing prefixes data to cache file %@", cacheFile);
         int fd              = open([cacheFile UTF8String], O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP);
         if (fd == -1) {
             perror("Failed to open prefix cache file for writing: ");
