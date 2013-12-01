@@ -19,8 +19,8 @@
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
 
-#import <readline/readline.h>
-#import <readline/history.h>
+//#import <readline/readline.h>
+//#import <readline/history.h>
 #include <sys/stat.h>
 
 // SPARQL Endpoint
@@ -30,7 +30,19 @@
 #import "DDLog.h"
 #import "DDTTYLogger.h"
 
+#import "linenoise.h"
+
 static NSString* kDefaultBase   = @"http://base.example.com/";
+
+static NSString* OSVersionNumber ( void ) {
+    static NSString* productVersion    = nil;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+        NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+        productVersion = version[@"ProductVersion"];
+    });
+    return productVersion;
+}
 
 NSString* fileContents (NSString* filename) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
@@ -412,6 +424,51 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
     }
 }
 
+NSDictionary* prefixes (void) {
+    static NSDictionary* prefixes;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+        NSError* error;
+        NSURL* url  = [NSURL URLWithString:@"http://prefix.cc/popular/all.file.json"];
+        NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
+        [req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
+        NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
+        [req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
+        [req setValue:@"text/json" forHTTPHeaderField:@"Accept"];
+        NSHTTPURLResponse* resp	= nil;
+        NSData* data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&error];
+//        NSLog(@"json response: %@", resp);
+        if (resp) {
+            NSInteger code	= [resp statusCode];
+            if (code >= 200 && code < 300) {
+                prefixes = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+//                NSLog(@"JSON: %@", prefixes);
+            }
+        }
+    });
+    return prefixes;
+}
+
+void completion(const char *buf, linenoiseCompletions *lc) {
+    NSError* error;
+    NSString* s = [NSString stringWithFormat:@"%s", buf];
+    NSDictionary* p = prefixes();
+
+    NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"PREFIX (\\w+):$" options:0 error:&error];
+    NSRange rangeOfFirstMatch   = [regex rangeOfFirstMatchInString:s options:0 range:NSMakeRange(0, [s length])];
+    if (rangeOfFirstMatch.location != NSNotFound) {
+        NSString* substr    = [s substringWithRange:rangeOfFirstMatch];
+        NSString* substr2   = [substr substringFromIndex:7];
+        NSString* ns        = [substr2 substringToIndex:[substr2 length]-1];
+        if (p[ns]) {
+            NSString* c = [NSString stringWithFormat:@"%@ <%@> ", s, p[ns]];
+            linenoiseAddCompletion(lc,(char*)[c UTF8String]);
+        }
+    }
+    
+    // 	fprintf(stderr, "\ncompleting '%s'...\n", buf);
+}
+
 int main(int argc, const char * argv[]) {
     // Configure our logging framework.
     // To keep things simple and fast, we're just going to log to the Xcode console.
@@ -508,45 +565,58 @@ int main(int argc, const char * argv[]) {
         
         char *line;
 
-        
         NSString* historyPath       = @"Preferences/GTWSPARQLEngine";
         NSString* historyFileName   = @"readline.history";
-        NSString* historyFile       = nil;
-        NSArray* prefsPath          = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
-        if ([prefsPath count]) {
-            for (NSString* curPath in prefsPath) {
+        NSString* lnHistoryFileName = @"history.linenoise";
+        NSArray* prefsPaths         = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
+        NSString* prefsPath;
+        if ([prefsPaths count]) {
+            for (NSString* curPath in prefsPaths) {
                 NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
                 if ([[NSFileManager defaultManager] fileExistsAtPath: path]) {
-                    historyFile = [path stringByAppendingPathComponent:historyFileName];
+                    prefsPath   = path;
                     break;
                 }
             }
-            if (!historyFile) {
-                NSString* curPath   = [prefsPath objectAtIndex:0];
+            if (!prefsPath) {
+                NSString* curPath   = [prefsPaths objectAtIndex:0];
                 if (!mkdir([curPath UTF8String], S_IRUSR|S_IXUSR|S_IRGRP|S_IXGRP)) {
                     NSString* path  = [curPath stringByAppendingPathComponent:historyPath];
-                    historyFile = [path stringByAppendingPathComponent:historyFileName];
+                    prefsPath   = path;
                 }
             }
         }
         
+        NSString* historyFile;
+        NSString* lnHistoryFile;
+        if (prefsPath) {
+            historyFile = [prefsPath stringByAppendingPathComponent:historyFileName];
+            
+            linenoiseHistoryLoad((char*) [historyFile UTF8String]);
+            
+            lnHistoryFile = [prefsPath stringByAppendingPathComponent:lnHistoryFileName];
+            linenoiseHistoryLoad((char*) [lnHistoryFile UTF8String]);
+        }
         
-        if (historyFile)
-            read_history([historyFile UTF8String]);
+        dispatch_queue_t queue = dispatch_queue_create("us.kasei.sparql.repl", DISPATCH_QUEUE_CONCURRENT);
+        dispatch_async(queue, ^{
+            prefixes();
+        });
         
+        linenoiseSetCompletionCallback(completion);
         NSMutableArray* jobs            = [NSMutableArray array];
-        while ((line = readline("sparql> ")) != NULL) {
+        while ((line = linenoise("sparql> ")) != NULL) {
             NSError* error      = nil;
             NSString* sparql    = [NSString stringWithFormat:@"%s", line];
+            free(line);
             if (![sparql length])
                 continue;
             
-            add_history([sparql UTF8String]);
+            linenoiseHistoryAdd([sparql UTF8String]);
             if (historyFile) {
-                write_history([historyFile UTF8String]);
+                linenoiseHistorySave((char*) [lnHistoryFile UTF8String]);
             }
             
-            dispatch_queue_t queue = dispatch_queue_create("us.kasei.sparql.repl", DISPATCH_QUEUE_CONCURRENT);
             if ([sparql hasPrefix:@"endpoint"]) {
                 UInt16 port = 12345;
                 NSRange range   = [sparql rangeOfString:@"^endpoint (\\d+)$" options:NSRegularExpressionSearch];

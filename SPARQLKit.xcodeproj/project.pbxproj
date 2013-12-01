@@ -91,7 +91,7 @@
 		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		37F55954184952BC009B7B6D /* libreadline.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F55953184952BC009B7B6D /* libreadline.dylib */; };
+		37B700C4184AE41900029FF0 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B700C2184AE41900029FF0 /* linenoise.c */; };
 		37F96DD617AD5CBF00235009 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37F96DD517AD5CBF00235009 /* GTWSWBase.framework */; };
 /* End PBXBuildFile section */
 
@@ -229,6 +229,8 @@
 		37A6A01E18386A90002604B0 /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 		37A6A02718386B0A002604B0 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		37A6A02918386B22002604B0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		37B700C2184AE41900029FF0 /* linenoise.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = linenoise.c; sourceTree = "<group>"; };
+		37B700C3184AE41900029FF0 /* linenoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = linenoise.h; sourceTree = "<group>"; };
 		37BF086E176718A2008B11F8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = ../../../../../../../System/Library/Frameworks/System.framework; sourceTree = "<group>"; };
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -251,7 +253,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37F55954184952BC009B7B6D /* libreadline.dylib in Frameworks */,
 				3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */,
 				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
 				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
@@ -572,6 +573,15 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		37B700C1184AE41900029FF0 /* linenoise */ = {
+			isa = PBXGroup;
+			children = (
+				37B700C2184AE41900029FF0 /* linenoise.c */,
+				37B700C3184AE41900029FF0 /* linenoise.h */,
+			);
+			path = linenoise;
+			sourceTree = "<group>";
+		};
 		37E3D5DA172D647A00F54DC9 = {
 			isa = PBXGroup;
 			children = (
@@ -614,6 +624,7 @@
 			isa = PBXGroup;
 			children = (
 				37E3D5E9172D647A00F54DC9 /* main.m */,
+				37B700C1184AE41900029FF0 /* linenoise */,
 				37A69FD0183869C7002604B0 /* CocoaHTTPServer */,
 				3700DD58183AD0BA00AF79C7 /* SPARQLEndpoint */,
 				3700DCF6183ACF8500AF79C7 /* SPARQLTestHarness */,
@@ -767,6 +778,7 @@
 			files = (
 				371EDA76183D7C8500C82D13 /* GTWSPARQLTestHarness.m in Sources */,
 				371EDA77183D7C8500C82D13 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */,
+				37B700C4184AE41900029FF0 /* linenoise.c in Sources */,
 				3700DDDC183B160200AF79C7 /* main.m in Sources */,
 				3700DDDD183B160200AF79C7 /* GCDAsyncSocket.m in Sources */,
 				3700DDDE183B160200AF79C7 /* DDAbstractDatabaseLogger.m in Sources */,
