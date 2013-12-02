@@ -21,7 +21,7 @@ static NSMutableSet* registeredClasses() {
 @implementation SPKSPARQLPluginHandler
 
 NSString *ext = @"plugin";
-NSString *appSupportSubpath = @"Application Support/GTWSPARQLEngine/PlugIns";
+NSString *appSupportSubpath = @"Application Support/SPARQLKit/PlugIns";
 
 + (BOOL) registerClass: (Class) c {
     if ([self plugInClassIsValid:c]) {
