@@ -216,7 +216,7 @@
 		371B341B18400FB900AA75B0 /* SPKBlankNodeRenamer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKBlankNodeRenamer.m; path = SPARQLKit/Utilities/SPKBlankNodeRenamer.m; sourceTree = SOURCE_ROOT; };
 		371B342218400FD700AA75B0 /* SPARQLKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPARQLKit.h; path = SPARQLKit/SPARQLKit.h; sourceTree = SOURCE_ROOT; };
 		37356068184D2F53003296E6 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../../../usr/local/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
-		37356097184D3B7D003296E6 /* GTWSPARQLEngine copy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "GTWSPARQLEngine copy"; sourceTree = BUILT_PRODUCTS_DIR; };
+		37356097184D3B7D003296E6 /* gtwsparql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gtwsparql; sourceTree = BUILT_PRODUCTS_DIR; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		3780594F184C1DDA0029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		3780598A184C33C30029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../../../usr/local/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
@@ -658,7 +658,7 @@
 			children = (
 				37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */,
 				3700DD68183AD32800AF79C7 /* SPARQLKit.framework */,
-				37356097184D3B7D003296E6 /* GTWSPARQLEngine copy */,
+				37356097184D3B7D003296E6 /* gtwsparql */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -763,7 +763,7 @@
 			);
 			name = gtwsparql;
 			productName = SPARQLEngine;
-			productReference = 37356097184D3B7D003296E6 /* GTWSPARQLEngine copy */;
+			productReference = 37356097184D3B7D003296E6 /* gtwsparql */;
 			productType = "com.apple.product-type.tool";
 		};
 		37E3D5E2172D647A00F54DC9 /* GTWSPARQLEngine */ = {
@@ -1091,7 +1091,7 @@
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
 				LLVM_LTO = NO;
-				PRODUCT_NAME = "GTWSPARQLEngine copy";
+				PRODUCT_NAME = gtwsparql;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
@@ -1126,7 +1126,7 @@
 					/usr/local/Cellar/rasqal/0.9.30/lib,
 					"\"$(SDKROOT)/usr/lib/system\"",
 				);
-				PRODUCT_NAME = "GTWSPARQLEngine copy";
+				PRODUCT_NAME = gtwsparql;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = macosx10.8;
 				STRIP_INSTALLED_PRODUCT = NO;
