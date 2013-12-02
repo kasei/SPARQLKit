@@ -30,6 +30,7 @@
 
 #import "linenoise.h"
 
+static NSString* PRODUCT_NAME   = @"GTWSPARQLEngine";
 static NSString* kDefaultBase   = @"http://base.example.com/";
 
 static NSString* OSVersionNumber ( void ) {
@@ -423,7 +424,7 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
 }
 
 NSString* cacheDirectory (void) {
-    NSString* cachePath     = @"Caches/us.kasei.GTWSPARQLEngine";
+    NSString* cachePath     = [NSString stringWithFormat:@"Caches/us.kasei.%@", PRODUCT_NAME];
     NSArray* searchPaths    = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
 //    NSLog(@"search paths: %@", searchPaths);
     NSString* cacheFullPath;
@@ -652,8 +653,7 @@ int main(int argc, const char * argv[]) {
         SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         
         char *line;
-
-        NSString* historyPath       = @"Preferences/GTWSPARQLEngine";
+        NSString* historyPath       = [NSString stringWithFormat:@"Application Support/us.kasei.%@", PRODUCT_NAME];
         NSString* lnHistoryFileName = @"history.linenoise";
         NSArray* prefsPaths         = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
         NSString* prefsPath;
