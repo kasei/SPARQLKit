@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		3700DD73183AD32900AF79C7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 3700DD71183AD32900AF79C7 /* InfoPlist.strings */; };
 		3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		3700DDDB183B15C100AF79C7 /* SPARQLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */; };
 		3700DDDC183B160200AF79C7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E3D5E9172D647A00F54DC9 /* main.m */; };
 		3700DDDD183B160200AF79C7 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A6A00C18386A90002604B0 /* GCDAsyncSocket.m */; };
 		3700DDDE183B160200AF79C7 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A6A01018386A90002604B0 /* DDAbstractDatabaseLogger.m */; };
@@ -89,8 +88,9 @@
 		372E8229183C7A12000349CE /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
-		37805950184C1DDA0029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780594F184C1DDA0029A75E /* GTWSWBase.framework */; };
-		37805951184C1DEC0029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780594F184C1DDA0029A75E /* GTWSWBase.framework */; };
+		3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
+		3780598C184C33D80029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
+		3780598D184C33F10029A75E /* SPARQLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3700DD68183AD32800AF79C7 /* SPARQLKit.framework */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		37B700C4184AE41900029FF0 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B700C2184AE41900029FF0 /* linenoise.c */; };
 /* End PBXBuildFile section */
@@ -170,6 +170,7 @@
 		371B342218400FD700AA75B0 /* SPARQLKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPARQLKit.h; path = SPARQLKit/SPARQLKit.h; sourceTree = SOURCE_ROOT; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		3780594F184C1DDA0029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
+		3780598A184C33C30029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../../../usr/local/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		37A2618618048D95008AFED4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		37A2E1CB1756963C0086CBE7 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		37A69FD2183869DD002604B0 /* DDData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDData.h; sourceTree = "<group>"; };
@@ -242,7 +243,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37805950184C1DDA0029A75E /* GTWSWBase.framework in Frameworks */,
+				3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */,
 				3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -251,11 +252,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37805951184C1DEC0029A75E /* GTWSWBase.framework in Frameworks */,
+				3780598D184C33F10029A75E /* SPARQLKit.framework in Frameworks */,
+				3780598C184C33D80029A75E /* GTWSWBase.framework in Frameworks */,
 				3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */,
 				372E822D183C7A69000349CE /* Cocoa.framework in Frameworks */,
 				372E8229183C7A12000349CE /* Security.framework in Frameworks */,
-				3700DDDB183B15C100AF79C7 /* SPARQLKit.framework in Frameworks */,
 				37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -602,6 +603,7 @@
 		37E3D5E5172D647A00F54DC9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3780598A184C33C30029A75E /* GTWSWBase.framework */,
 				3780594F184C1DDA0029A75E /* GTWSWBase.framework */,
 				3757ADC4183DA9AD0062E484 /* libz.dylib */,
 				3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */,
@@ -834,13 +836,14 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = YES;
-				DSTROOT = /;
+				DEPLOYMENT_LOCATION = NO;
+				DSTROOT = "/tmp/$(PROJECT_NAME).dst";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					/usr/local/Frameworks,
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -867,7 +870,7 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "SPARQLKit/SPARQLKit-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/rasqal/0.9.30/lib,
@@ -895,14 +898,15 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = YES;
-				DSTROOT = /;
+				DEPLOYMENT_LOCATION = NO;
+				DSTROOT = "/tmp/$(PROJECT_NAME).dst";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				ENABLE_NS_ASSERTIONS = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					/usr/local/Frameworks,
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -925,7 +929,7 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "SPARQLKit/SPARQLKit-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/rasqal/0.9.30/lib,
@@ -1025,6 +1029,7 @@
 					"$(inherited)",
 					"$(SRCROOT)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					/usr/local/Frameworks,
 				);
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
@@ -1058,6 +1063,7 @@
 					"$(inherited)",
 					"$(SRCROOT)",
 					"$(USER_LIBRARY_DIR)/Frameworks",
+					/usr/local/Frameworks,
 				);
 				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_INSTRUMENT_PROGRAM_FLOW_ARCS = NO;
