@@ -412,7 +412,7 @@ static NSString* OSVersionNumber ( void ) {
 	NSHTTPURLResponse* resp	= nil;
     //	NSLog(@"request: %@", req);
 	data	= [NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&_error];
-	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
+    //	NSLog(@"got response with %lu bytes: %@", [data length], [resp allHeaderFields]);
     //	NSLog(@"got response with %lu bytes", [data length]);
 	if (data) {
         if ([resp isKindOfClass:[NSHTTPURLResponse class]] && [resp statusCode] >= 300) {
@@ -737,9 +737,15 @@ MORE_LOOP:
 //	NSLog(@"response: %@ (%lu bytes)", resp, [data length]);
     if ([resp isKindOfClass:[NSHTTPURLResponse class]]) {
         NSInteger code	= [resp statusCode];
-        if ([resp statusCode] >= 300) {
-            if (error && ![silent booleanValue]) {
+//        NSLog(@"HTTP GET response: %03d", (int) code);
+        if (code >= 300) {
+            if (error) {
                 NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
+            }
+            if ([silent booleanValue]) {
+                NSNumber* r = [NSNumber numberWithBool:YES];
+                return [@[r] objectEnumerator];
+            } else {
                 return nil;
             }
         }
