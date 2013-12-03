@@ -91,7 +91,6 @@
 		3735606C184D3B7D003296E6 /* GTWSPARQLTestHarness.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCF8183ACF8500AF79C7 /* GTWSPARQLTestHarness.m */; };
 		3735606D184D3B7D003296E6 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DCFA183ACF8500AF79C7 /* GTWSPARQLTestHarnessURLProtocol.m */; };
 		3735606E184D3B7D003296E6 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B700C2184AE41900029FF0 /* linenoise.c */; };
-		3735606F184D3B7D003296E6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 37E3D5E9172D647A00F54DC9 /* main.m */; };
 		37356070184D3B7D003296E6 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A6A00C18386A90002604B0 /* GCDAsyncSocket.m */; };
 		37356071184D3B7D003296E6 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A6A01018386A90002604B0 /* DDAbstractDatabaseLogger.m */; };
 		37356072184D3B7D003296E6 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 37A6A01218386A90002604B0 /* DDASLLogger.m */; };
@@ -126,6 +125,7 @@
 		37356090184D3B7D003296E6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02718386B0A002604B0 /* Cocoa.framework */; };
 		37356091184D3B7D003296E6 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		37356092184D3B7D003296E6 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
+		37356099184D3E1F003296E6 /* gtwsparql.m in Sources */ = {isa = PBXBuildFile; fileRef = 37356098184D3E1F003296E6 /* gtwsparql.m */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
 		3780598C184C33D80029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
@@ -217,6 +217,7 @@
 		371B342218400FD700AA75B0 /* SPARQLKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPARQLKit.h; path = SPARQLKit/SPARQLKit.h; sourceTree = SOURCE_ROOT; };
 		37356068184D2F53003296E6 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../../../usr/local/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
 		37356097184D3B7D003296E6 /* gtwsparql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gtwsparql; sourceTree = BUILT_PRODUCTS_DIR; };
+		37356098184D3E1F003296E6 /* gtwsparql.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = gtwsparql.m; sourceTree = "<group>"; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		3780594F184C1DDA0029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		3780598A184C33C30029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../../../usr/local/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
@@ -686,6 +687,7 @@
 			isa = PBXGroup;
 			children = (
 				37E3D5E9172D647A00F54DC9 /* main.m */,
+				37356098184D3E1F003296E6 /* gtwsparql.m */,
 				37B700C1184AE41900029FF0 /* linenoise */,
 				37A69FD0183869C7002604B0 /* CocoaHTTPServer */,
 				3700DD58183AD0BA00AF79C7 /* SPARQLEndpoint */,
@@ -859,7 +861,6 @@
 				3735606C184D3B7D003296E6 /* GTWSPARQLTestHarness.m in Sources */,
 				3735606D184D3B7D003296E6 /* GTWSPARQLTestHarnessURLProtocol.m in Sources */,
 				3735606E184D3B7D003296E6 /* linenoise.c in Sources */,
-				3735606F184D3B7D003296E6 /* main.m in Sources */,
 				37356070184D3B7D003296E6 /* GCDAsyncSocket.m in Sources */,
 				37356071184D3B7D003296E6 /* DDAbstractDatabaseLogger.m in Sources */,
 				37356072184D3B7D003296E6 /* DDASLLogger.m in Sources */,
@@ -882,6 +883,7 @@
 				37356083184D3B7D003296E6 /* HTTPDataResponse.m in Sources */,
 				37356084184D3B7D003296E6 /* HTTPDynamicFileResponse.m in Sources */,
 				37356085184D3B7D003296E6 /* HTTPErrorResponse.m in Sources */,
+				37356099184D3E1F003296E6 /* gtwsparql.m in Sources */,
 				37356086184D3B7D003296E6 /* HTTPFileResponse.m in Sources */,
 				37356087184D3B7D003296E6 /* HTTPRedirectResponse.m in Sources */,
 				37356088184D3B7D003296E6 /* WebSocket.m in Sources */,
