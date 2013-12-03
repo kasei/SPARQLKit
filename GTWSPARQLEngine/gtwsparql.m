@@ -14,6 +14,7 @@
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
+#import <SPARQLKit/SPKMutableURLRequest.h>
 
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
@@ -31,16 +32,6 @@
 
 static NSString* PRODUCT_NAME   = @"gtwsparql";
 static NSString* kDefaultBase   = @"http://base.example.com/";
-
-static NSString* OSVersionNumber ( void ) {
-    static NSString* productVersion    = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-        NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-        productVersion = version[@"ProductVersion"];
-    });
-    return productVersion;
-}
 
 NSString* fileContents (NSString* filename) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
@@ -258,10 +249,7 @@ NSDictionary* prefixes (void) {
 	dispatch_once(&onceToken, ^{
         NSError* error;
         NSURL* url  = [NSURL URLWithString:@"http://prefix.cc/popular/all.file.json"];
-        NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
-        [req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
-        NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
-        [req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
+        SPKMutableURLRequest* req   = [SPKMutableURLRequest requestWithURL:url];
         [req setValue:@"text/json" forHTTPHeaderField:@"Accept"];
         NSHTTPURLResponse* resp	= nil;
         //        NSLog(@"sending request for prefixes");

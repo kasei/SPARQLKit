@@ -17,16 +17,7 @@
 #import <GTWSWBase/GTWQuad.h>
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
 #import "SPKSPARQLPluginHandler.h"
-
-static NSString* OSVersionNumber ( void ) {
-    static NSString* productVersion    = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-        NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-        productVersion = version[@"ProductVersion"];
-    });
-    return productVersion;
-}
+#import "SPKMutableURLRequest.h"
 
 @implementation SPKSimpleQueryEngine
 
@@ -376,16 +367,6 @@ static NSString* OSVersionNumber ( void ) {
     }
 }
 
-- (NSMutableURLRequest*) requestForRetrievingURL: (NSURL*) url error:(NSError*__autoreleasing*)error {
-	NSMutableURLRequest* req	= [NSMutableURLRequest requestWithURL:url];
-	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
-    //	[req setTimeoutInterval:5.0];
-    
-	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
-	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
-    return req;
-}
-
 - (NSEnumerator*) evaluateServicePlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     id<SPKTree> list        = plan.treeValue;
     id<SPKTree> eptree      = list.arguments[0];
@@ -405,7 +386,7 @@ static NSString* OSVersionNumber ( void ) {
     
 	NSError* _error			= nil;
 	NSURL* url	= [NSURL URLWithString:[NSString stringWithFormat:@"%@?query=%@", endpoint, query]];
-    NSMutableURLRequest* req    = [self requestForRetrievingURL:url error:&_error];
+    SPKMutableURLRequest* req   = [SPKMutableURLRequest requestWithURL:url];
 	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
     
 	NSData* data	= nil;
@@ -727,7 +708,7 @@ MORE_LOOP:
     Class RDFParserClass    = [SPKSPARQLPluginHandler parserForFilename:iri.value conformingToProtocol:@protocol(GTWRDFParser)];
     GTWIRI* base            = iri;
     NSURL* url              = [NSURL URLWithString:iri.value];
-    NSMutableURLRequest* req    = [self requestForRetrievingURL:url error:&error];
+    SPKMutableURLRequest* req   = [SPKMutableURLRequest requestWithURL:url];
 //	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
     
 	NSHTTPURLResponse* resp	= nil;
@@ -746,7 +727,7 @@ MORE_LOOP:
                 NSNumber* r = [NSNumber numberWithBool:YES];
                 return [@[r] objectEnumerator];
             } else {
-                NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
+                NSLog(@"%@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
                 return nil;
             }
         }

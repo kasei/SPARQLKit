@@ -33,16 +33,6 @@
 static NSString* PRODUCT_NAME   = @"GTWSPARQLEngine";
 static NSString* kDefaultBase   = @"http://base.example.com/";
 
-static NSString* OSVersionNumber ( void ) {
-    static NSString* productVersion    = nil;
-	static dispatch_once_t onceToken;
-	dispatch_once(&onceToken, ^{
-        NSDictionary *version = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-        productVersion = version[@"ProductVersion"];
-    });
-    return productVersion;
-}
-
 NSString* fileContents (NSString* filename) {
     NSFileHandle* fh    = [NSFileHandle fileHandleForReadingAtPath:filename];
     NSData* data        = [fh readDataToEndOfFile];
