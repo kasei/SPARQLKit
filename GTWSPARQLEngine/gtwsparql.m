@@ -29,7 +29,7 @@
 
 #import "linenoise.h"
 
-static NSString* PRODUCT_NAME   = @"GTWSPARQLEngine";
+static NSString* PRODUCT_NAME   = @"gtwsparql";
 static NSString* kDefaultBase   = @"http://base.example.com/";
 
 static NSString* OSVersionNumber ( void ) {
