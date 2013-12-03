@@ -334,9 +334,7 @@ int main(int argc, const char * argv[]) {
     }
     // ------------------------------------------------------------------------------------------------------------------------
     
-    if (argc == 1) {
-        return usage(argc, argv);
-    } else if (argc == 2 && !strcmp(argv[1], "--help")) {
+    if (argc == 2 && !strcmp(argv[1], "--help")) {
         return usage(argc, argv);
     }
     
