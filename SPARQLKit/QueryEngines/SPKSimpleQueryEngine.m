@@ -740,12 +740,13 @@ MORE_LOOP:
 //        NSLog(@"HTTP GET response: %03d", (int) code);
         if (code >= 300) {
             if (error) {
-                NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
+                NSLog(@"Error loading URL: %@", e);
             }
             if ([silent booleanValue]) {
                 NSNumber* r = [NSNumber numberWithBool:YES];
                 return [@[r] objectEnumerator];
             } else {
+                NSLog(@"Error loading URL: %@", [NSHTTPURLResponse localizedStringForStatusCode:code]);
                 return nil;
             }
         }
