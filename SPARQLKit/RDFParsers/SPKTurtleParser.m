@@ -738,7 +738,6 @@ cleanup:
     if (userInfo) {
         [dict addEntriesFromDictionary:userInfo];
     }
-    NSLog(@"--------->");
     dict[@"description"]        = message;
     NSError* e  = [NSError errorWithDomain:@"us.kasei.sparql.turtle.parser" code:code userInfo:dict];
     [errors addObject:e];
