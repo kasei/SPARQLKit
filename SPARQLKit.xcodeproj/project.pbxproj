@@ -129,6 +129,8 @@
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
 		3780598C184C33D80029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
+		37832143184E953C0065EEB9 /* SPKMutableURLRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 37832141184E953C0065EEB9 /* SPKMutableURLRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		37832144184E953C0065EEB9 /* SPKMutableURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		37B700C4184AE41900029FF0 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B700C2184AE41900029FF0 /* linenoise.c */; };
 /* End PBXBuildFile section */
@@ -221,6 +223,8 @@
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		3780594F184C1DDA0029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
 		3780598A184C33C30029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../../../usr/local/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
+		37832141184E953C0065EEB9 /* SPKMutableURLRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKMutableURLRequest.h; path = SPARQLKit/Utilities/SPKMutableURLRequest.h; sourceTree = SOURCE_ROOT; };
+		37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKMutableURLRequest.m; path = SPARQLKit/Utilities/SPKMutableURLRequest.m; sourceTree = SOURCE_ROOT; };
 		37A2618618048D95008AFED4 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		37A2E1CB1756963C0086CBE7 /* libxml2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.dylib; path = usr/lib/libxml2.dylib; sourceTree = SDKROOT; };
 		37A69FD2183869DD002604B0 /* DDData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDData.h; sourceTree = "<group>"; };
@@ -465,6 +469,8 @@
 				371B341918400FB900AA75B0 /* NSObject+NSDictionary_QueryBindings.m */,
 				371B341A18400FB900AA75B0 /* SPKBlankNodeRenamer.h */,
 				371B341B18400FB900AA75B0 /* SPKBlankNodeRenamer.m */,
+				37832141184E953C0065EEB9 /* SPKMutableURLRequest.h */,
+				37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */,
 			);
 			name = Utilities;
 			path = SPARQLKit/Utilities;
@@ -726,6 +732,7 @@
 				371B33D818400E5600AA75B0 /* SPKTripleModel.h in Headers */,
 				371B33D018400E3A00AA75B0 /* SPKErrorLogger.h in Headers */,
 				371B33D618400E5600AA75B0 /* SPKQuadModel.h in Headers */,
+				37832143184E953C0065EEB9 /* SPKMutableURLRequest.h in Headers */,
 				371B341E18400FB900AA75B0 /* NSObject+NSDictionary_QueryBindings.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -832,6 +839,7 @@
 				371B341318400F9700AA75B0 /* SPKExpression.m in Sources */,
 				371B33F718400F5E00AA75B0 /* SPKSPARQLParser.m in Sources */,
 				371B342118400FB900AA75B0 /* SPKBlankNodeRenamer.m in Sources */,
+				37832144184E953C0065EEB9 /* SPKMutableURLRequest.m in Sources */,
 				371B341D18400FB900AA75B0 /* NSDate+W3CDTFSupport.m in Sources */,
 				371B340518400F7E00AA75B0 /* SPKNTriplesSerializer.m in Sources */,
 				371B33E318400E9000AA75B0 /* SPKExpressionEvaluationContext.m in Sources */,
@@ -959,8 +967,8 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = NO;
-				DSTROOT = "/tmp/$(PROJECT_NAME).dst";
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -993,7 +1001,7 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "SPARQLKit/SPARQLKit-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/rasqal/0.9.30/lib,
@@ -1021,8 +1029,8 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = NO;
-				DSTROOT = "/tmp/$(PROJECT_NAME).dst";
+				DEPLOYMENT_LOCATION = YES;
+				DSTROOT = /;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1052,7 +1060,7 @@
 					/usr/include/libxml2,
 				);
 				INFOPLIST_FILE = "SPARQLKit/SPARQLKit-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INSTALL_PATH = "$(USER_LIBRARY_DIR)/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/Cellar/rasqal/0.9.30/lib,
