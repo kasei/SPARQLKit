@@ -17,6 +17,7 @@
 #import "SPKSPARQLResultsXMLSerializer.h"
 #import "SPKSPARQLResultsTextTableSerializer.h"
 #import "HTTPMessage.h"
+#import "HTTPErrorResponse.h"
 #import "zlib.h"
 
 @implementation GTWSPARQLConnection
@@ -38,34 +39,39 @@
     if ([relativePath isEqualToString:@"/sparql"]) {
         NSDictionary* params    = [self parseGetParams];
         NSString* query         = params[@"query"];
-        
-        BOOL verbose    = NO;
-        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
-        NSError* error;
-        id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base error:&error];
-        if (error) {
-            NSLog(@"parser error: %@", error);
+        if (query) {
+            BOOL verbose    = NO;
+            id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
+            NSError* error;
+            id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base error:&error];
+            if (error) {
+                NSLog(@"parser error: %@", error);
+            }
+            if (verbose) {
+                NSLog(@"query:\n%@", algebra);
+            }
+            
+            SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
+            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+            if (verbose) {
+                NSLog(@"plan:\n%@", plan);
+            }
+            
+            NSSet* variables    = [plan inScopeVariables];
+            if (verbose) {
+                NSLog(@"executing query...");
+            }
+            id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
+            NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
+            id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
+            
+            NSData* data        = [s dataFromResults:e withVariables:variables];
+            return [[HTTPDataResponse alloc] initWithData:data];
+        } else {
+            // Request for /sparql without a ?query parameter
+            // TODO: return a query template html form
+            return [[HTTPErrorResponse alloc] initWithErrorCode:400];
         }
-        if (verbose) {
-            NSLog(@"query:\n%@", algebra);
-        }
-        
-        SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
-        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
-        if (verbose) {
-            NSLog(@"plan:\n%@", plan);
-        }
-        
-        NSSet* variables    = [plan inScopeVariables];
-        if (verbose) {
-            NSLog(@"executing query...");
-        }
-        id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
-        NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-        id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
-        
-        NSData* data        = [s dataFromResults:e withVariables:variables];
-        return [[HTTPDataResponse alloc] initWithData:data];
 	}
 	
 	return [super httpResponseForMethod:method URI:path];
@@ -81,12 +87,14 @@
             while (![httpResponse isDone]) {
                 [content appendData:[httpResponse readDataOfLength: 1024]];
             }
-            NSData* compressed  = [GTWSPARQLConnection gzipData:content];
-            if (compressed) {
-                httpResponse    = [[HTTPDataResponse alloc] initWithData:compressed];
-                [response setHeaderField:@"Content-Encoding" value:@"gzip"];
-                NSString *contentLengthStr = [NSString stringWithFormat:@"%qu", (unsigned long long)[compressed length]];
-                [response setHeaderField:@"Content-Length" value:contentLengthStr];
+            if ([content length] > 0) {
+                NSData* compressed  = [GTWSPARQLConnection gzipData:content];
+                if (compressed) {
+                    httpResponse    = [[HTTPDataResponse alloc] initWithData:compressed];
+                    [response setHeaderField:@"Content-Encoding" value:@"gzip"];
+                    NSString *contentLengthStr = [NSString stringWithFormat:@"%qu", (unsigned long long)[compressed length]];
+                    [response setHeaderField:@"Content-Length" value:contentLengthStr];
+                }
             }
         }
     }
