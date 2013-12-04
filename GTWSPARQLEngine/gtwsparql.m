@@ -363,6 +363,50 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
             return YES;
         } else if ([sparql isEqualToString:@"exit"]) {
             return NO;
+        } else if ([sparql hasPrefix:@"parse "]) {
+            NSString* s = [sparql substringFromIndex:6];
+            NSError* error;
+            SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
+            id<SPKTree> algebra     = [parser parseSPARQLQuery:s withBaseURI:kDefaultBase error:&error];
+            if (error || !algebra) {
+                NSLog(@"parser error: %@", error);
+                return YES;
+            }
+            
+            printf("Query Algebra:\n%s\n", [[algebra longDescription] UTF8String]);
+            return YES;
+        } else if ([sparql hasPrefix:@"explain "]) {
+            NSString* s = [sparql substringFromIndex:8];
+            NSError* error;
+            SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
+            id<SPKTree> algebra     = [parser parseSPARQLQuery:s withBaseURI:kDefaultBase error:&error];
+            if (error || !algebra) {
+                NSLog(@"parser error: %@", error);
+                return YES;
+            }
+            SPKTree<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+            if (!plan) {
+                return YES;
+            }
+            printf("Query Plan:\n%s\n", [[plan longDescription] UTF8String]);
+            return YES;
+        } else if ([sparql isEqualToString:@"help"]) {
+            printf("Commands:\n");
+            printf("    help                   Show this help information.\n");
+            printf("    parse [sparql]         Print the parsed algebra for the SPARQL 1.1 query/update.\n");
+            printf("    explain [sparql]       Explain the execution plan for the SPARQL 1.1 query/update.\n");
+            printf("    SELECT ...             Execute the SPARQL 1.1 query.\n");
+            printf("    ASK ...                Execute the SPARQL 1.1 query.\n");
+            printf("    CONSTRUCT ...          Execute the SPARQL 1.1 query.\n");
+            printf("    DESCRIBE ...           Execute the SPARQL 1.1 query.\n");
+            printf("    INSERT ...             Execute the SPARQL 1.1 update.\n");
+            printf("    DELETE ...             Execute the SPARQL 1.1 update.\n");
+            printf("    LOAD <uri>             Execute the SPARQL 1.1 update.\n");
+            printf("    CLEAR ...              Execute the SPARQL 1.1 update.\n");
+            printf("    COPY ...               Execute the SPARQL 1.1 update.\n");
+            printf("    MOVE ...               Execute the SPARQL 1.1 update.\n");
+            printf("\n");
+            return YES;
         }
         
         NSError* error;
