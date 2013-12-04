@@ -141,3 +141,14 @@ sparql> PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?family (COUNT(*) AS ?c
 | 8 | 2029  | "Williams"         | 
 ----------------------------------
 ```
+
+### Starting an Endpoint
+
+A SPARQL endpoint can easily be started:
+
+```
+sparql> endpoint 8080
+Endpoint started on port 8080
+```
+
+At this point, `http://localhost:8080/sparql` is a [SPARQL Protocol](http://www.w3.org/TR/sparql11-protocol/) endpoint URL that will respond to queries.
