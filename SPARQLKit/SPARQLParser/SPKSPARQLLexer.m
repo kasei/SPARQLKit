@@ -411,11 +411,10 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	if (range.location == 0) {
 		[self _readLength:1 error:error];
 		return [self newTokenOfType:KEYWORD withArgs:@[@"A"]];
-	} else if ([self.buffer hasPrefix:@"true"]) {
+	} else if ([self.buffer rangeOfString:@"true\\b" options:NSRegularExpressionSearch].location != NSNotFound) {
 		[self _readLength:4 error:error];
-		// TODO: make sure there is a word boundary after true/false (true|false)\b
 		return [self newTokenOfType:BOOLEAN withArgs:@[@"true"]];
-	} else if ([self.buffer hasPrefix:@"false"]) {
+	} else if ([self.buffer rangeOfString:@"false\\b" options:NSRegularExpressionSearch].location != NSNotFound) {
 		[self _readLength:5 error:error];
 		return [self newTokenOfType:BOOLEAN withArgs:@[@"false"]];
 	}
