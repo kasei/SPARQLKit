@@ -625,7 +625,6 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         GTWIRI* mfresult = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#result"];
         id<GTWTerm> result          = [model anyObjectForSubject:test predicate:mfresult graph:nil];
-        // TODO: for update tests, this is a bnode with info on the resulting graphstore, not a results filename
         
         NSArray* expected;
         NSMutableSet* vars      = [NSMutableSet set];

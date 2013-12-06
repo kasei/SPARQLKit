@@ -621,11 +621,13 @@
         id<SPKTree> dstTree     = list.arguments[1];
         if ([dstTree.value isEqualToString:@"ALL"]) {
             // DROP ALL
+            // TODO: Create default graph after drop
             return [[SPKQueryPlan alloc] initWithType:kPlanDropAll arguments:nil];
         } else if ([dstTree.value isEqualToString:@"NAMED"] || [dstTree.value isEqualToString:@"DEFAULT"]) {
             NSArray* graphs;
             if ([dstTree.value isEqualToString:@"DEFAULT"]) {
                 // DROP DEFAULT
+                // TODO: Create default graph after drop
                 graphs  = [dataset defaultGraphs];
             } else {
                 // DROP NAMED
