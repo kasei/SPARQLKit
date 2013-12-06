@@ -210,7 +210,6 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
                     }
                 }
             } else {
-                // TODO: implement ADD, MOVE, COPY, WITH...
                 [self errorMessage:[NSString stringWithFormat:@"%@ not implemented yet", t.value] withErrors:errors];
                 goto cleanup;
             }
@@ -2288,7 +2287,6 @@ cleanup:
         id<SPKTree> path    = [self parsePathOneInPropertySetWithErrors:errors];
         t   = [self peekNextNonCommentToken];
         
-        // TODO: is this really optional? what sort of a path is '(' ')' ?
         while (t && t.type == OR) {
             [self nextNonCommentToken];
             id<SPKTree> rhs = [self parsePathOneInPropertySetWithErrors:errors];
@@ -2325,6 +2323,8 @@ cleanup:
         [self nextNonCommentToken];
         id<GTWTerm> term    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
         return [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
+    } else if (t.type == NIL) {
+        return [self errorMessage:@"Expecting IRI but found NIL" withErrors:errors];
     } else {
         return [self parseIRIWithErrors: errors];
     }
