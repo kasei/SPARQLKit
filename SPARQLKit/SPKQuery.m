@@ -51,7 +51,7 @@
         return nil;
     
     id<SPKTree> algebra     = self.algebra;
-    SPKTree<SPKTree,GTWQueryPlan>* plan   = [self.planner queryPlanForAlgebra:algebra usingDataset:self.dataset withModel: model options:nil];
+    SPKTree<SPKTree,GTWQueryPlan>* plan   = [self.planner queryPlanForAlgebra:algebra usingDataset:self.dataset withModel: model optimize:YES options:nil];
     if (self.verbose) {
         NSLog(@"plan:\n%@", plan);
     }

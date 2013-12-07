@@ -11,6 +11,6 @@
 @property NSUInteger varID;
 @property NSMutableDictionary* bnodeMap;
 
-- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize:(BOOL)optFlag options: (NSDictionary*) options;
 
 @end

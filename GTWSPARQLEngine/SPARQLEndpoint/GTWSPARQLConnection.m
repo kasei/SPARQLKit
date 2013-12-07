@@ -52,7 +52,7 @@
             }
             
             SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
-            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize:YES options:nil];
             if (verbose) {
                 NSLog(@"plan:\n%@", plan);
             }

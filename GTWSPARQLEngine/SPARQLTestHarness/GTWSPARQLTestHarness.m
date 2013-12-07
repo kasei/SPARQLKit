@@ -482,7 +482,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<SPKTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel options:nil];
+        id<SPKTree, GTWQueryPlan> plan       = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel:testModel optimize:YES options:nil];
         if (!plan) {
 //            NSLog(@"failed to plan query: %@", query.value);
             return nil;

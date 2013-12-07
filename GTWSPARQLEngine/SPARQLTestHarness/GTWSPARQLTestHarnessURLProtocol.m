@@ -94,7 +94,7 @@ static dispatch_once_t mockToken;
         id<SPKTree> algebra    = [parser parseSPARQLQuery:sparql withBaseURI:defaultGraph.value error:&error];
         SPKQueryPlanner* planner    = [[SPKQueryPlanner alloc] init];
         GTWDataset* dataset    = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defaultGraph]];
-        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
+        id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize:YES options:nil];
         id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
         
         if (NO) {

@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWBlank.h>
 
 #define SPARQLKIT_NAME  @"SPARQLKit"
-#define SPARQLKIT_VERSION @"0.0.1"
+#define SPARQLKIT_VERSION @"0.0.3-13-ga1bff1f"
 
 @protocol GTWLogger
 - (void) logData:(id) data forKey:(NSString*) key inDomain:(NSString*) domain;
@@ -74,7 +74,7 @@ typedef NSString* SPKTreeType;
 
 @protocol SPKQueryPlanner
 @property id<GTWLogger> logger;
-- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model options: (NSDictionary*) options;
+- (id<SPKTree,GTWQueryPlan>) queryPlanForAlgebra: (id<SPKTree>) algebra usingDataset: (id<GTWDataset>) dataset withModel: (id<GTWModel>) model optimize:(BOOL)optFlag options: (NSDictionary*) options;
 @optional
 - (id<SPKTree,GTWQueryPlan>) joinPlanForPlans: (id<SPKTree>) lhs and: (id<SPKTree>) rhs;
 @end
