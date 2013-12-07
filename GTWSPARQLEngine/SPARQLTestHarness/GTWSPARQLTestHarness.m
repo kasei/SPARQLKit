@@ -451,8 +451,8 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
             NSLog(@"SPARQL:\n%@", sparql);
         
         id<SPKTree> algebra     = (update)
-                                ? [parser parseSPARQLQuery:sparql withBaseURI:requestFile error:&error]
-                                : [parser parseSPARQLUpdate:sparql withBaseURI:requestFile error:&error];
+                                ? [parser parseSPARQLQuery:sparql withBaseURI:requestFile settingPrefixes:nil error:&error]
+                                : [parser parseSPARQLUpdate:sparql withBaseURI:requestFile settingPrefixes:nil error:&error];
         if (error) {
             NSLog(@"Failed to parse eval %@ file: %@", requestType, error);
             return nil;
@@ -517,7 +517,7 @@ static const NSString* kFailingEvalTests  = @"Failing Eval Tests";
         
         
         
-        id<SPKTree> algebra            = [parser parseSPARQLQuery:sparql withBaseURI:action.value error:error];
+        id<SPKTree> algebra            = [parser parseSPARQLQuery:sparql withBaseURI:action.value settingPrefixes:nil error:error];
         if (!algebra) {
 //            NSLog(@"failed to parse syntax query: %@", action.value);
             return nil;

@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWBlank.h>
 
 #define SPARQLKIT_NAME  @"SPARQLKit"
-#define SPARQLKIT_VERSION @"0.0.3-13-ga1bff1f"
+#define SPARQLKIT_VERSION @"0.0.3-14-g74dded0"
 
 @protocol GTWLogger
 - (void) logData:(id) data forKey:(NSString*) key inDomain:(NSString*) domain;
@@ -96,8 +96,8 @@ typedef NSString* SPKTreeType;
 #pragma mark -
 
 @protocol SPKSPARQLParser
-- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error;
-- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error;
+- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error;
+- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error;
 @end
 
 #pragma mark -

@@ -12,4 +12,6 @@
 
 @interface SPKNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>
 
+@property id<GTWSerializerDelegate> delegate;
+
 @end

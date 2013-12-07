@@ -11,6 +11,8 @@
 
 @interface SPKNTriplesSerializer : NSObject<GTWSerializer, GTWTriplesSerializer>
 
+@property id<GTWSerializerDelegate> delegate;
+
 + (NSString*) nTriplesEncodingOfString: (NSString*) value;
 + (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term;
 

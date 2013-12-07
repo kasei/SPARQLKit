@@ -20,18 +20,17 @@
         self.parser         = [[SPKSPARQLParser alloc] init];
         self.engine         = [[SPKSimpleQueryEngine alloc] init];
         self.planner        = [[SPKQueryPlanner alloc] init];
-
+        self.prefixes       = [NSMutableDictionary dictionary];
+        
         GTWIRI* defGraph    = [[GTWIRI alloc] initWithValue: base];
         self.dataset        = [[GTWDataset alloc] initDatasetWithDefaultGraphs:@[defGraph]];
-    
-    
     }
     return self;
 }
 
 - (id<SPKTree>) parseWithError: (NSError*__autoreleasing*) error {
     NSError* e;
-    id<SPKTree> algebra     = [self.parser parseSPARQLQuery:self.queryString withBaseURI:self.queryBase error:&e];
+    id<SPKTree> algebra     = [self.parser parseSPARQLQuery:self.queryString withBaseURI:self.queryBase settingPrefixes:self.prefixes error:&e];
     if (e) {
         NSLog(@"parser error: %@", e);
         if (error)

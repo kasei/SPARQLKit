@@ -855,9 +855,14 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (BOOL) _lookaheadWithError:(NSError*__autoreleasing*)error {
     if (!self.lookahead) {
-        SPKSPARQLToken* t   = [self _getTokenWithError:error];
-        if (*error)
+        NSError* e;
+        SPKSPARQLToken* t   = [self _getTokenWithError:&e];
+        if (e) {
+            if (error) {
+                *error  = e;
+            }
             return NO;
+        }
         self.lookahead      = t;
     }
     return YES;

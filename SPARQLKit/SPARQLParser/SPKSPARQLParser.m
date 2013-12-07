@@ -51,12 +51,16 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return self;
 }
 
-- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error {
+- (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
     SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:unescaped];
-    return [self parseSPARQLQueryFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+    id<SPKTree> query   = [self parseSPARQLQueryFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+    if (prefixes) {
+        [prefixes addEntriesFromDictionary:self.namespaces];
+    }
+    return query;
 }
 
 - (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
@@ -65,12 +69,16 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return [self parseCheckingEOF:checkEOF error:error];
 }
 
-- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base error: (NSError*__autoreleasing*) error {
+- (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");
     CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
     SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:unescaped];
-    return [self parseSPARQLUpdateFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+    id<SPKTree> update      = [self parseSPARQLUpdateFromLexer:lexer withBaseURI:base checkEOF:YES error:error];
+    if (prefixes) {
+        [prefixes addEntriesFromDictionary:self.namespaces];
+    }
+    return update;
 }
 
 - (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
@@ -110,6 +118,8 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 //[30]  	Update1	  ::=  	Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify
 
 - (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF error:(NSError*__autoreleasing*) error {
+    self.namespaces = [NSMutableDictionary dictionary];
+
     SPKSPARQLToken* t;
     id<SPKTree> algebra;
     [self beginQueryScope];

@@ -116,6 +116,9 @@
                         NSLog(@"Don't know how to parse file of type %@", syntax);
                         return nil;
                     }
+                } else {
+                    NSLog(@"Data sources for SPKMemoryQuadStore must specify both 'file' and 'syntax'");
+                    return nil;
                 }
             }
         }

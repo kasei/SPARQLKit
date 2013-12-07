@@ -20,7 +20,15 @@
     return value;
 }
 - (NSData*) dataForTerm: (id<GTWTerm>) term {
-    NSString* value = [self xmlSimpleEscapeString:term.value];
+    NSString* value;
+    if (self.delegate) {
+        value   = [self.delegate stringFromObject:term];
+    }
+    if (!value) {
+        value = term.value;
+    }
+    
+    value = [self xmlSimpleEscapeString:value];
     switch ([term termType]) {
         case GTWTermBlank:
             return [[NSString stringWithFormat:@"<bnode>%@</bnode>", value] dataUsingEncoding:NSUTF8StringEncoding];

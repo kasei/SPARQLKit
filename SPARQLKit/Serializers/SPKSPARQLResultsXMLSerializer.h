@@ -12,4 +12,6 @@
 
 @interface SPKSPARQLResultsXMLSerializer : NSObject<GTWSerializer, GTWSPARQLResultsSerializer>
 
+@property id<GTWSerializerDelegate> delegate;
+
 @end

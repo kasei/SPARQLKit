@@ -22,6 +22,7 @@
 @property (retain) Class resultClass;
 @property (retain) id<SPKTree> algebra;
 @property (retain) id<GTWQueryPlan> plan;
+@property (retain) NSMutableDictionary* prefixes;
 
 - (SPKQuery*) initWithQueryString: (NSString*) queryString baseURI: (NSString*) base;
 - (NSEnumerator*) executeWithModel:(id<GTWModel>) model error: (NSError*__autoreleasing*) error;

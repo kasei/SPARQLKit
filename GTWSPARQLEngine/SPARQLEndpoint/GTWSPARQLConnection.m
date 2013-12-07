@@ -43,7 +43,7 @@
             BOOL verbose    = NO;
             id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
             NSError* error;
-            id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base error:&error];
+            id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base settingPrefixes:nil error:&error];
             if (error) {
                 NSLog(@"parser error: %@", error);
             }

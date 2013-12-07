@@ -26,7 +26,13 @@
         for (NSString* v in vars) {
             id<GTWTerm> term    = r[v];
             if (term) {
-                NSString* value = term.value;
+                NSString* value;
+                if (self.delegate) {
+                    value   = [self.delegate stringFromObject:term];
+                }
+                if (!value) {
+                    value = term.value;
+                }
                 if ([value rangeOfCharacterFromSet:charset].location == NSNotFound) {
                     [cols addObject:value];
                 } else {

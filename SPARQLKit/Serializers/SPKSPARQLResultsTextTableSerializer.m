@@ -19,6 +19,15 @@
 - (NSString*) stringForTerm: (id<GTWTerm>) term {
     if (!term)
         return @"";
+    if (self.delegate) {
+        NSString* value;
+        if (self.delegate) {
+            value   = [self.delegate stringFromObject:term];
+            if (value)
+                return value;
+        }
+    }
+    
     if ([term isKindOfClass:[GTWLiteral class]]) {
         id<GTWLiteral> l    = (id<GTWLiteral>) term;
         if ([l isNumericLiteral]) {

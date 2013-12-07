@@ -1,3 +1,5 @@
+#import <objc/runtime.h>
+
 #import <SPARQLKit/SPARQLKit.h>
 #import <GTWSWBase/GTWQuad.h>
 #import <SPARQLKit/SPKMemoryQuadStore.h>
@@ -21,6 +23,7 @@
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 #import "SPKNTriplesSerializer.h"
+#import "SPKPrefixNameSerializerDelegate.h"
 
 #include <sys/stat.h>
 
@@ -46,7 +49,17 @@ NSString* fileContents (NSString* filename) {
 int usage(int argc, const char * argv[]) {
     fprintf(stderr, "Usage:\n");
     fprintf(stderr, "    %s [-s config-json-string] [SPARQL-STRING]\n", argv[0]);
+    fprintf(stderr, "    %s --help\n", argv[0]);
+    fprintf(stderr, "    %s --version\n", argv[0]);
     fprintf(stderr, "\n");
+    fprintf(stderr, "Example:\n");
+    fprintf(stderr, "    %s [-s config-json-string] ''\n", argv[0]);
+    return 0;
+}
+
+int version(int argc, const char * argv[]) {
+    NSString* s = [NSString stringWithFormat:@"%@ %@ v%@", PRODUCT_NAME, SPARQLKIT_NAME, SPARQLKIT_VERSION];
+    fprintf(stderr, "%s\n\n", [s UTF8String]);
     return 0;
 }
 
@@ -148,7 +161,7 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
             GTWIRI* iri = [[GTWIRI alloc] initWithValue:graphName];
             id<GTWDataSource> store = storeFromSourceWithConfigurationString(datasources, storeDict, defaultGraph, class);
             if (!store) {
-                NSLog(@"Failed to create triple store from config '%@'", dict);
+//                NSLog(@"Failed to create triple store from config '%@'", dict);
                 return nil;
             }
             [model addStore:(id<GTWTripleStore>)store usingGraphName:iri];
@@ -159,7 +172,7 @@ id<GTWModel> modelFromSourceWithConfigurationString(NSDictionary* datasources, N
         storeDict[@"storetype"]  = sourceName;
         id<GTWDataSource> store = storeFromSourceWithConfigurationString(datasources, storeDict, defaultGraph, class);
         if (!store) {
-            NSLog(@"Failed to create triple store from config '%@'", storeDict);
+//            NSLog(@"Failed to create triple store from config '%@'", storeDict);
             return nil;
         }
         if ([store conformsToProtocol:@protocol(GTWTripleStore)]) {
@@ -310,11 +323,37 @@ void completion(const char *buf, linenoiseCompletions *lc) {
     }
 }
 
-BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait ) {
+BOOL print_sources ( NSDictionary* datasources ) {
+    NSUInteger counter  = 1;
+    for (id s in datasources) {
+        Class c = datasources[s];
+        fprintf(stdout, "[%lu] %s\n", counter++, [[c description] UTF8String]);
+        NSDictionary* pluginClasses = [c classesImplementingProtocols];
+        for (Class pluginClass in pluginClasses) {
+            NSSet* protocols    = pluginClasses[pluginClass];
+            if ([protocols count]) {
+                NSMutableArray* array   = [NSMutableArray array];
+                for (Protocol* p in protocols) {
+                    const char* name = protocol_getName(p);
+                    [array addObject:[NSString stringWithFormat:@"%s", name]];
+                }
+                NSString* str   = [array componentsJoinedByString:@", "];
+                fprintf(stdout, "    Protocols: %s\n", [str UTF8String]);
+            }
+            NSString* usage = [pluginClass usage];
+            if (usage) {
+                fprintf(stdout, "    Configuration template: %s\n\n", [usage UTF8String]);
+            }
+        }
+    }
+    return YES;
+}
+
+BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait ) {
     @autoreleasepool {
         NSString* sparql    = cmd;
         if ([sparql hasPrefix:@"endpoint"]) {
-            UInt16 port = 12345;
+            UInt16 port = 8080;
             NSRange range   = [sparql rangeOfString:@"^endpoint (\\d+)$" options:NSRegularExpressionSearch];
             if (range.location != NSNotFound) {
                 const char* s   = [sparql UTF8String];
@@ -335,6 +374,8 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
                 });
             }
             return YES;
+        } else if ([sparql hasPrefix:@"sources"]) {
+            return print_sources(datasources);
         } else if ([sparql hasPrefix:@"jobs"]) {
             NSUInteger i   = 0;
             for (i = 0; i < [jobs count]; i++) {
@@ -378,6 +419,10 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
             }
             
             printf("Query Algebra:\n%s\n", [[algebra longDescription] UTF8String]);
+            NSDictionary* prefixes  = query.prefixes;
+            for (id ns in prefixes) {
+                NSLog(@"%@ -> %@", ns, prefixes[ns]);
+            }
             return YES;
         } else if ([sparql hasPrefix:@"explain "]) {
             NSString* s = [sparql substringFromIndex:8];
@@ -393,9 +438,12 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
             return YES;
         } else if ([sparql isEqualToString:@"help"]) {
             printf("Commands:\n");
+            printf("    endpoint [PORT]        Start  SPARQL endpoint on PORT (defaults to 8080).\n");
+            printf("    jobs                   Show the running endpoints.\n");
+            printf("    kill N                 Kill a running endpoint by number (from `jobs`).\n");
             printf("    help                   Show this help information.\n");
-            printf("    parse [sparql]         Print the parsed algebra for the SPARQL 1.1 query/update.\n");
-            printf("    explain [sparql]       Explain the execution plan for the SPARQL 1.1 query/update.\n");
+            printf("    parse [SPARQL]         Print the parsed algebra for the SPARQL 1.1 query/update.\n");
+            printf("    explain [SPARQL]       Explain the execution plan for the SPARQL 1.1 query/update.\n");
             printf("    SELECT ...             Execute the SPARQL 1.1 query.\n");
             printf("    ASK ...                Execute the SPARQL 1.1 query.\n");
             printf("    CONSTRUCT ...          Execute the SPARQL 1.1 query.\n");
@@ -441,7 +489,11 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
             } else if ([format isEqualToString:@"tsv"]) {
                 s   = [[SPKSPARQLResultsTSVSerializer alloc] init];
             } else {
-                s   = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+                NSLog(@"Serializing with prefixes: %@", query.prefixes);
+                SPKPrefixNameSerializerDelegate* d  = [[SPKPrefixNameSerializerDelegate alloc] initWithNamespaceDictionary:query.prefixes];
+                SPKSPARQLResultsTextTableSerializer* ser   = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+                ser.delegate    = d;
+                s   = ser;
             }
             NSData* data        = [s dataFromResults:e withVariables:variables];
             fwrite([data bytes], [data length], 1, stdout);
@@ -465,8 +517,12 @@ int main(int argc, const char * argv[]) {
     }
     // ------------------------------------------------------------------------------------------------------------------------
     
-    if (argc == 2 && !strcmp(argv[1], "--help")) {
-        return usage(argc, argv);
+    if (argc == 2) {
+        if (!strcmp(argv[1], "--help")) {
+            return usage(argc, argv);
+        } else if (!strcmp(argv[1], "--version")) {
+            return version(argc, argv);
+        }
     }
     
     [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsXMLParser class]];
@@ -542,7 +598,7 @@ int main(int argc, const char * argv[]) {
     if ([ops count]) {
         for (NSString* sparql in ops) {
             BOOL wait   = YES;
-            BOOL ok = run_command(sparql, model, dataset, jobs, queue, output, verbose, quiet, wait);
+            BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait);
             if (!ok) {
                 return 1;
             }
@@ -591,7 +647,7 @@ int main(int argc, const char * argv[]) {
         
         
         BOOL wait   = NO;
-        BOOL ok = run_command(sparql, model, dataset, jobs, queue, output, verbose, quiet, wait);
+        BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait);
         if (!ok) {
             goto REPL_EXIT;
         }
