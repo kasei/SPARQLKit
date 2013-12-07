@@ -1,25 +1,25 @@
 #import <SPARQLKit/SPARQLKit.h>
 #import <GTWSWBase/GTWQuad.h>
-#import <GTWSWBase/GTWVariable.h>
+#import <SPARQLKit/SPKMemoryQuadStore.h>
+#import <SPARQLKit/SPKTurtleParser.h>
+#import <SPARQLKit/SPKQuadModel.h>
+#import <SPARQLKit/SPKTripleModel.h>
+#import <SPARQLKit/SPKSPARQLPluginHandler.h>
+#import <SPARQLKit/SPKTree.h>
+#import <SPARQLKit/SPKQuery.h>
+
+// Shared user-agent to load prefixes from prefix.cc
+#import <SPARQLKit/SPKMutableURLRequest.h>
+
+// Parsers
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
 #import <GTWSWBase/GTWSPARQLResultsJSONParser.h>
 
-#import <SPARQLKit/SPKMemoryQuadStore.h>
-#import <SPARQLKit/SPKTurtleParser.h>
-#import <SPARQLKit/SPKSPARQLParser.h>
-#import <SPARQLKit/SPKQuadModel.h>
-#import <SPARQLKit/SPKTripleModel.h>
-#import <SPARQLKit/SPKQueryPlanner.h>
-#import <SPARQLKit/SPKSPARQLPluginHandler.h>
-#import <SPARQLKit/SPKSimpleQueryEngine.h>
-#import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
-#import <SPARQLKit/SPKNQuadsSerializer.h>
-#import <SPARQLKit/SPKMutableURLRequest.h>
-#import <SPARQLKit/SPKQuery.h>
+// Serializers
 #import <SPARQLKit/SPKSPARQLResultsCSVSerializer.h>
 #import <SPARQLKit/SPKSPARQLResultsTSVSerializer.h>
-
-#import "GTWSPARQLTestHarness.h"
+#import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
+#import <SPARQLKit/SPKNQuadsSerializer.h>
 #import "SPKNTriplesSerializer.h"
 
 #include <sys/stat.h>
