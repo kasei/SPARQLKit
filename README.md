@@ -95,7 +95,7 @@ In its simplest form, this is just the name of a triple- or quad-store plugin.
 For example, we can query over Aperture photo metadata loaded into the default graph:
 
 ```
-% gtwsparql GTWApertureTripleStore
+% gtwsparql -s GTWApertureTripleStore
 sparql> PREFIX dcterms: <http://purl.org/dc/terms/> PREFIX foaf: <http://xmlns.com/foaf/0.1/> SELECT ?place (SAMPLE(?i) AS ?image) WHERE { ?i dcterms:spatial [ foaf:name ?place ] FILTER(REGEX(?place, "Airport")) } GROUP BY ?place ORDER BY ?place
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 | # | place                              | image                                                                                                    | 
@@ -114,7 +114,7 @@ The `SPKTripleModel` can be used to construct a dataset with multiple triplestor
 We can query over both Aperture photo metadata and address book contacts:
 
 ```
-% gtwsparql '{ "storetype": "SPKTripleModel", "graphs": { "tag:addressbook": { "storetype": "GTWAddressBookTripleStore" }, "tag:aperture": { "storetype": "GTWApertureTripleStore" } } }'
+% gtwsparql -s '{ "storetype": "SPKTripleModel", "graphs": { "tag:addressbook": { "storetype": "GTWAddressBookTripleStore" }, "tag:aperture": { "storetype": "GTWApertureTripleStore" } } }'
 sparql> SELECT * WHERE { GRAPH ?g {} }
 -------------------------
 | # | g                 | 

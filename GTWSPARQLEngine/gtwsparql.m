@@ -15,6 +15,9 @@
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 #import <SPARQLKit/SPKMutableURLRequest.h>
+#import <SPARQLKit/SPKQuery.h>
+#import <SPARQLKit/SPKSPARQLResultsCSVSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsTSVSerializer.h>
 
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
@@ -42,7 +45,7 @@ NSString* fileContents (NSString* filename) {
 
 int usage(int argc, const char * argv[]) {
     fprintf(stderr, "Usage:\n");
-    fprintf(stderr, "    %s config-json-string\n", argv[0]);
+    fprintf(stderr, "    %s [-s config-json-string] [SPARQL-STRING]\n", argv[0]);
     fprintf(stderr, "\n");
     return 0;
 }
@@ -307,9 +310,8 @@ void completion(const char *buf, linenoiseCompletions *lc) {
     }
 }
 
-BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSUInteger verbose, BOOL quiet, BOOL wait ) {
+BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait ) {
     @autoreleasepool {
-        SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
         NSString* sparql    = cmd;
         if ([sparql hasPrefix:@"endpoint"]) {
             UInt16 port = 12345;
@@ -366,8 +368,10 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
         } else if ([sparql hasPrefix:@"parse "]) {
             NSString* s = [sparql substringFromIndex:6];
             NSError* error;
-            SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
-            id<SPKTree> algebra     = [parser parseSPARQLQuery:s withBaseURI:kDefaultBase error:&error];
+            SPKQuery* query = [[SPKQuery alloc] initWithQueryString:s baseURI:kDefaultBase];
+            query.verbose   = verbose;
+            
+            id<SPKTree> algebra = [query parseWithError:&error];
             if (error || !algebra) {
                 NSLog(@"parser error: %@", error);
                 return YES;
@@ -378,16 +382,13 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
         } else if ([sparql hasPrefix:@"explain "]) {
             NSString* s = [sparql substringFromIndex:8];
             NSError* error;
-            SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
-            id<SPKTree> algebra     = [parser parseSPARQLQuery:s withBaseURI:kDefaultBase error:&error];
-            if (error || !algebra) {
-                NSLog(@"parser error: %@", error);
+            SPKQuery* query = [[SPKQuery alloc] initWithQueryString:s baseURI:kDefaultBase];
+            query.verbose   = verbose;
+            
+            SPKTree<SPKTree,GTWQueryPlan>* plan   = (SPKTree<SPKTree,GTWQueryPlan>*) [query planWithModel:model error:&error];
+            if (!plan)
                 return YES;
-            }
-            SPKTree<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
-            if (!plan) {
-                return YES;
-            }
+            
             printf("Query Plan:\n%s\n", [[plan longDescription] UTF8String]);
             return YES;
         } else if ([sparql isEqualToString:@"help"]) {
@@ -410,36 +411,12 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
         }
         
         NSError* error;
-        SPKSPARQLParser* parser = [[SPKSPARQLParser alloc] init];
-        id<SPKTree> algebra     = [parser parseSPARQLQuery:sparql withBaseURI:kDefaultBase error:&error];
-        if (error) {
-            NSLog(@"parser error: %@", error);
-            return YES;
-        }
-        if (verbose) {
-            NSLog(@"query:\n%@", algebra);
-        }
+        SPKQuery* query = [[SPKQuery alloc] initWithQueryString:sparql baseURI:kDefaultBase];
+        query.verbose   = verbose;
+        NSEnumerator* e = [query executeWithModel:model error:&error];
+        NSSet* variables= query.variables;
         
-        SPKTree<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model options:nil];
-        if (verbose) {
-            NSLog(@"plan:\n%@", plan);
-        }
-        
-        if (!plan) {
-            return YES;
-        } else if ([plan.type isEqual:kPlanSequence] && [plan.arguments count] == 0) {
-            // Empty update sequence
-            return YES;
-        }
-        
-        NSSet* variables    = [plan inScopeVariables];
-        if (verbose) {
-            NSLog(@"executing query...");
-        }
-        id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
-        NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
-        
-        Class resultClass   = [plan planResultClass];
+        Class resultClass   = query.resultClass;
         if ([resultClass isEqual:[NSNumber class]]) {
             NSNumber* result    = [e nextObject];
             if (!quiet) {
@@ -458,7 +435,14 @@ BOOL run_command ( NSString* cmd, id<GTWModel,GTWMutableModel> model, id<GTWData
             NSData* data        = [s dataFromQuads:e];
             fwrite([data bytes], [data length], 1, stdout);
         } else {
-            id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+            id<GTWSPARQLResultsSerializer> s;
+            if ([format isEqualToString:@"csv"]) {
+                s   = [[SPKSPARQLResultsCSVSerializer alloc] init];
+            } else if ([format isEqualToString:@"tsv"]) {
+                s   = [[SPKSPARQLResultsTSVSerializer alloc] init];
+            } else {
+                s   = [[SPKSPARQLResultsTextTableSerializer alloc] init];
+            }
             NSData* data        = [s dataFromResults:e withVariables:variables];
             fwrite([data bytes], [data length], 1, stdout);
         }
@@ -492,9 +476,26 @@ int main(int argc, const char * argv[]) {
     BOOL quiet          = NO;
     NSUInteger verbose  = 0;
     NSUInteger argi     = 1;
+    NSString* config    = nil;
+    NSString* output    = nil;
+    NSMutableArray* ops = [NSMutableArray array];
     
     while (argc > argi && argv[argi][0] == '-') {
-        if (!strcmp(argv[argi], "-v")) {
+        if (!strcmp(argv[argi], "-s")) {
+            argi++;
+            config  = [NSString stringWithFormat:@"%s", argv[argi++]];
+            if (verbose) {
+                NSLog(@"Setting up a quadstore based on the configuration string: %@", config);
+            }
+        } else if (!strcmp(argv[argi], "--results")) {
+            argi++;
+            output  = [NSString stringWithFormat:@"%s", argv[argi++]];
+        } else if (!strcmp(argv[argi], "--query")) {
+            argi++;
+            NSString* qfile = [NSString stringWithFormat:@"%s", argv[argi++]];
+            NSString* sparql    = fileContents(qfile);
+            [ops addObject:sparql];
+        } else if (!strcmp(argv[argi], "-v")) {
             verbose     = 1;
             argi++;
         } else if (!strcmp(argv[argi], "-q")) {
@@ -504,22 +505,17 @@ int main(int argc, const char * argv[]) {
             break;
         }
     }
+    
     if (quiet) {
         verbose = 0;
     }
     
     Class c;
     GTWIRI* defaultGraph    = [[GTWIRI alloc] initWithValue: kDefaultBase];
-    NSString* config;
-    if (argc == argi) {
+    if (!config) {
         config        = @"SPKMemoryQuadStore";
         if (verbose) {
             NSLog(@"Setting up an empty in-memory quadstore");
-        }
-    } else {
-        config        = [NSString stringWithFormat:@"%s", argv[argi++]];
-        if (verbose) {
-            NSLog(@"Setting up a quadstore based on the configuration string: %@", config);
         }
     }
     id<GTWModel,GTWMutableModel> model      = (id<GTWModel,GTWMutableModel>) modelFromSourceWithConfigurationString(datasources, config, defaultGraph, &c);
@@ -534,19 +530,25 @@ int main(int argc, const char * argv[]) {
         prefixes();
     });
     
-    if (argc > argi) {
+    if ([ops count] == 0 && argc > argi) {
+        quiet   = YES;
         NSUInteger i;
         for (i = argi; i < argc; i++) {
             NSString* sparql    = [NSString stringWithFormat:@"%s", argv[i]];
+            [ops addObject:sparql];
+        }
+    }
+    
+    if ([ops count]) {
+        for (NSString* sparql in ops) {
             BOOL wait   = YES;
-            BOOL ok = run_command(sparql, model, dataset, jobs, queue, verbose, quiet, wait);
+            BOOL ok = run_command(sparql, model, dataset, jobs, queue, output, verbose, quiet, wait);
             if (!ok) {
                 return 1;
             }
         }
         return 0;
     }
-    
     char *line;
     NSString* historyPath       = [NSString stringWithFormat:@"Application Support/us.kasei.%@", PRODUCT_NAME];
     NSString* lnHistoryFileName = @"history.linenoise";
@@ -589,7 +591,7 @@ int main(int argc, const char * argv[]) {
         
         
         BOOL wait   = NO;
-        BOOL ok = run_command(sparql, model, dataset, jobs, queue, verbose, quiet, wait);
+        BOOL ok = run_command(sparql, model, dataset, jobs, queue, output, verbose, quiet, wait);
         if (!ok) {
             goto REPL_EXIT;
         }
