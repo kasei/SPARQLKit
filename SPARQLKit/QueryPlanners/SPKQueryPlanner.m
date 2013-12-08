@@ -613,13 +613,25 @@
         id<SPKTree> dstTree     = list.arguments[1];
         if ([dstTree.value isEqualToString:@"ALL"]) {
             // DROP ALL
-            // TODO: Create default graph after drop
-            return [[SPKQueryPlan alloc] initWithType:kPlanDropAll arguments:nil];
+            
+            id<SPKTree,GTWQueryPlan> drop   = [[SPKQueryPlan alloc] initWithType:kPlanDropAll arguments:nil];
+            NSMutableArray* ops     = [NSMutableArray arrayWithObject:drop];
+
+            // Create default graph(s) after the drop
+            NSArray* graphs  = [dataset defaultGraphs];
+            id<SPKTree> silent  = [[SPKTree alloc] initWithType:kTreeNode value:[GTWLiteral trueLiteral] arguments:nil];
+            for (id<GTWIRI> dg in graphs) {
+                id<SPKTree> graph   = [[SPKTree alloc] initWithType:kTreeNode value:dg arguments:nil];
+                id<SPKTree> list    = [[SPKTree alloc] initWithType:kTreeList arguments:@[silent, graph]];
+                id<SPKTree,GTWQueryPlan> create = [[SPKQueryPlan alloc] initWithType:kPlanCreate treeValue:list arguments:nil];;
+                [ops addObject:create];
+            }
+            
+            return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
         } else if ([dstTree.value isEqualToString:@"NAMED"] || [dstTree.value isEqualToString:@"DEFAULT"]) {
             NSArray* graphs;
             if ([dstTree.value isEqualToString:@"DEFAULT"]) {
                 // DROP DEFAULT
-                // TODO: Create default graph after drop
                 graphs  = [dataset defaultGraphs];
             } else {
                 // DROP NAMED
@@ -632,6 +644,18 @@
                 id<SPKTree> plan    = [[SPKQueryPlan alloc] initWithType:kPlanDrop treeValue:tn arguments:nil];
                 [ops addObject:plan];
             }
+            
+            if ([dstTree.value isEqualToString:@"DEFAULT"]) {
+                // Create default graph(s) after the drop
+                id<SPKTree> silent  = [[SPKTree alloc] initWithType:kTreeNode value:[GTWLiteral trueLiteral] arguments:nil];
+                for (id<GTWIRI> dg in graphs) {
+                    id<SPKTree> graph   = [[SPKTree alloc] initWithType:kTreeNode value:dg arguments:nil];
+                    id<SPKTree> list    = [[SPKTree alloc] initWithType:kTreeList arguments:@[silent, graph]];
+                    id<SPKTree,GTWQueryPlan> create = [[SPKQueryPlan alloc] initWithType:kPlanCreate treeValue:list arguments:nil];;
+                    [ops addObject:create];
+                }
+            }
+            
             return [[SPKQueryPlan alloc] initWithType:kPlanSequence arguments:ops];
         } else if ([dstTree.value isEqualToString:@"GRAPH"]) {
             id<SPKTree> graphTree   = list.arguments[2];
