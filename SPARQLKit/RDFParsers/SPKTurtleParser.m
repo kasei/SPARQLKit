@@ -55,6 +55,8 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
 
 - (SPKTurtleParser*) init {
     if (self = [super init]) {
+        _iriCache   = [[NSCache alloc] init];
+        [_iriCache setCountLimit:64];
         self.stack  = [[NSMutableArray alloc] init];
         self.namespaces = [[NSMutableDictionary alloc] init];
 //        self.bnodeID    = 0;
@@ -235,72 +237,75 @@ cleanup:
 
 //[7]	predicateObjectList	::=	verb objectList (';' (verb objectList)?)*
 - (BOOL) parsePredicateObjectListForSubject: (id<GTWTerm>) subject errors: (NSMutableArray*) errors {
-    id<GTWTerm> verb = [self parseVerbWithErrors:errors];
-    ASSERT_EMPTY(errors);
+    @autoreleasepool {
+        id<GTWTerm> verb = [self parseVerbWithErrors:errors];
+        ASSERT_EMPTY(errors);
 
-    if (self.verbose)
-        NSLog(@"-> verb: %@", verb);
+        if (self.verbose)
+            NSLog(@"-> verb: %@", verb);
 
-    [self parseObjectListForSubject: subject predicate: verb errors: errors];
-    ASSERT_EMPTY(errors);
-    
-    NSError* error;
-    SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:&error];
-    while (t.type == SEMICOLON) {
-        [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
-        t   = [self peekNextNonCommentTokenWithError:&error];
-        if (error) {
-            [errors addObject:error];
-            return NO;
-        }
-        if (t.type == KEYWORD || t.type == IRI || t.type == PREFIXNAME) {
-            ASSERT_EMPTY(errors);
-            id<GTWTerm> verb = [self parseVerbWithErrors:errors];
-            ASSERT_EMPTY(errors);
-
-            if (self.verbose)
-                NSLog(@"-> verb: %@", verb);
-            
-            [self parseObjectListForSubject: subject predicate: verb errors: errors];
-            ASSERT_EMPTY(errors);
+        [self parseObjectListForSubject: subject predicate: verb errors: errors];
+        ASSERT_EMPTY(errors);
+        
+        NSError* error;
+        SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:&error];
+        while (t.type == SEMICOLON) {
+            [self parseExpectedTokenOfType:SEMICOLON withErrors:errors];
             t   = [self peekNextNonCommentTokenWithError:&error];
             if (error) {
                 [errors addObject:error];
                 return NO;
             }
+            if (t.type == KEYWORD || t.type == IRI || t.type == PREFIXNAME) {
+                ASSERT_EMPTY(errors);
+                id<GTWTerm> verb = [self parseVerbWithErrors:errors];
+                ASSERT_EMPTY(errors);
+
+                if (self.verbose)
+                    NSLog(@"-> verb: %@", verb);
+                
+                [self parseObjectListForSubject: subject predicate: verb errors: errors];
+                ASSERT_EMPTY(errors);
+                t   = [self peekNextNonCommentTokenWithError:&error];
+                if (error) {
+                    [errors addObject:error];
+                    return NO;
+                }
+            }
         }
     }
-    
     return YES;
 }
 
 //[8]	objectList	::=	object (',' object)*
 - (BOOL) parseObjectListForSubject: (id<GTWTerm>) subject predicate: (id<GTWTerm>) predicate errors: (NSMutableArray*) errors {
-    id<GTWTerm> object = [self parseObjectForSubject: subject predicate: predicate errors: errors];
-    ASSERT_EMPTY(errors);
-    
-    if (self.verbose)
-        NSLog(@"-> object: %@", object);
-    
-    NSError* error;
-    SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return NO;
-    }
-    while (t.type == COMMA) {
-        [self parseExpectedTokenOfType:COMMA withErrors:errors];
-        ASSERT_EMPTY(errors);
+    @autoreleasepool {
         id<GTWTerm> object = [self parseObjectForSubject: subject predicate: predicate errors: errors];
         ASSERT_EMPTY(errors);
         
         if (self.verbose)
             NSLog(@"-> object: %@", object);
-
-        t   = [self peekNextNonCommentTokenWithError:&error];
+        
+        NSError* error;
+        SPKSPARQLToken* t   = [self peekNextNonCommentTokenWithError:&error];
         if (error) {
             [errors addObject:error];
             return NO;
+        }
+        while (t.type == COMMA) {
+            [self parseExpectedTokenOfType:COMMA withErrors:errors];
+            ASSERT_EMPTY(errors);
+            id<GTWTerm> object = [self parseObjectForSubject: subject predicate: predicate errors: errors];
+            ASSERT_EMPTY(errors);
+            
+            if (self.verbose)
+                NSLog(@"-> object: %@", object);
+
+            t   = [self peekNextNonCommentTokenWithError:&error];
+            if (error) {
+                [errors addObject:error];
+                return NO;
+            }
         }
     }
     return YES;
@@ -325,19 +330,21 @@ cleanup:
 
 //[10]	subject	::=	iri | BlankNode | collection
 - (id<GTWTerm>) parseSubjectWithErrors: (NSMutableArray*) errors {
-    NSError* error;
-    SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return NO;
-    }
-    if (t.type == LPAREN) {
-        id<GTWTerm> subject = [self parseCollectionWithErrors: errors];
-        return subject;
-    } else {
-        id<GTWTerm> subject = [self parseTermWithErrors:errors];
-        ASSERT_EMPTY(errors);
-        return subject;
+    @autoreleasepool {
+        NSError* error;
+        SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
+        if (error) {
+            [errors addObject:error];
+            return NO;
+        }
+        if (t.type == LPAREN) {
+            id<GTWTerm> subject = [self parseCollectionWithErrors: errors];
+            return subject;
+        } else {
+            id<GTWTerm> subject = [self parseTermWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            return subject;
+        }
     }
 }
 
@@ -369,35 +376,37 @@ cleanup:
 //[136s]	PrefixedName	::=	PNAME_LN | PNAME_NS
 //[137s]	BlankNode	::=	BLANK_NODE_LABEL | ANON
 - (id<GTWTerm>) parseObjectForSubject: (id<GTWTerm>) subject predicate: (id<GTWTerm>) predicate errors: (NSMutableArray*) errors {
-    NSError* error;
-    SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return nil;
-    }
-    if ([self tokenIsTerm:t]) {
-        [self nextNonCommentTokenWithError:&error];
+    @autoreleasepool {
+        NSError* error;
+        SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
         if (error) {
             [errors addObject:error];
             return nil;
         }
-        id<GTWTerm> object    = [self tokenAsTerm:t withErrors:errors];
-        ASSERT_EMPTY(errors);
-        [self emitSubject:subject predicate:predicate object:object];
-        return object;
-    } else if (t.type == LBRACKET) {
-        id<GTWTerm> object  = [self parseBlankNodePropertyListWithErrors:errors];
-        ASSERT_EMPTY(errors);
-        [self emitSubject:subject predicate:predicate object:object];
-        return object;
-    } else if (t.type == LPAREN) {
-        id<GTWTerm> object  = [self parseCollectionWithErrors:errors];
-        ASSERT_EMPTY(errors);
-        [self emitSubject:subject predicate:predicate object:object];
-        return object;
-    } else {
-        NSLog(@"don't know how to turn token into an object: %@", t);
-        return nil;
+        if ([self tokenIsTerm:t]) {
+            [self nextNonCommentTokenWithError:&error];
+            if (error) {
+                [errors addObject:error];
+                return nil;
+            }
+            id<GTWTerm> object    = [self tokenAsTerm:t withErrors:errors];
+            ASSERT_EMPTY(errors);
+            [self emitSubject:subject predicate:predicate object:object];
+            return object;
+        } else if (t.type == LBRACKET) {
+            id<GTWTerm> object  = [self parseBlankNodePropertyListWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            [self emitSubject:subject predicate:predicate object:object];
+            return object;
+        } else if (t.type == LPAREN) {
+            id<GTWTerm> object  = [self parseCollectionWithErrors:errors];
+            ASSERT_EMPTY(errors);
+            [self emitSubject:subject predicate:predicate object:object];
+            return object;
+        } else {
+            NSLog(@"don't know how to turn token into an object: %@", t);
+            return nil;
+        }
     }
 }
 
@@ -428,9 +437,9 @@ cleanup:
     [self parseExpectedTokenOfType:LPAREN withErrors:errors];
     ASSERT_EMPTY(errors);
 
-    GTWIRI* rdffirst    = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first"];
-    GTWIRI* rdfrest     = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest"];
-    GTWIRI* rdfnil      = [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
+    GTWIRI* rdffirst    = [self iriFromString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#first" base:nil];
+    GTWIRI* rdfrest     = [self iriFromString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest" base:nil];
+    GTWIRI* rdfnil      = [self iriFromString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" base:nil];
 
     NSError* error;
     SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
@@ -602,12 +611,12 @@ cleanup:
 - (id<GTWTerm>) tokenAsTerm: (SPKSPARQLToken*) t withErrors: (NSMutableArray*) errors {
     NSError* error;
     if (t.type == NIL) {
-        return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"];
+        return [self iriFromString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" base:nil];
     } else if (t.type == VAR) {
         id<GTWTerm> var = [[GTWVariable alloc] initWithValue:t.value];
         return var;
     } else if (t.type == IRI) {
-        id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:t.value base:self.baseIRI];
+        id<GTWTerm> iri     = [self iriFromString:t.value base:self.baseIRI];
         if (!iri) {
             NSString* message   = [NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI];
             return [self errorCode:SPKTurtleParserError message:message userInfo:nil withErrors:errors];
@@ -628,14 +637,14 @@ cleanup:
             NSString* local = t.args[1];
             //            NSLog(@"constructing IRI from prefixname <%@> <%@> with base: %@", base, local, self.base);
             NSString* value   = [NSString stringWithFormat:@"%@%@", base, local];
-            id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:value base:self.baseIRI];
+            id<GTWTerm> iri     = [self iriFromString:value base:self.baseIRI];
             if (!iri) {
                 NSString* message   = [NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI];
                 return [self errorCode:SPKTurtleParserError message:message userInfo:nil withErrors:errors];
             }
             return iri;
         } else {
-            id<GTWTerm> iri     = [[GTWIRI alloc] initWithValue:base base:self.baseIRI];
+            id<GTWTerm> iri     = [self iriFromString:base base:self.baseIRI];
             if (!iri) {
                 NSString* message   = [NSString stringWithFormat:@"Failed to create IRI with token %@ and base %@", t, self.baseIRI];
                 return [self errorCode:SPKTurtleParserError message:message userInfo:nil withErrors:errors];
@@ -690,7 +699,7 @@ cleanup:
         }
         return [[GTWLiteral alloc] initWithValue:value];
     } else if ((t.type == KEYWORD) && [t.value isEqualToString:@"A"]) {
-        return [[GTWIRI alloc] initWithValue:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type"];
+        return [self iriFromString:@"http://www.w3.org/1999/02/22-rdf-syntax-ns#type" base:nil];
     } else if (t.type == BOOLEAN) {
         return [[GTWLiteral alloc] initWithValue:t.value datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
     } else if (t.type == DECIMAL) {
@@ -744,5 +753,22 @@ cleanup:
     return nil;
 }
 
+- (GTWIRI*) iriFromString: (NSString*)value base:(id<GTWIRI>)base {
+    if (base) {
+        GTWIRI* iri = [_iriCache objectForKey:@[value,base]];
+        if (!iri) {
+            iri = [[GTWIRI alloc] initWithValue:value base:base];
+            [_iriCache setObject:iri forKey:@[value,base]];
+        }
+        return iri;
+    } else {
+        GTWIRI* iri = [_iriCache objectForKey:value];
+        if (!iri) {
+            iri = [[GTWIRI alloc] initWithValue:value];
+            [_iriCache setObject:iri forKey:value];
+        }
+        return iri;
+    }
+}
 
 @end

@@ -2042,14 +2042,16 @@ cleanup:
 
 // [78]  	Verb	  ::=  	VarOrIri | 'a'
 - (id<SPKTree>) parseVerbWithErrors: (NSMutableArray*) errors {
-    SPKSPARQLToken* t   = [self peekNextNonCommentToken];
-    if (t.type == KEYWORD) {
-        t   = [self parseExpectedTokenOfType:KEYWORD withValue:@"A" withErrors:errors];
-        ASSERT_EMPTY(errors);
-        id<GTWTerm> term   = [self tokenAsTerm:t withErrors:errors];
-        return [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
-    } else {
-        return [self parseVarOrIRIWithErrors:errors];
+    @autoreleasepool {
+        SPKSPARQLToken* t   = [self peekNextNonCommentToken];
+        if (t.type == KEYWORD) {
+            t   = [self parseExpectedTokenOfType:KEYWORD withValue:@"A" withErrors:errors];
+            ASSERT_EMPTY(errors);
+            id<GTWTerm> term   = [self tokenAsTerm:t withErrors:errors];
+            return [[SPKTree alloc] initWithType:kTreeNode value: term arguments:nil];
+        } else {
+            return [self parseVarOrIRIWithErrors:errors];
+        }
     }
 }
 

@@ -15,7 +15,8 @@
     unichar* string = alloca(1+10*length);
     NSUInteger src  = 0;
     NSUInteger dst  = 0;
-    char* buffer    = alloca(9);
+    char buffer[9]  = {0,0,0,0,0,0,0,0,0};
+//    char* buffer    = calloc(1,9);
     int i;
     for (src = 0; src < length; src++) {
         uint32_t c = [value characterAtIndex:src];
@@ -70,6 +71,7 @@
                     string[dst++]   = '\\';
                     string[dst++]   = 'u';
                     sprintf(buffer, "%04X", c);
+                    fprintf(stderr, "-> %s\n", buffer);
                     for (i = 0; i < 4; i++) {
                         string[dst++]   = buffer[i];
                     }
@@ -84,7 +86,7 @@
                 break;
         }
     }
-    
+//    free(buffer);
     return [NSString stringWithCharacters:string length:dst];
 }
 

@@ -17,7 +17,9 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserErrorCode) {
  @description The SPKTurtleParser class provides a @c GTWRDFParser that parses Turtle data
               into a set of @c GTWTriple objects.
  */
-@interface SPKTurtleParser : NSObject<GTWRDFParser>
+@interface SPKTurtleParser : NSObject<GTWRDFParser> {
+    NSCache* _iriCache;
+}
 
 @property SPKSPARQLLexer* lexer;
 @property NSMutableArray* stack;

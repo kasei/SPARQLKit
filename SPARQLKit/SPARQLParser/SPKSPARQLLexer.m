@@ -1,6 +1,5 @@
 #import "SPKSPARQLLexer.h"
 
-
 NSArray* SPKSPARQLKeywords(void) {
     static NSArray *_SPKSPARQLKeywords = nil;
     static dispatch_once_t keywordsOnceToken;
@@ -136,6 +135,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle {
 	if (self = [self init]) {
+        int fd  = [handle fileDescriptor];
+        fcntl(fd, F_RDAHEAD, 1);
 		self.file			= handle;
 	}
 	return self;
@@ -149,21 +150,28 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (void) _fillBuffer {
+    static NSRegularExpression* re;
+    static dispatch_once_t reOnceToken;
+    dispatch_once(&reOnceToken, ^{
+        re  = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
+    });
 	NSMutableData* linebuffer	= [[NSMutableData alloc] init];
     //	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
 	if ([self.buffer length] == 0) {
     FILL_LOOP:
 		while (1) {
 			if (self.file) {
-				NSData* data	= [self.file readDataOfLength:1];
-				if ([data length] == 0) {
-					break;
-				}
-				[linebuffer appendData:data];
-				NSString* c		= [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
-				if ([c isEqualToString:@"\n"] || [c isEqualToString:@"\r"]) {
-					break;
-				}
+                @autoreleasepool {
+                    NSData* data	= [self.file readDataOfLength:1];
+                    if ([data length] == 0) {
+                        break;
+                    }
+                    [linebuffer appendData:data];
+                    NSString* c		= [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+                    if ([c isEqualToString:@"\n"] || [c isEqualToString:@"\r"]) {
+                        break;
+                    }
+                }
 			} else {
 				if (self.stringPos >= [self.string length])
 					break;
@@ -177,7 +185,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 		}
 		NSString* line	= [[NSString alloc] initWithData:linebuffer encoding:NSUTF8StringEncoding];
-        NSRegularExpression* re = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
         NSRange range   = [re rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
         if ((range.location + range.length) == [line length]) {
             goto FILL_LOOP;
@@ -296,37 +303,48 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) getPNameWithError:(NSError*__autoreleasing*)error {
-	NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
-	NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
-	NSRange range	= [self.buffer rangeOfString:r_PNAME_LN options:NSRegularExpressionSearch];
-	NSRange range2	= [self.buffer rangeOfString:r_PNAME_NS options:NSRegularExpressionSearch];
-	if (range.location == 0) {
-		NSString* pname	= [self _readLength:range.length error:error];
-        if ([pname rangeOfString:@"\\"].location != NSNotFound) {
-            NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"\\\\(.)" options:0 error:error];
-            if (*error) {
+    static NSRegularExpression* regex;
+    static NSRegularExpression* pNameLNre;
+    static NSRegularExpression* pNameNSre;
+    static dispatch_once_t reOnceToken;
+    static NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
+    static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
+    dispatch_once(&reOnceToken, ^{
+        regex       = [NSRegularExpression regularExpressionWithPattern:@"\\\\(.)" options:0 error:error];
+        pNameLNre   = [NSRegularExpression regularExpressionWithPattern:r_PNAME_LN options:0 error:error];
+        pNameNSre   = [NSRegularExpression regularExpressionWithPattern:r_PNAME_NS options:0 error:error];
+    });
+    if (*error) {
+        return nil;
+    }
+    @autoreleasepool {
+        NSRange range   = [pNameLNre rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+        if (range.location == 0) {
+            NSString* pname	= [self _readLength:range.length error:error];
+            if ([pname rangeOfString:@"\\"].location != NSNotFound) {
+                pname  = [regex stringByReplacingMatchesInString:pname options:0 range:NSMakeRange(0, [pname length]) withTemplate:@"$1"];
+            }
+            
+            NSArray* values	= [pname componentsSeparatedByString:@":"];
+            if ([values count] != 2) {
+                NSMutableArray* mvalues = [NSMutableArray arrayWithArray:values];
+                [mvalues removeObjectAtIndex:0];
+                NSString* first = values[0];
+                NSString* rest  = [mvalues componentsJoinedByString:@":"];
+                values  = @[ first, rest ];
+            }
+            return [self newPName: values];
+        } else {
+            NSRange range2  = [pNameNSre rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+            if (range2.location == 0) {
+                NSString* pname	= [self _readLength:range2.length error:error];
+                NSArray* values	= [pname componentsSeparatedByString:@":"];
+                return [self newPName: values];
+            } else {
                 return nil;
             }
-            pname  = [regex stringByReplacingMatchesInString:pname options:0 range:NSMakeRange(0, [pname length]) withTemplate:@"$1"];
         }
-        
-        
-		NSArray* values	= [pname componentsSeparatedByString:@":"];
-        if ([values count] != 2) {
-            NSMutableArray* mvalues = [NSMutableArray arrayWithArray:values];
-            [mvalues removeObjectAtIndex:0];
-            NSString* first = values[0];
-            NSString* rest  = [mvalues componentsJoinedByString:@":"];
-            values  = @[ first, rest ];
-        }
-		return [self newPName: values];
-	} else if (range2.location == 0) {
-		NSString* pname	= [self _readLength:range2.length error:error];
-		NSArray* values	= [pname componentsSeparatedByString:@":"];
-		return [self newPName: values];
-	} else {
-        return nil;
-	}
+    }
 }
 
 - (SPKSPARQLToken*) getBnodeWithError:(NSError*__autoreleasing*)error {
@@ -885,7 +903,18 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 - (SPKSPARQLToken*) _getTokenWithError:(NSError*__autoreleasing*)error {
 	NSDictionary* charTokens	= SPARQLCharTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
-	while (1) {
+
+    static NSRegularExpression *rNil, *rDouble, *rDecimal, *rInteger, *rAnon;
+    static dispatch_once_t keywordsOnceToken;
+    dispatch_once(&keywordsOnceToken, ^{
+		rNil		= [NSRegularExpression regularExpressionWithPattern:@"[(][ \r\n\t]*[)]" options:0 error:error];
+		rDouble     = [NSRegularExpression regularExpressionWithPattern:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:0 error:error];
+        rDecimal    = [NSRegularExpression regularExpressionWithPattern:@"[0-9]*[.][0-9]+" options:0 error:error];
+		rInteger	= [NSRegularExpression regularExpressionWithPattern:@"[0-9]+" options:0 error:error];
+        rAnon       = [NSRegularExpression regularExpressionWithPattern:@"\\[[ \x0a\x0d\x09]*\\]" options:0 error:error];
+    });
+    
+    while (1) {
 	NEXT:		;
 		if ([self.buffer length] == 0) {
 			[self _fillBuffer];
@@ -902,12 +931,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		self.startLine		= self.line;
 		self.startCharacter	= self.character;
 		
-		NSRange nil_range		= [self.buffer rangeOfString:@"[(][ \r\n\t]*[)]" options:NSRegularExpressionSearch];
-		NSRange double_range	= [self.buffer rangeOfString:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:NSRegularExpressionSearch];
-        NSRange decimal_range   = [self.buffer rangeOfString:@"[0-9]*[.][0-9]+" options:NSRegularExpressionSearch];
-		NSRange integer_range	= [self.buffer rangeOfString:@"[0-9]+" options:NSRegularExpressionSearch];
-        NSRange anon_range      = [self.buffer rangeOfString:@"\\[[ \x0a\x0d\x09]*\\]" options:NSRegularExpressionSearch];
-		
 		// WS
 		if ([c isEqualToString:@" "] || [c isEqualToString:@"\r"] || [c isEqualToString:@"\n"] || [c isEqualToString:@"\t"]) {
 			while ([c length] > 0 && ([c isEqualToString:@" "] || [c isEqualToString:@"\r"] || [c isEqualToString:@"\n"] || [c isEqualToString:@"\t"])) {
@@ -919,9 +942,17 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
             // we're ignoring whitespace tokens, but we could return them here instead of falling through to the 'next':
 			goto NEXT;
 		}
-		
+
+        // PREFIXNAME
+		else if ([pnCharSet characterIsMember:cc]) {
+			SPKSPARQLToken* t	= [self getPNameWithError:error];
+			if (t) {
+				return t;
+			}
+		}
+
 		// COMMENT
-		if ([c isEqualToString:@"#"]) {
+		else if ([c isEqualToString:@"#"]) {
             // we're ignoring comment tokens, but we could return them here instead of falling through to the 'next':
 			SPKSPARQLToken* t	= [self _getCommentWithError:error];
 			if (self.comments) {
@@ -931,127 +962,130 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 		}
 		
-		// NIL
-		if (nil_range.location == 0) {
-			[self _readLength:nil_range.length error:error];
-			return [self newTokenOfType:NIL withArgs:@[]];
-		}
-		
-        // ANON
-        if (anon_range.location == 0) {
-			[self _readLength:anon_range.length error:error];
-			return [self newTokenOfType:ANON withArgs:@[]];
+        else {
+            // Direct mapping:
+            // - COMMA
+            // - DOT
+            // - EQUALS
+            // - LBRACE
+            // - LBRACKET
+            // - LPAREN
+            // - MINUS
+            // - PLUS
+            // - RBRACE
+            // - RBRACKET
+            // - RPAREN
+            // - SEMICOLON
+            // - SLASH
+            // - STAR
+            NSNumber* number;
+            if ((number = charTokens[c])) {
+                [self _getChar];
+                return [self newTokenOfType:(SPKSPARQLTokenType)[number integerValue] withArgs:@[c]];
+            }
+
+            // Single char dispatch:
+            // - LANG
+            // - IRIREF
+            // - VAR / QUESTION
+            // - NOTEQUALS / BANG
+            // - LE / LT
+            // - GE / GT
+            // - OROR / OR
+            // - STRING3D / STRING1D
+            // - STRING3S / STRING1S
+            // - BNODE
+            if ([c isEqualToString: @"@"]) {
+                return [self getLanguageWithError:error];
+            } else if ([c isEqualToString: @"<"]) {
+                return [self getIRIRefOrRelationalWithError:error];
+            } else if ([c isEqualToString: @"?"]) {
+                return [self getVariableWithError:error];
+            } else if ([c isEqualToString: @"$"]) {
+                return [self getVariableWithError:error];
+            } else if ([c isEqualToString: @"!"]) {
+                return [self getBangWithError:error];
+            } else if ([c isEqualToString: @">"]) {
+                return [self getIRIRefOrRelationalWithError:error];
+            } else if ([c isEqualToString: @"|"]) {
+                return [self getOrWithError:error];
+            } else if ([c isEqualToString: @"'"]) {
+                return [self getSingleLiteralWithError:error];
+            } else if ([c isEqualToString: @"\""]) {
+                return [self getDoubleLiteralWithError:error];
+            } else if ([c isEqualToString: @"_"]) {
+                return [self getBnodeWithError:error];
+            } else if ([c isEqualToString: @":"]) {
+                return [self getPNameWithError:error];
+            }
+
+            NSRange bufferLength    = NSMakeRange(0, [self.buffer length]);
+
+            // DOUBLE
+            NSRange double_range	= [rDouble rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (double_range.location == 0) {
+                NSString* value  = [self _readLength:double_range.length error:error];
+                return [self newTokenOfType:DOUBLE withArgs:@[value]];
+            }
+            
+            // DECIMAL
+            NSRange decimal_range   = [rDecimal rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (decimal_range.location == 0) {
+                NSString* value  = [self _readLength:decimal_range.length error:error];
+                return [self newTokenOfType:DECIMAL withArgs:@[value]];
+            }
+            
+            // INTEGER
+            NSRange integer_range	= [rInteger rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (integer_range.location == 0) {
+                NSString* value  = [self _readLength:integer_range.length error:error];
+                return [self newTokenOfType:INTEGER withArgs:@[value]];
+            }
+            
+            // NIL
+            NSRange nil_range		= [rNil rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (nil_range.location == 0) {
+                [self _readLength:nil_range.length error:error];
+                return [self newTokenOfType:NIL withArgs:@[]];
+            }
+            
+            // ANON
+            NSRange anon_range      = [rAnon rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (anon_range.location == 0) {
+                [self _readLength:anon_range.length error:error];
+                return [self newTokenOfType:ANON withArgs:@[]];
+            }
+            
+            // HAT / HATHAT
+            if ([c isEqualToString:@"^"]) {
+                if ([self.buffer hasPrefix:@"^^"]) {
+                    if ([self _readWord: @"^^" error:error]) {
+                        return [self newTokenOfType:HATHAT withArgs:@[]];
+                    } else {
+                        return nil;
+                    }
+                } else {
+                    if ([self _readWord: @"^" error:error]) {
+                        return [self newTokenOfType:HAT withArgs:@[]];
+                    } else {
+                        return nil;
+                    }
+                }
+            }
+            
+            // - ANDAND
+            else if ([c isEqualToString:@"&"]) {
+                if ([self _readWord: @"&&" error:error]) {
+                    return [self newTokenOfType:ANDAND withArgs:@[]];
+                } else {
+                    return nil;
+                }
+            }
+            
+            // KEYWORD / BOOLEAN
+            SPKSPARQLToken* t   = [self _getKeywordWithError:error];
+            return t;
         }
-        // DOUBLE
-        if (double_range.location == 0) {
-            NSString* value  = [self _readLength:double_range.length error:error];
-            return [self newTokenOfType:DOUBLE withArgs:@[value]];
-        }
-        
-        // DECIMAL
-        if (decimal_range.location == 0) {
-            NSString* value  = [self _readLength:decimal_range.length error:error];
-            return [self newTokenOfType:DECIMAL withArgs:@[value]];
-        }
-        
-        // INTEGER
-		if (integer_range.location == 0) {
-            NSString* value  = [self _readLength:integer_range.length error:error];
-            return [self newTokenOfType:INTEGER withArgs:@[value]];
-		}
-        
-        // HAT / HATHAT
-		if ([c isEqualToString:@"^"]) {
-			if ([self.buffer hasPrefix:@"^^"]) {
-				if ([self _readWord: @"^^" error:error]) {
-					return [self newTokenOfType:HATHAT withArgs:@[]];
-				} else {
-					return nil;
-				}
-			} else {
-				if ([self _readWord: @"^" error:error]) {
-					return [self newTokenOfType:HAT withArgs:@[]];
-				} else {
-					return nil;
-				}
-			}
-        }
-        // Single char dispatch:
-        // - LANG
-        // - IRIREF
-        // - VAR / QUESTION
-        // - NOTEQUALS / BANG
-        // - LE / LT
-        // - GE / GT
-        // - OROR / OR
-        // - STRING3D / STRING1D
-        // - STRING3S / STRING1S
-        // - BNODE
-        if ([c isEqualToString: @"@"]) {
-			return [self getLanguageWithError:error];
-        } else if ([c isEqualToString: @"<"]) {
-			return [self getIRIRefOrRelationalWithError:error];
-        } else if ([c isEqualToString: @"?"]) {
-			return [self getVariableWithError:error];
-        } else if ([c isEqualToString: @"$"]) {
-			return [self getVariableWithError:error];
-        } else if ([c isEqualToString: @"!"]) {
-			return [self getBangWithError:error];
-        } else if ([c isEqualToString: @">"]) {
-			return [self getIRIRefOrRelationalWithError:error];
-        } else if ([c isEqualToString: @"|"]) {
-			return [self getOrWithError:error];
-        } else if ([c isEqualToString: @"'"]) {
-			return [self getSingleLiteralWithError:error];
-        } else if ([c isEqualToString: @"\""]) {
-			return [self getDoubleLiteralWithError:error];
-        } else if ([c isEqualToString: @"_"]) {
-			return [self getBnodeWithError:error];
-        } else if ([c isEqualToString: @":"]) {
-			return [self getPNameWithError:error];
-        }
-        
-        
-        // Direct mapping:
-        // - COMMA
-        // - DOT
-        // - EQUALS
-        // - LBRACE
-        // - LBRACKET
-        // - LPAREN
-        // - MINUS
-        // - PLUS
-        // - RBRACE
-        // - RBRACKET
-        // - RPAREN
-        // - SEMICOLON
-        // - SLASH
-        // - STAR
-		
-		NSNumber* number;
-		if ((number = charTokens[c])) {
-			[self _getChar];
-			return [self newTokenOfType:(SPKSPARQLTokenType)[number integerValue] withArgs:@[c]];
-		}
-        // - ANDAND
-		else if ([c isEqualToString:@"&"]) {
-			if ([self _readWord: @"&&" error:error]) {
-				return [self newTokenOfType:ANDAND withArgs:@[]];
-			} else {
-				return nil;
-			}
-        }
-        // PREFIXNAME
-		else if ([pnCharSet characterIsMember:cc]) {
-			SPKSPARQLToken* t	= [self getPNameWithError:error];
-			if (t) {
-				return t;
-			}
-		}
-        
-        // KEYWORD / BOOLEAN
-		SPKSPARQLToken* t   = [self _getKeywordWithError:error];
-        return t;
     }
 }
 
