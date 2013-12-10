@@ -35,5 +35,6 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserErrorCode) {
  */
 - (SPKTurtleParser*) initWithLexer: (SPKSPARQLLexer*) lex base: (GTWIRI*) base;
 - (BOOL) enumerateTriplesWithBlock: (void (^)(id<GTWTriple> t)) block error:(NSError **)error;
+- (id<GTWTerm>) tokenAsTerm: (SPKSPARQLToken*) t withErrors: (NSMutableArray*) errors;
 
 @end
