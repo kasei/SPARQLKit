@@ -44,18 +44,6 @@ int loadRDFFromFileIntoStore (id<GTWMutableQuadStore> store, NSString* filename,
     NSFileHandle* fh        = [NSFileHandle fileHandleForReadingAtPath:filename];
     SPKSPARQLLexer* l   = [[SPKSPARQLLexer alloc] initWithFileHandle:fh];
     
-    if (NO) {
-        SPKSPARQLToken* t;
-        NSError* error;
-        while ((t = [l getTokenWithError:&error])) {
-            NSLog(@"token: %@\n", t);
-        }
-        if (error) {
-            NSLog(@"Error parsing RDF: %@", error);
-        }
-        return 0;
-    }
-    
     //    [store addIndexType: @"term" value:@[@"subject", @"predicate"] synchronous:YES error: nil];
     
     GTWIRI* graph       = [[GTWIRI alloc] initWithValue:base];
