@@ -20,6 +20,8 @@
 #import "HTTPErrorResponse.h"
 #import "zlib.h"
 
+static const NSString* ENDPOINT_PATH    = @"/sparql";
+
 @implementation GTWSPARQLConnection
 
 - (NSObject<HTTPResponse> *)httpResponseForMethod:(NSString *)method URI:(NSString *)path {
@@ -36,7 +38,7 @@
 	}
 	
 	NSString *relativePath = [filePath substringFromIndex:[documentRoot length]];
-    if ([relativePath isEqualToString:@"/sparql"]) {
+    if ([relativePath isEqualToString:ENDPOINT_PATH]) {
         NSDictionary* params    = [self parseGetParams];
         NSString* query         = params[@"query"];
         if (query) {
@@ -68,13 +70,17 @@
             NSData* data        = [s dataFromResults:e withVariables:variables];
             return [[HTTPDataResponse alloc] initWithData:data];
         } else {
-            // Request for /sparql without a ?query parameter
-            // TODO: return a query template html form
-            return [[HTTPErrorResponse alloc] initWithErrorCode:400];
+            return [self queryForm];
         }
 	}
 	
 	return [super httpResponseForMethod:method URI:path];
+}
+
+- (NSObject<HTTPResponse>*) queryForm {
+    // Request for /sparql without a ?query parameter
+    // TODO: return a query template html form
+    return [[HTTPErrorResponse alloc] initWithErrorCode:400];
 }
 
 - (NSData *)preprocessResponse:(HTTPMessage *)response {
