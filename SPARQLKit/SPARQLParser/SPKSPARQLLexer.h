@@ -6,7 +6,6 @@ NSArray* SPKSPARQLKeywords(void);
 	NSFileHandle* _file;
 	NSString* _string;
 	NSUInteger _stringPos;
-	NSMutableString* _linebuffer;
 	NSUInteger _line;
 	NSUInteger _column;
 	NSUInteger _character;
@@ -15,11 +14,11 @@ NSArray* SPKSPARQLKeywords(void);
 	NSUInteger _startLine;
 	NSUInteger _startCharacter;
 	BOOL _comments;
+    NSMutableData* _linebuffer;
 }
 
 @property (strong) NSFileHandle* file;
 @property (strong) NSString* string;
-@property (strong) NSMutableString* linebuffer;
 @property NSUInteger stringPos;
 @property NSUInteger line;
 @property NSUInteger column;

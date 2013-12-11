@@ -448,20 +448,22 @@ cleanup:
         return nil;
     }
     id<GTWTerm> head        = subject;
-    while (t.type != RPAREN) {
-        [self parseObjectForSubject:head predicate:rdffirst errors:errors];
-        ASSERT_EMPTY(errors);
-        t     = [self peekNextNonCommentTokenWithError:&error];
-        if (error) {
-            [errors addObject:error];
-            return nil;
-        }
-        if (t.type == RPAREN) {
-            [self emitSubject:head predicate:rdfrest object:rdfnil];
-        } else {
-            GTWBlank* newhead  = self.bnodeIDGenerator(nil);
-            [self emitSubject:head predicate:rdfrest object:newhead];
-            head    = newhead;
+    @autoreleasepool {
+        while (t.type != RPAREN) {
+            [self parseObjectForSubject:head predicate:rdffirst errors:errors];
+            ASSERT_EMPTY(errors);
+            t     = [self peekNextNonCommentTokenWithError:&error];
+            if (error) {
+                [errors addObject:error];
+                return nil;
+            }
+            if (t.type == RPAREN) {
+                [self emitSubject:head predicate:rdfrest object:rdfnil];
+            } else {
+                GTWBlank* newhead  = self.bnodeIDGenerator(nil);
+                [self emitSubject:head predicate:rdfrest object:newhead];
+                head    = newhead;
+            }
         }
     }
 
@@ -757,7 +759,12 @@ cleanup:
     if (base) {
         GTWIRI* iri = [_iriCache objectForKey:@[value,base]];
         if (!iri) {
-            iri = [[GTWIRI alloc] initWithValue:value base:base];
+            if ([value hasPrefix:@"http://"]) {
+                // special case http URIs so that we don't have to call into IRI resolution code
+                iri = [[GTWIRI alloc] initWithValue:value];
+            } else {
+                iri = [[GTWIRI alloc] initWithValue:value base:base];
+            }
             [_iriCache setObject:iri forKey:@[value,base]];
         }
         return iri;

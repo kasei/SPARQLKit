@@ -20,8 +20,8 @@ static NSMutableSet* registeredClasses() {
 
 @implementation SPKSPARQLPluginHandler
 
-NSString *ext = @"plugin";
-NSString *appSupportSubpath = @"Application Support/SPARQLKit/PlugIns";
+static NSString *ext = @".plugin";
+static NSString *appSupportSubpath = @"Application Support/SPARQLKit/PlugIns";
 
 + (BOOL) registerClass: (Class) c {
     if ([self plugInClassIsValid:c]) {
@@ -194,7 +194,7 @@ bad_plugin:
         if (bundleEnum) {
             while (currBundlePath = [bundleEnum nextObject]) {
 //                NSLog(@"-> %@", currBundlePath);
-                if ([[currBundlePath pathExtension] isEqualToString:ext]) {
+                if ([currBundlePath hasSuffix:ext]) {
                     id bundle   = [currPath stringByAppendingPathComponent:currBundlePath];
 //                    NSLog(@"---------> Bundle: %@", bundle);
                     [allBundles addObject:bundle];
