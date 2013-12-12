@@ -15,20 +15,34 @@ NSArray* SPKSPARQLKeywords(void);
 	NSUInteger _startCharacter;
 	BOOL _comments;
     NSMutableData* _linebuffer;
+    NSRegularExpression* _multiLineAnonRegex;
+    NSRegularExpression* _pNameLNre;
+    NSRegularExpression* _pNameNSre;
+    NSRegularExpression* _escapedCharRegex;
+    NSRegularExpression* _alphanumRegex;
+    NSRegularExpression* _unescapedDoubleLiteralRegex;
+    NSRegularExpression* _unescapedLiteralRegex;
+    NSRegularExpression* _iriRegex;
+    NSRegularExpression* _unescapedIRIRegex;
+    NSRegularExpression* _nilRegex;
+    NSRegularExpression* _doubleRegex;
+    NSRegularExpression* _decimalRegex;
+    NSRegularExpression* _integerRegex;
+    NSRegularExpression* _anonRegex;
 }
 
-@property (strong) NSFileHandle* file;
-@property (strong) NSString* string;
+@property (retain) NSFileHandle* file;
+@property (retain) NSString* string;
 @property NSUInteger stringPos;
 @property NSUInteger line;
 @property NSUInteger column;
 @property NSUInteger character;
-@property (strong) NSMutableString* buffer;
+@property (retain) NSMutableString* buffer;
 @property NSUInteger startColumn;
 @property NSUInteger startLine;
 @property NSUInteger startCharacter;
 @property BOOL comments;
-@property (strong) SPKSPARQLToken* lookahead;
+@property (retain) SPKSPARQLToken* lookahead;
 
 - (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
 - (SPKSPARQLLexer*) initWithString: (NSString*) string;

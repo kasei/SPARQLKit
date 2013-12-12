@@ -95,6 +95,8 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	return _SPARQLPrefixNameStartChar;
 }
 
+static NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
+static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
 
 @implementation SPKSPARQLLexer
 
@@ -111,6 +113,26 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		self.startLine		= 0;
 		self.comments		= YES;
         _linebuffer         = [NSMutableData dataWithCapacity:256];
+        
+        NSError* error;
+        _multiLineAnonRegex          = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:&error];
+        _pNameLNre          = [NSRegularExpression regularExpressionWithPattern:r_PNAME_LN options:0 error:&error];
+        _pNameNSre          = [NSRegularExpression regularExpressionWithPattern:r_PNAME_NS options:0 error:&error];
+        _escapedCharRegex   = [NSRegularExpression regularExpressionWithPattern:@"\\\\(.)" options:0 error:&error];
+        _alphanumRegex      = [NSRegularExpression regularExpressionWithPattern:@"[0-9A-Fa-f]+" options:0 error:&error];
+        _unescapedDoubleLiteralRegex  = [NSRegularExpression regularExpressionWithPattern:@"[^\"\\\\]+" options:0 error:&error];
+        _unescapedLiteralRegex     = [NSRegularExpression regularExpressionWithPattern:@"[^'\\\\]+" options:0 error:&error];
+        _iriRegex           = [NSRegularExpression regularExpressionWithPattern:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:0 error:&error];
+        _unescapedIRIRegex  = [NSRegularExpression regularExpressionWithPattern:@"[^>\\\\]+" options:0 error:&error];
+        _nilRegex           = [NSRegularExpression regularExpressionWithPattern:@"[(][ \r\n\t]*[)]" options:0 error:&error];
+        _doubleRegex        = [NSRegularExpression regularExpressionWithPattern:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:0 error:&error];
+        _decimalRegex       = [NSRegularExpression regularExpressionWithPattern:@"[0-9]*[.][0-9]+" options:0 error:&error];
+        _integerRegex       = [NSRegularExpression regularExpressionWithPattern:@"[0-9]+" options:0 error:&error];
+        _anonRegex          = [NSRegularExpression regularExpressionWithPattern:@"\\[[ \x0a\x0d\x09]*\\]" options:0 error:&error];
+
+        if (error) {
+            return nil;
+        }
 	}
 	return self;
 }
@@ -149,11 +171,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (void) _fillBuffer {
-    static NSRegularExpression* re;
-    static dispatch_once_t reOnceToken;
-    dispatch_once(&reOnceToken, ^{
-        re  = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:nil];
-    });
     [_linebuffer setLength:0];
     //	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
 	if ([self.buffer length] == 0) {
@@ -184,7 +201,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			}
 		}
 		NSString* line	= [[NSString alloc] initWithData:_linebuffer encoding:NSUTF8StringEncoding];
-        NSRange range   = [re rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
+        NSRange range   = [_multiLineAnonRegex rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
         if ((range.location + range.length) == [line length]) {
             goto FILL_LOOP;
         }
@@ -205,7 +222,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 
 - (NSString*) _getChar {
 	NSString* c	= [self.buffer substringToIndex:1];
-	NSRange range	= { 0, 1 };
+	NSRange range	= NSMakeRange(0, 1);
 	[self.buffer deleteCharactersInRange:range];
 	self.character++;
 	if ([c isEqualToString:@"\n"]) {
@@ -302,26 +319,13 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) getPNameWithError:(NSError*__autoreleasing*)error {
-    static NSRegularExpression* regex;
-    static NSRegularExpression* pNameLNre;
-    static NSRegularExpression* pNameNSre;
-    static dispatch_once_t reOnceToken;
-    static NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
-    static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
-    dispatch_once(&reOnceToken, ^{
-        regex       = [NSRegularExpression regularExpressionWithPattern:@"\\\\(.)" options:0 error:error];
-        pNameLNre   = [NSRegularExpression regularExpressionWithPattern:r_PNAME_LN options:0 error:error];
-        pNameNSre   = [NSRegularExpression regularExpressionWithPattern:r_PNAME_NS options:0 error:error];
-    });
-    if (*error) {
-        return nil;
-    }
     @autoreleasepool {
-        NSRange range   = [pNameLNre rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+        NSRange bufferRange = NSMakeRange(0, [self.buffer length]);
+        NSRange range   = [_pNameLNre rangeOfFirstMatchInString:self.buffer options:0 range:bufferRange];
         if (range.location == 0) {
             NSString* pname	= [self _readLength:range.length error:error];
             if ([pname rangeOfString:@"\\"].location != NSNotFound) {
-                pname  = [regex stringByReplacingMatchesInString:pname options:0 range:NSMakeRange(0, [pname length]) withTemplate:@"$1"];
+                pname  = [_escapedCharRegex stringByReplacingMatchesInString:pname options:0 range:NSMakeRange(0, [pname length]) withTemplate:@"$1"];
             }
             
             NSArray* values	= [pname componentsSeparatedByString:@":"];
@@ -334,7 +338,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
             }
             return [self newPName: values];
         } else {
-            NSRange range2  = [pNameNSre rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+            NSRange range2  = [_pNameNSre rangeOfFirstMatchInString:self.buffer options:0 range:bufferRange];
             if (range2.location == 0) {
                 NSString* pname	= [self _readLength:range2.length error:error];
                 NSArray* values	= [pname componentsSeparatedByString:@":"];
@@ -481,17 +485,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) getDoubleLiteralWithError:(NSError*__autoreleasing*)error {
-    static NSRegularExpression* alphanum;
-    static NSRegularExpression* unescaped;
-    static dispatch_once_t keywordsOnceToken;
-    dispatch_once(&keywordsOnceToken, ^{
-        alphanum    = [NSRegularExpression regularExpressionWithPattern:@"[0-9A-Fa-f]+" options:0 error:error];
-        unescaped   = [NSRegularExpression regularExpressionWithPattern:@"[^\"\\\\]+" options:0 error:error];
-    });
-    if (*error) {
-        return nil;
-    }
-    
 	[self _getCharSafe: @"\"" error:error];
 	if ([self.buffer hasPrefix: @"\"\""]) {
 		// #x22 #x22 #x22 lcharacter* #x22 #x22 #x22
@@ -541,7 +534,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						[string appendString:@">"];
 					} else if ([esc isEqualToString:@"U"]) {
 						NSString* codepoint	= [self _readLength: 8 error:error];
-                        NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                        NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //						NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 						if (range.location == 0 && range.length == 8) {
 							NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -555,7 +548,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						}
 					} else if ([esc isEqualToString:@"u"]) {
 						NSString* codepoint	= [self _readLength: 4 error:error];
-                        NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                        NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //						NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 						if (range.location == 0 && range.length == 4) {
 							NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -571,7 +564,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						return [self throwError: [NSString stringWithFormat:@"Unrecognized string escape '%@'", esc] withError:error];
 					}
 				} else {
-                    NSRange range   = [unescaped rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+                    NSRange range   = [_unescapedDoubleLiteralRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //					NSRange range	= [self.buffer rangeOfString:@"[^\"\\\\]+" options:NSRegularExpressionSearch];
 					[string appendString: [self _readLength: range.length error:error]];
 				}
@@ -582,7 +575,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		// #x22 scharacter* #x22
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
-            NSRange range   = [unescaped rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+            NSRange range   = [_unescapedDoubleLiteralRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //			NSString* pat		= @"[^\"\\\\]+";
 //			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
@@ -605,7 +598,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					[string appendString:@">"];
 				} else if ([esc isEqualToString:@"U"]) {
 					NSString* codepoint	= [self _readLength: 8 error:error];
-                    NSRange hex_range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange hex_range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange hex_range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (hex_range.location == 0 && hex_range.length == 8) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -619,7 +612,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					}
 				} else if ([esc isEqualToString:@"u"]) {
 					NSString* codepoint	= [self _readLength: 4 error:error];
-                    NSRange hex_range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange hex_range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange hex_range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (hex_range.location == 0 && hex_range.length == 4) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -649,13 +642,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) getSingleLiteralWithError:(NSError*__autoreleasing*)error {
-    static NSRegularExpression* alphanum;
-    static NSRegularExpression* unescaped;
-    static dispatch_once_t keywordsOnceToken;
-    dispatch_once(&keywordsOnceToken, ^{
-        alphanum    = [NSRegularExpression regularExpressionWithPattern:@"[0-9A-Fa-f]+" options:0 error:error];
-        unescaped   = [NSRegularExpression regularExpressionWithPattern:@"[^'\\\\]+" options:0 error:error];
-    });
     if (*error) {
         return nil;
     }
@@ -708,7 +694,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						[string appendString:@">"];
 					} else if ([esc isEqualToString:@"U"]) {
 						NSString* codepoint	= [self _readLength: 8 error:error];
-                        NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                        NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //						NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 						if (range.location == 0 && range.length == 8) {
 							NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -722,7 +708,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						}
 					} else if ([esc isEqualToString:@"u"]) {
 						NSString* codepoint	= [self _readLength: 4 error:error];
-                        NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                        NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //						NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 						if (range.location == 0 && range.length == 4) {
 							NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -738,7 +724,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 						return [self throwError: [NSString stringWithFormat:@"Unrecognized string escape '%@'", esc] withError:error];
 					}
 				} else {
-                    NSRange range   = [unescaped rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+                    NSRange range   = [_unescapedLiteralRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //					NSRange range	= [self.buffer rangeOfString:@"[^'\\\\]+" options:NSRegularExpressionSearch];
 					[string appendString: [self _readLength: range.length error:error]];
 				}
@@ -748,7 +734,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	} else {
 		NSMutableString* string	= [NSMutableString string];
 		while (1) {
-            NSRange range   = [unescaped rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+            NSRange range   = [_unescapedLiteralRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //			NSString* pat		= @"[^'\\\\]+";
 //			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
@@ -771,7 +757,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					[string appendString:@">"];
 				} else if ([esc isEqualToString:@"U"]) {
 					NSString* codepoint	= [self _readLength: 8 error:error];
-                    NSRange hex_range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange hex_range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange hex_range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (hex_range.location == 0 && hex_range.length == 8) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -785,7 +771,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					}
 				} else if ([esc isEqualToString:@"u"]) {
 					NSString* codepoint	= [self _readLength: 4 error:error];
-                    NSRange hex_range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange hex_range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange hex_range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (hex_range.location == 0 && hex_range.length == 4) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -815,26 +801,13 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 }
 
 - (SPKSPARQLToken*) getIRIRefOrRelationalWithError:(NSError*__autoreleasing*)error {
-    static NSRegularExpression* iri_re;
-    static NSRegularExpression* unescaped;
-    static NSRegularExpression* alphanum;
-    static dispatch_once_t keywordsOnceToken;
-    dispatch_once(&keywordsOnceToken, ^{
-        iri_re    = [NSRegularExpression regularExpressionWithPattern:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:0 error:error];
-        unescaped = [NSRegularExpression regularExpressionWithPattern:@"[^>\\\\]+" options:0 error:error];
-        alphanum    = [NSRegularExpression regularExpressionWithPattern:@"[0-9A-Fa-f]+" options:0 error:error];
-    });
-    if (*error) {
-        return nil;
-    }
-    
-    NSRange iri_range       = [iri_re rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+    NSRange iri_range       = [_iriRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //	NSRange iri_range		= [self.buffer rangeOfString:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:NSRegularExpressionSearch];
 	if (iri_range.location == 0) {
 		[self _getCharSafe:@"<" error:error];
 		NSMutableString* iri	= [NSMutableString string];
 		while (1) {
-            NSRange iri_char_range  = [unescaped rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
+            NSRange iri_char_range  = [_unescapedIRIRegex rangeOfFirstMatchInString:self.buffer options:0 range:NSMakeRange(0, [self.buffer length])];
 //			NSRange iri_char_range	= [self.buffer rangeOfString:@"[^>\\\\]+" options:NSRegularExpressionSearch];
 			NSString* c	= [self _peekChar];
 			if (c == nil) {
@@ -859,7 +832,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					[iri appendString:@">"];
 				} else if ([esc isEqualToString:@"U"]) {
 					NSString* codepoint	= [self _readLength: 8 error:error];
-                    NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (range.location == 0 && range.length == 8) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -873,7 +846,7 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 					}
 				} else if ([esc isEqualToString:@"u"]) {
 					NSString* codepoint	= [self _readLength: 4 error:error];
-                    NSRange range   = [alphanum rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
+                    NSRange range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
 					if (range.location == 0 && range.length == 4) {
 						NSScanner *scanner = [NSScanner scannerWithString:codepoint];
@@ -954,16 +927,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 	NSDictionary* charTokens	= SPARQLCharTokens();
 	NSCharacterSet* pnCharSet	= SPARQLPrefixNameStartChar();
 
-    static NSRegularExpression *rNil, *rDouble, *rDecimal, *rInteger, *rAnon;
-    static dispatch_once_t keywordsOnceToken;
-    dispatch_once(&keywordsOnceToken, ^{
-		rNil		= [NSRegularExpression regularExpressionWithPattern:@"[(][ \r\n\t]*[)]" options:0 error:error];
-		rDouble     = [NSRegularExpression regularExpressionWithPattern:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:0 error:error];
-        rDecimal    = [NSRegularExpression regularExpressionWithPattern:@"[0-9]*[.][0-9]+" options:0 error:error];
-		rInteger	= [NSRegularExpression regularExpressionWithPattern:@"[0-9]+" options:0 error:error];
-        rAnon       = [NSRegularExpression regularExpressionWithPattern:@"\\[[ \x0a\x0d\x09]*\\]" options:0 error:error];
-    });
-    
     while (1) {
 	NEXT:		;
 		if ([self.buffer length] == 0) {
@@ -993,14 +956,6 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 			goto NEXT;
 		}
 
-        // PREFIXNAME
-		else if ([pnCharSet characterIsMember:cc]) {
-			SPKSPARQLToken* t	= [self getPNameWithError:error];
-			if (t) {
-				return t;
-			}
-		}
-
 		// COMMENT
 		else if ([c isEqualToString:@"#"]) {
             // we're ignoring comment tokens, but we could return them here instead of falling through to the 'next':
@@ -1013,6 +968,22 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 		}
 		
         else {
+            NSRange bufferLength    = NSMakeRange(0, [self.buffer length]);
+            
+            // NIL
+            NSRange nil_range		= [_nilRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (nil_range.location == 0) {
+                [self _readLength:nil_range.length error:error];
+                return [self newTokenOfType:NIL withArgs:@[]];
+            }
+            
+            // ANON
+            NSRange anon_range      = [_anonRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            if (anon_range.location == 0) {
+                [self _readLength:anon_range.length error:error];
+                return [self newTokenOfType:ANON withArgs:@[]];
+            }
+            
             // Direct mapping:
             // - COMMA
             // - DOT
@@ -1034,6 +1005,14 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
                 return [self newTokenOfType:(SPKSPARQLTokenType)[number integerValue] withArgs:@[c]];
             }
 
+			// PREFIXNAME
+			else if ([pnCharSet characterIsMember:cc]) {
+				SPKSPARQLToken* t	= [self getPNameWithError:error];
+				if (t) {
+					return t;
+				}
+			}
+			
             // Single char dispatch:
             // - LANG
             // - IRIREF
@@ -1069,41 +1048,25 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
                 return [self getPNameWithError:error];
             }
 
-            NSRange bufferLength    = NSMakeRange(0, [self.buffer length]);
-
             // DOUBLE
-            NSRange double_range	= [rDouble rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            NSRange double_range	= [_doubleRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
             if (double_range.location == 0) {
                 NSString* value  = [self _readLength:double_range.length error:error];
                 return [self newTokenOfType:DOUBLE withArgs:@[value]];
             }
             
             // DECIMAL
-            NSRange decimal_range   = [rDecimal rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            NSRange decimal_range   = [_decimalRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
             if (decimal_range.location == 0) {
                 NSString* value  = [self _readLength:decimal_range.length error:error];
                 return [self newTokenOfType:DECIMAL withArgs:@[value]];
             }
             
             // INTEGER
-            NSRange integer_range	= [rInteger rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
+            NSRange integer_range	= [_integerRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
             if (integer_range.location == 0) {
                 NSString* value  = [self _readLength:integer_range.length error:error];
                 return [self newTokenOfType:INTEGER withArgs:@[value]];
-            }
-            
-            // NIL
-            NSRange nil_range		= [rNil rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
-            if (nil_range.location == 0) {
-                [self _readLength:nil_range.length error:error];
-                return [self newTokenOfType:NIL withArgs:@[]];
-            }
-            
-            // ANON
-            NSRange anon_range      = [rAnon rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
-            if (anon_range.location == 0) {
-                [self _readLength:anon_range.length error:error];
-                return [self newTokenOfType:ANON withArgs:@[]];
             }
             
             // HAT / HATHAT

@@ -52,15 +52,11 @@ typedef NS_ENUM(NSInteger, SPKSPARQLTokenType) {
 	IRI,
 };
 
-@interface SPKSPARQLToken : NSObject {
-	SPKSPARQLTokenType _type;
-	NSRange _range;
-	NSArray* _args;
-}
+@interface SPKSPARQLToken : NSObject
 
 @property SPKSPARQLTokenType type;
 @property NSRange range;
-@property (strong) NSArray* args;
+@property (retain) NSArray* args;
 
 + (NSString*) nameOfSPARQLTokenOfType: (SPKSPARQLTokenType) type;
 - (SPKSPARQLToken*) initTokenOfType: (SPKSPARQLTokenType) type withArguments: (NSArray*) args fromRange: (NSRange) range;

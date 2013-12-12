@@ -314,17 +314,19 @@ cleanup:
 //[9]	verb	::=	predicate | 'a'
 - (id<GTWTerm>) parseVerbWithErrors: (NSMutableArray*) errors {
     NSError* error;
-    SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return NO;
-    }
-    if (t.type == KEYWORD && [t.value isEqualToString:@"A"]) {
-        [self parseExpectedTokenOfType:KEYWORD withErrors:errors];
-        ASSERT_EMPTY(errors);
-        return [self tokenAsTerm:t withErrors:errors];
-    } else {
-        return [self parsePredicateWithErrors:errors];
+    @autoreleasepool {
+        SPKSPARQLToken* t     = [self peekNextNonCommentTokenWithError:&error];
+        if (error) {
+            [errors addObject:error];
+            return NO;
+        }
+        if (t.type == KEYWORD && [t.value isEqualToString:@"A"]) {
+            [self parseExpectedTokenOfType:KEYWORD withErrors:errors];
+            ASSERT_EMPTY(errors);
+            return [self tokenAsTerm:t withErrors:errors];
+        } else {
+            return [self parsePredicateWithErrors:errors];
+        }
     }
 }
 
@@ -351,18 +353,20 @@ cleanup:
 //[11]	predicate	::=	iri
 - (id<GTWTerm>) parsePredicateWithErrors: (NSMutableArray*) errors {
     NSError* error;
-    SPKSPARQLToken* token     = [self nextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return NO;
-    }
-    id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
-    if ([t termType] == GTWTermIRI) {
-        return t;
-    } else {
-        NSString* message   = [NSString stringWithFormat: @"Expecting IRI predicate, but found %@", t];
-        [self errorCode:SPKTurtleUnexpectedTokenError message:message userInfo:@{@"token": t} withErrors:errors];
-        return nil;
+    @autoreleasepool {
+        SPKSPARQLToken* token     = [self nextNonCommentTokenWithError:&error];
+        if (error) {
+            [errors addObject:error];
+            return NO;
+        }
+        id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
+        if ([t termType] == GTWTermIRI) {
+            return t;
+        } else {
+            NSString* message   = [NSString stringWithFormat: @"Expecting IRI predicate, but found %@", t];
+            [self errorCode:SPKTurtleUnexpectedTokenError message:message userInfo:@{@"token": t} withErrors:errors];
+            return nil;
+        }
     }
 }
 
@@ -482,14 +486,16 @@ cleanup:
 
 - (id<GTWTerm>) parseTermWithErrors: (NSMutableArray*) errors {
     NSError* error;
-    SPKSPARQLToken* token     = [self nextNonCommentTokenWithError:&error];
-    if (error) {
-        [errors addObject:error];
-        return nil;
+    @autoreleasepool {
+        SPKSPARQLToken* token     = [self nextNonCommentTokenWithError:&error];
+        if (error) {
+            [errors addObject:error];
+            return nil;
+        }
+        id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
+        ASSERT_EMPTY(errors);
+        return t;
     }
-    id<GTWTerm> t   = [self tokenAsTerm:token withErrors:errors];
-    ASSERT_EMPTY(errors);
-    return t;
 }
 
 #pragma mark -
