@@ -197,7 +197,7 @@
     return YES;
 }
 
-- (NSArray*) getGraphsWithOutError:(NSError*__autoreleasing*)error {
+- (NSArray*) getGraphsWithError:(NSError*__autoreleasing*)error {
     NSMutableArray* graphs  = [NSMutableArray array];
     NSMutableSet* seen  = [NSMutableSet set];
     for (id<GTWQuad> q in self.quads) {
