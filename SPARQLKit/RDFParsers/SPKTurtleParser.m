@@ -408,8 +408,8 @@ cleanup:
             [self emitSubject:subject predicate:predicate object:object];
             return object;
         } else {
-            NSLog(@"don't know how to turn token into an object: %@", t);
-            return nil;
+            NSString* message   = [NSString stringWithFormat:@"don't know how to turn token into an object in SPKTurtleParser: %@", t];
+            return [self errorCode:SPKTurtleBadTokenError message:message userInfo:@{} withErrors:errors];
         }
     }
 }
