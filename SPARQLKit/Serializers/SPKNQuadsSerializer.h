@@ -13,5 +13,6 @@
 @interface SPKNQuadsSerializer : NSObject<GTWSerializer, GTWQuadsSerializer>
 
 @property id<GTWSerializerDelegate> delegate;
+@property BOOL escapeUnicode;
 
 @end

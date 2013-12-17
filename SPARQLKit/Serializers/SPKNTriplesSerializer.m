@@ -10,9 +10,10 @@
 
 @implementation SPKNTriplesSerializer
 
-+ (NSString*) nTriplesEncodingOfString: (NSString*) value {
++ (NSString*) nTriplesEncodingOfString: (NSString*) value escapingUnicode:(BOOL)escape {
     NSUInteger length   = [value length];
-    unichar* string = alloca(1+10*length);
+//    unichar* string = alloca(1+10*length);
+    char* string = calloc(sizeof(char), 1+10*length);
     NSUInteger src  = 0;
     NSUInteger dst  = 0;
     char buffer[9]  = {0,0,0,0,0,0,0,0,0};
@@ -58,45 +59,79 @@
                 string[dst++]   = '\\';
                 break;
             default:
-                if (c <= 0x1F) {
-                    string[dst++]   = '\\';
-                    string[dst++]   = 'u';
-                    sprintf(buffer, "%04X", c);
-                    for (i = 0; i < 4; i++) {
-                        string[dst++]   = buffer[i];
-                    }
-                } else if (c <= 0x7E) {
-                    string[dst++]   = c;
-                } else if (c <= 0xFFFF) {
-                    string[dst++]   = '\\';
-                    string[dst++]   = 'u';
-                    sprintf(buffer, "%04X", c);
-                    fprintf(stderr, "-> %s\n", buffer);
-                    for (i = 0; i < 4; i++) {
-                        string[dst++]   = buffer[i];
+                if (escape) {
+                    if (c <= 0x1F) {
+                        string[dst++]   = '\\';
+                        string[dst++]   = 'u';
+                        sprintf(buffer, "%04X", c);
+                        for (i = 0; i < 4; i++) {
+                            string[dst++]   = buffer[i];
+                        }
+                    } else if (c <= 0x7E) {
+                        string[dst++]   = c;
+                    } else if (c <= 0xFFFF) {
+                        string[dst++]   = '\\';
+                        string[dst++]   = 'u';
+                        sprintf(buffer, "%04X", c);
+                        for (i = 0; i < 4; i++) {
+                            string[dst++]   = buffer[i];
+                        }
+                    } else {
+                        string[dst++]   = '\\';
+                        string[dst++]   = 'U';
+                        sprintf(buffer, "%08X", c);
+                        for (i = 0; i < 8; i++) {
+                            string[dst++]   = buffer[i];
+                        }
                     }
                 } else {
-                    string[dst++]   = '\\';
-                    string[dst++]   = 'U';
-                    sprintf(buffer, "%08X", c);
-                    for (i = 0; i < 8; i++) {
-                        string[dst++]   = buffer[i];
+                    if (c<0x80) {
+                        string[dst++]=c;
+                    }
+                    else if (c<0x800) {
+                        string[dst++]=192+c/64;
+                        string[dst++]=128+c%64;
+                    }
+                    else if (c-0xd800u<0x800) {
+                        return nil;
+                    }
+                    else if (c<0x10000) {
+                        string[dst++]=224+c/4096;
+                        string[dst++]=128+c/64%64;
+                        string[dst++]=128+c%64;
+                    }
+                    else if (c<0x110000) {
+                        string[dst++]=240+c/262144;
+                        string[dst++]=128+c/4096%64;
+                        string[dst++]=128+c/64%64;
+                        string[dst++]=128+c%64;
                     }
                 }
                 break;
         }
     }
 //    free(buffer);
-    return [NSString stringWithCharacters:string length:dst];
+    
+    NSData* data    = [NSData dataWithBytes:string length:dst];
+//    NSLog(@"%@ -> %@", value, data);
+    NSString* s     = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    
+//    NSString* s     = [NSString stringWithCharacters:string length:dst];
+    free(string);
+    return s;
 }
 
-+ (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term {
++ (NSString*) nTriplesEncodingOfString: (NSString*) value {
+    return [self nTriplesEncodingOfString:value escapingUnicode:YES];
+}
+
++ (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term escapingUnicode:(BOOL)escape {
     NSString* serialized;
     switch (term.termType) {
         case GTWTermBlank:
             return [term description];
         case GTWTermLiteral:
-            serialized   = [self nTriplesEncodingOfString: term.value];
+            serialized   = [self nTriplesEncodingOfString: term.value escapingUnicode:escape];
             if (term.language) {
                 return [NSString stringWithFormat:@"\"%@\"@%@", serialized, term.language];
             } else if (term.datatype) {
@@ -105,10 +140,21 @@
                 return [NSString stringWithFormat:@"\"%@\"", serialized];
             }
         case GTWTermIRI:
-            return [NSString stringWithFormat:@"<%@>", [self nTriplesEncodingOfString: term.value]];
+            return [NSString stringWithFormat:@"<%@>", [self nTriplesEncodingOfString:term.value escapingUnicode:escape]];
         default:
             return nil;
     }
+}
+
++ (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term {
+    return [self nTriplesEncodingOfTerm:term escapingUnicode:YES];
+}
+
+- (SPKNTriplesSerializer*) init {
+    if (self = [super init]) {
+        self.escapeUnicode  = YES;
+    }
+    return self;
 }
 
 - (NSData*) dataFromEnumerator: (NSEnumerator*) triples {
@@ -118,7 +164,7 @@
 - (NSData*) dataFromTriples: (NSEnumerator*) triples {
     NSMutableData* data = [NSMutableData data];
     for (id<GTWTriple> t in triples) {
-        NSMutableString* string = [NSMutableString stringWithFormat:@"%@ %@ %@ .\n", [[self class] nTriplesEncodingOfTerm:t.subject], [[self class] nTriplesEncodingOfTerm:t.predicate], [[self class] nTriplesEncodingOfTerm:t.object]];
+        NSMutableString* string = [NSMutableString stringWithFormat:@"%@ %@ %@ .\n", [[self class] nTriplesEncodingOfTerm:t.subject escapingUnicode:self.escapeUnicode], [[self class] nTriplesEncodingOfTerm:t.predicate escapingUnicode:self.escapeUnicode], [[self class] nTriplesEncodingOfTerm:t.object escapingUnicode:self.escapeUnicode]];
         [data appendData: [string dataUsingEncoding:NSASCIIStringEncoding]];
     }
     return data;
@@ -126,7 +172,7 @@
 
 - (void) serializeTriples: (NSEnumerator*) triples toHandle: (NSFileHandle*) handle {
     for (id<GTWTriple> t in triples) {
-        NSMutableString* string = [NSMutableString stringWithFormat:@"%@ %@ %@ .\n", [[self class] nTriplesEncodingOfTerm:t.subject], [[self class] nTriplesEncodingOfTerm:t.predicate], [[self class] nTriplesEncodingOfTerm:t.object]];
+        NSMutableString* string = [NSMutableString stringWithFormat:@"%@ %@ %@ .\n", [[self class] nTriplesEncodingOfTerm:t.subject escapingUnicode:self.escapeUnicode], [[self class] nTriplesEncodingOfTerm:t.predicate escapingUnicode:self.escapeUnicode], [[self class] nTriplesEncodingOfTerm:t.object escapingUnicode:self.escapeUnicode]];
         [handle writeData:[string dataUsingEncoding:NSASCIIStringEncoding]];
     }
 }

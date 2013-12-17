@@ -12,8 +12,11 @@
 @interface SPKNTriplesSerializer : NSObject<GTWSerializer, GTWTriplesSerializer>
 
 @property id<GTWSerializerDelegate> delegate;
+@property BOOL escapeUnicode;
 
 + (NSString*) nTriplesEncodingOfString: (NSString*) value;
++ (NSString*) nTriplesEncodingOfString: (NSString*) value escapingUnicode:(BOOL)escape;
 + (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term;
++ (NSString*) nTriplesEncodingOfTerm: (id<GTWTerm>) term escapingUnicode:(BOOL)escape;
 
 @end
