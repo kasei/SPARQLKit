@@ -611,6 +611,7 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 						return [self throwError: [NSString stringWithFormat: @"Bad unicode escape codepoint '%@'", codepoint] withError:error];
 					}
 				} else if ([esc isEqualToString:@"u"]) {
+//                    NSLog(@"buffer: %@", self.buffer);
 					NSString* codepoint	= [self _readLength: 4 error:error];
                     NSRange hex_range   = [_alphanumRegex rangeOfFirstMatchInString:codepoint options:0 range:NSMakeRange(0, [codepoint length])];
 //					NSRange hex_range	= [codepoint rangeOfString:@"[0-9A-Fa-f]+" options:NSRegularExpressionSearch];
