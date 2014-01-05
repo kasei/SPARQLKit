@@ -46,6 +46,7 @@ NSArray* SPKSPARQLKeywords(void);
 
 - (SPKSPARQLLexer*) initWithFileHandle: (NSFileHandle*) handle;
 - (SPKSPARQLLexer*) initWithString: (NSString*) string;
+- (SPKSPARQLLexer*) reinitWithString: (NSString*) string;
 - (SPKSPARQLToken*) getTokenWithError:(NSError*__autoreleasing*)error;
 - (SPKSPARQLToken*) peekTokenWithError:(NSError*__autoreleasing*)error;
 

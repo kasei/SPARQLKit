@@ -163,6 +163,22 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 	return self;
 }
 
+- (SPKSPARQLLexer*) reinitWithString: (NSString*) string {
+    self.file			= nil;
+    self.string			= string;
+    self.stringPos		= 0;
+    self.buffer			= [NSMutableString string];
+    self.line			= 1;
+    self.column			= 1;
+    self.character		= 0;
+    self.startColumn	= -1;
+    self.startLine		= -1;
+    self.startLine		= 0;
+    self.comments		= YES;
+	return self;
+}
+
+
 - (SPKSPARQLToken*) newTokenOfType: (SPKSPARQLTokenType) type withArgs: (NSArray*) args {
 	NSUInteger start	= self.startCharacter;
 	NSUInteger length	= self.character - start;
