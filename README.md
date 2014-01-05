@@ -23,6 +23,7 @@ Some example plugins include:
 * [GTWRedland](https://github.com/kasei/GTWRedland) provides both a [librdf](http://librdf.org) in-memory triplestore and a [Raptor](http://librdf.org/raptor/) RDF parser
 * [GTWAddressBookTripleStore](https://github.com/kasei/GTWAddressBookTripleStore) provides access to a users address book contacts
 * [GTWApertureTripleStore](https://github.com/kasei/GTWApertureTripleStore) provides access to photo metadata (including geographic and depiction data) from [Aperture](http://www.apple.com/aperture/) libraries
+* [GTWAOF](https://github.com/kasei/GTWAOF) provides a persistent, append-only quad store
 
 
 Example
