@@ -489,7 +489,7 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
             } else if ([format isEqualToString:@"tsv"]) {
                 s   = [[SPKSPARQLResultsTSVSerializer alloc] init];
             } else {
-                NSLog(@"Serializing with prefixes: %@", query.prefixes);
+//                NSLog(@"Serializing with prefixes: %@", query.prefixes);
                 SPKPrefixNameSerializerDelegate* d  = [[SPKPrefixNameSerializerDelegate alloc] initWithNamespaceDictionary:query.prefixes];
                 SPKSPARQLResultsTextTableSerializer* ser   = [[SPKSPARQLResultsTextTableSerializer alloc] init];
                 ser.delegate    = d;

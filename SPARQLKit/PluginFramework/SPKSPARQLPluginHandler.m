@@ -55,12 +55,18 @@ bad_plugin:
     for (Class principleClass in classes) {
         NSDictionary* pluginClasses = [principleClass classesImplementingProtocols];
         for (Class pluginClass in pluginClasses) {
-            if (![pluginClass respondsToSelector: @selector(implementedProtocols)])
+            if (![pluginClass respondsToSelector: @selector(implementedProtocols)]) {
+//                NSLog(@"no implementedProtocols found in %@", pluginClass);
                 continue;
-            if (![pluginClass respondsToSelector: @selector(usage)])
+            }
+            if (![pluginClass respondsToSelector: @selector(usage)]) {
+//                NSLog(@"no usage found in %@", pluginClass);
                 continue;
-            if (![pluginClass instancesRespondToSelector: @selector(initWithDictionary:)])
+            }
+            if (![pluginClass instancesRespondToSelector: @selector(initWithDictionary:)]) {
+//                NSLog(@"no initWithDictionary found in %@", pluginClass);
                 continue;
+            }
             
             if ([pluginClass conformsToProtocol:@protocol(GTWTripleStore)] || [pluginClass conformsToProtocol:@protocol(GTWQuadStore)]) {
                 [sources addObject:pluginClass];
