@@ -12,5 +12,6 @@
 
 - (NSSet*) projectableAggregateVariables;
 - (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended;
+- (NSSet*) accessPatterns;
 
 @end

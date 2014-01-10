@@ -19,12 +19,27 @@
 #import "HTTPMessage.h"
 #import "HTTPErrorResponse.h"
 #import "zlib.h"
+#import "NSObject+SPKTree.h"
+#import "GTWHTTPCachedResponse.h"
+#import "GTWHTTPDataResponse.h"
 
 static const NSString* ENDPOINT_PATH    = @"/sparql";
 
 @implementation GTWSPARQLConnection
 
+- (NSDate*) dateFromString:(NSString*)string {
+	static NSDateFormatter *df;
+	
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		df = [[NSDateFormatter alloc] init];
+        [df setDateFormat:@"EEE',' dd' 'MMM' 'yyyy HH':'mm':'ss zzz"];
+	});
+    return [df dateFromString:string];
+}
+
 - (NSObject<HTTPResponse> *)httpResponseForMethod:(NSString *)method URI:(NSString *)path {
+    NSLog(@"---> %@", [request allHeaderFields]);
     GTWSPARQLConfig* cfg = (GTWSPARQLConfig*) config;
     id<GTWModel> model  = cfg.model;
     GTWDataset* dataset = cfg.dataset;
@@ -54,21 +69,58 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
             }
             
             SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
-            id<SPKTree,GTWQueryPlan> plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize:YES options:nil];
+            NSObject<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize:YES options:nil];
             if (verbose) {
                 NSLog(@"plan:\n%@", plan);
+            }
+            
+            NSSet* aps  = [plan accessPatterns];
+//            NSLog(@"Access patterns: %@", aps);
+            NSDate* lastModified    = nil;
+            for (id<SPKTree> ap in aps) {
+                if ([ap.type isEqual:kTreeQuad]) {
+                    id<GTWQuad> q   = ap.value;
+//                    NSLog(@"\nQuad -> %@", q);
+                    NSDate* date    = [model lastModifiedDateForQuadsMatchingSubject:q.subject predicate:q.predicate object:q.object graph:q.graph error:&error];
+                    if (date) {
+                        if (!(lastModified) || [lastModified compare:date] == NSOrderedDescending) {
+                            lastModified    = date;
+                        }
+                    }
+                } else {
+                    NSLog(@"*** Unexpected tree node type in access patterns list: %@", ap);
+                }
+            }
+
+            NSString* ims   = [request headerField:@"If-Modified-Since"];
+            if (ims) {
+                NSDate* lastAccess    = [self dateFromString:ims];
+                if (lastAccess && lastModified) {
+                    NSLog(@"If-Modified-Since: %@", lastAccess);
+                    NSLog(@"Last-Modified: %@", lastModified);
+                    if ([lastModified compare:lastAccess] != NSOrderedDescending) {
+                        HTTPDataResponse* resp     = [[GTWHTTPCachedResponse alloc] init];
+                        return resp;
+                    }
+                }
             }
             
             NSSet* variables    = [plan inScopeVariables];
             if (verbose) {
                 NSLog(@"executing query...");
             }
-            id<GTWQueryEngine> engine   = [[SPKSimpleQueryEngine alloc] init];
-            NSEnumerator* e     = [engine evaluateQueryPlan:plan withModel:model];
+            id<GTWQueryEngine> engine           = [[SPKSimpleQueryEngine alloc] init];
+            NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
             id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
             
+            NSLog(@"Last-Modified: %@", lastModified);
             NSData* data        = [s dataFromResults:e withVariables:variables];
-            return [[HTTPDataResponse alloc] initWithData:data];
+            GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
+            
+            if (lastModified) {
+                resp.lastModified   = lastModified;
+            }
+            return resp;
         } else {
             return [self queryForm];
         }
@@ -84,7 +136,7 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
 }
 
 - (NSData *)preprocessResponse:(HTTPMessage *)response {
-//    NSLog(@"preprocessResponse:");
+//    NSLog(@"preprocessResponse: %@", response);
     NSString* ae    = [request headerField:@"Accept-Encoding"];
     if (ae) {
         NSRange range   = [ae rangeOfString:@"gzip" options:NSRegularExpressionSearch];
@@ -96,7 +148,15 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
             if ([content length] > 0) {
                 NSData* compressed  = [GTWSPARQLConnection gzipData:content];
                 if (compressed) {
-                    httpResponse    = [[HTTPDataResponse alloc] initWithData:compressed];
+                    NSDate* lastModified;
+                    if ([httpResponse respondsToSelector:@selector(lastModified)]) {
+                        lastModified    = [(GTWHTTPDataResponse*)httpResponse lastModified];
+                    }
+                    GTWHTTPDataResponse* resp   = [[GTWHTTPDataResponse alloc] initWithData:compressed];
+                    if (lastModified) {
+                        resp.lastModified   = lastModified;
+                    }
+                    httpResponse    = resp;
                     [response setHeaderField:@"Content-Encoding" value:@"gzip"];
                     NSString *contentLengthStr = [NSString stringWithFormat:@"%qu", (unsigned long long)[compressed length]];
                     [response setHeaderField:@"Content-Length" value:contentLengthStr];
@@ -104,6 +164,7 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
             }
         }
     }
+    
     return [super preprocessResponse:response];
 }
 

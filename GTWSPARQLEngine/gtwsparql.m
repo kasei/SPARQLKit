@@ -520,7 +520,7 @@ int main(int argc, const char * argv[]) {
     if (argc == 2) {
         if (!strcmp(argv[1], "--help")) {
             return usage(argc, argv);
-        } else if (!strcmp(argv[1], "--version")) {
+        } else if (!strcmp(argv[1], "--version") || !strcmp(argv[1], "-v")) {
             return version(argc, argv);
         }
     }

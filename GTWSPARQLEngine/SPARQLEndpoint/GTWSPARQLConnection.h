@@ -10,4 +10,6 @@
 
 @interface GTWSPARQLConnection : HTTPConnection
 
+- (NSString *)dateAsString:(NSDate *)date;
+
 @end

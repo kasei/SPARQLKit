@@ -68,5 +68,25 @@
     return [self projectableAggregateVariableswithExtendedVariables:YES];
 }
 
+- (NSSet*) accessPatterns {
+    if ([self conformsToProtocol:@protocol(SPKTree)]) {
+        id<SPKTree> tree    = (id<SPKTree>) self;
+        if ([tree.type isEqual:kPlanGraph]) {
+            return [NSSet setWithObject:self];
+        } else if ([tree.type isEqual:kTreeQuad]) {
+            return [NSSet setWithObject:self];
+        } else {
+            NSMutableSet* aps = [NSMutableSet set];
+            if (tree.arguments) {
+                for (id t in tree.arguments) {
+                    NSSet* ap  = [t accessPatterns];
+                    [aps addObjectsFromArray:[ap allObjects]];
+                }
+            }
+            return aps;
+        }
+    }
+    return nil;
+}
 
 @end

@@ -126,6 +126,10 @@
 		37356091184D3B7D003296E6 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A6A02918386B22002604B0 /* Security.framework */; };
 		37356092184D3B7D003296E6 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
 		37356099184D3E1F003296E6 /* gtwsparql.m in Sources */ = {isa = PBXBuildFile; fileRef = 37356098184D3E1F003296E6 /* gtwsparql.m */; };
+		37373AD4187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */; };
+		37373AD5187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */; };
+		37373AD8187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */; };
+		37373AD9187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */; };
 		377F23BB1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 377F23B91853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m */; };
@@ -228,6 +232,10 @@
 		37356068184D2F53003296E6 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../../../usr/local/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
 		37356097184D3B7D003296E6 /* gtwsparql */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = gtwsparql; sourceTree = BUILT_PRODUCTS_DIR; };
 		37356098184D3E1F003296E6 /* gtwsparql.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = gtwsparql.m; sourceTree = "<group>"; };
+		37373AD2187E9C5C0062D63D /* GTWHTTPCachedResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWHTTPCachedResponse.h; sourceTree = "<group>"; };
+		37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPCachedResponse.m; sourceTree = "<group>"; };
+		37373AD6187EA03F0062D63D /* GTWHTTPDataResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWHTTPDataResponse.h; sourceTree = "<group>"; };
+		37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPDataResponse.m; sourceTree = "<group>"; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKPrefixNameSerializerDelegate.h; path = SPARQLKit/Serializers/SPKPrefixNameSerializerDelegate.h; sourceTree = SOURCE_ROOT; };
 		377F23B91853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKPrefixNameSerializerDelegate.m; path = SPARQLKit/Serializers/SPKPrefixNameSerializerDelegate.m; sourceTree = SOURCE_ROOT; };
@@ -507,6 +515,10 @@
 				3700DD5C183AD0BA00AF79C7 /* GTWSPARQLConnection.m */,
 				3700DD5D183AD0BA00AF79C7 /* GTWSPARQLServer.h */,
 				3700DD5E183AD0BA00AF79C7 /* GTWSPARQLServer.m */,
+				37373AD2187E9C5C0062D63D /* GTWHTTPCachedResponse.h */,
+				37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */,
+				37373AD6187EA03F0062D63D /* GTWHTTPDataResponse.h */,
+				37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */,
 			);
 			path = SPARQLEndpoint;
 			sourceTree = "<group>";
@@ -909,6 +921,7 @@
 				37356075184D3B7D003296E6 /* DDTTYLogger.m in Sources */,
 				37356076184D3B7D003296E6 /* ContextFilterLogFormatter.m in Sources */,
 				37356077184D3B7D003296E6 /* DispatchQueueLogFormatter.m in Sources */,
+				37373AD9187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */,
 				37356078184D3B7D003296E6 /* DDData.m in Sources */,
 				37356079184D3B7D003296E6 /* DDNumber.m in Sources */,
 				3735607A184D3B7D003296E6 /* DDRange.m in Sources */,
@@ -919,6 +932,7 @@
 				3735607F184D3B7D003296E6 /* MultipartFormDataParser.m in Sources */,
 				37356080184D3B7D003296E6 /* MultipartMessageHeader.m in Sources */,
 				37356081184D3B7D003296E6 /* MultipartMessageHeaderField.m in Sources */,
+				37373AD5187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */,
 				37356082184D3B7D003296E6 /* HTTPAsyncFileResponse.m in Sources */,
 				37356083184D3B7D003296E6 /* HTTPDataResponse.m in Sources */,
 				37356084184D3B7D003296E6 /* HTTPDynamicFileResponse.m in Sources */,
@@ -948,6 +962,7 @@
 				3700DDE1183B160200AF79C7 /* DDLog.m in Sources */,
 				3700DDE2183B160200AF79C7 /* DDTTYLogger.m in Sources */,
 				3700DDE3183B160200AF79C7 /* ContextFilterLogFormatter.m in Sources */,
+				37373AD8187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */,
 				3700DDE4183B160200AF79C7 /* DispatchQueueLogFormatter.m in Sources */,
 				3700DDE5183B160200AF79C7 /* DDData.m in Sources */,
 				3700DDE6183B160200AF79C7 /* DDNumber.m in Sources */,
@@ -958,6 +973,7 @@
 				3700DDEB183B160200AF79C7 /* HTTPServer.m in Sources */,
 				3700DDEC183B160200AF79C7 /* MultipartFormDataParser.m in Sources */,
 				3700DDED183B160200AF79C7 /* MultipartMessageHeader.m in Sources */,
+				37373AD4187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */,
 				3700DDEE183B160200AF79C7 /* MultipartMessageHeaderField.m in Sources */,
 				3700DDEF183B160200AF79C7 /* HTTPAsyncFileResponse.m in Sources */,
 				3700DDF0183B160200AF79C7 /* HTTPDataResponse.m in Sources */,

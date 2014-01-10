@@ -64,6 +64,13 @@
     return [self.store enumerateGraphsUsingBlock:block error:error];
 }
 
+- (NSDate*) lastModifiedDateForQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError*__autoreleasing*)error {
+    if ([self.store respondsToSelector:@selector(lastModifiedDateForQuadsMatchingSubject:predicate:object:graph:error:)]) {
+        return [self.store lastModifiedDateForQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
+    }
+    return nil;
+}
+
 #pragma mark - Mutable Model Methods
 
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {

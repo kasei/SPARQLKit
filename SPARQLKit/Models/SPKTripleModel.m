@@ -112,6 +112,10 @@
     return YES;
 }
 
+- (NSDate*) lastModifiedDateForQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError*__autoreleasing*)error {
+    return nil;
+}
+
 #pragma mark - Mutable Model Methods
 
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {
