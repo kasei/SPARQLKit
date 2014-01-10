@@ -10,8 +10,8 @@
 
 @interface NSObject (SPKTree)
 
-- (NSSet*) projectableAggregateVariables;
-- (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended;
-- (NSSet*) accessPatterns;
+- (NSSet*) spk_projectableAggregateVariables;
+- (NSSet*) spk_projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended;
+- (NSSet*) spk_accessPatterns;
 
 @end

@@ -645,7 +645,7 @@ cleanup:
     ASSERT_EMPTY(errors);
     
     if ([self currentQuerySeenAggregates]) {
-        NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
+        NSSet* groupVars    = [(id)algebra spk_projectableAggregateVariables];
         
         NSMutableSet* newProjection = [NSMutableSet set];
         for (id<SPKTree> v in plist) {
@@ -1024,7 +1024,7 @@ cleanup:
             if ([proj.type isEqual:kAlgebraExtend]) {
                 if ([self currentQuerySeenAggregates]) {
                     NSSet* nonAggVars   = [proj nonAggregatedVariables];
-                    NSSet* groupVars    = [(id)algebra projectableAggregateVariables];
+                    NSSet* groupVars    = [(id)algebra spk_projectableAggregateVariables];
                     for (id<GTWTerm> var in nonAggVars) {
                         if (![groupVars containsObject:var]) {
                             return [self errorMessage:[NSString stringWithFormat:@"Projecting non-grouped variable %@ not allowed (3)", var] withErrors:errors];

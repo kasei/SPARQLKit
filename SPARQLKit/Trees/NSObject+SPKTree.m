@@ -17,7 +17,7 @@
  If @c withExtended is true, the set includes variables that are created
  in an extend operation in this or sub- algebra trees.
  */
-- (NSSet*) projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended {
+- (NSSet*) spk_projectableAggregateVariableswithExtendedVariables: (BOOL) withExtended {
     if ([self conformsToProtocol:@protocol(SPKTree)]) {
         id<SPKTree> tree    = (id<SPKTree>) self;
         if ([tree.type isEqual:kAlgebraGroup]) {
@@ -39,7 +39,7 @@
             id<SPKTree> var = list.arguments[1];
             NSMutableSet* groupVars = [NSMutableSet setWithObject:var.value];
             for (id t in tree.arguments) {
-                NSSet* subVars  = [t projectableAggregateVariableswithExtendedVariables:withExtended];
+                NSSet* subVars  = [t spk_projectableAggregateVariableswithExtendedVariables:withExtended];
                 [groupVars addObjectsFromArray:[subVars allObjects]];
             }
             return groupVars;
@@ -51,7 +51,7 @@
             NSMutableSet* groupVars = [NSMutableSet set];
             if (tree.arguments) {
                 for (id t in tree.arguments) {
-                    NSSet* subVars  = [t projectableAggregateVariableswithExtendedVariables:withExtended];
+                    NSSet* subVars  = [t spk_projectableAggregateVariableswithExtendedVariables:withExtended];
                     [groupVars addObjectsFromArray:[subVars allObjects]];
                 }
             }
@@ -64,11 +64,11 @@
 /**
  Returns a set of variable objects that may be included in projection.
  */
-- (NSSet*) projectableAggregateVariables {
-    return [self projectableAggregateVariableswithExtendedVariables:YES];
+- (NSSet*) spk_projectableAggregateVariables {
+    return [self spk_projectableAggregateVariableswithExtendedVariables:YES];
 }
 
-- (NSSet*) accessPatterns {
+- (NSSet*) spk_accessPatterns {
     if ([self conformsToProtocol:@protocol(SPKTree)]) {
         id<SPKTree> tree    = (id<SPKTree>) self;
         if ([tree.type isEqual:kPlanGraph]) {
@@ -79,7 +79,7 @@
             NSMutableSet* aps = [NSMutableSet set];
             if (tree.arguments) {
                 for (id t in tree.arguments) {
-                    NSSet* ap  = [t accessPatterns];
+                    NSSet* ap  = [t spk_accessPatterns];
                     [aps addObjectsFromArray:[ap allObjects]];
                 }
             }

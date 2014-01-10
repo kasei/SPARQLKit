@@ -23,7 +23,7 @@
 #import "GTWHTTPCachedResponse.h"
 #import "GTWHTTPDataResponse.h"
 
-static const NSString* ENDPOINT_PATH    = @"/sparql";
+static NSString* ENDPOINT_PATH    = @"/sparql";
 
 @implementation GTWSPARQLConnection
 
@@ -39,7 +39,7 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
 }
 
 - (NSObject<HTTPResponse> *)httpResponseForMethod:(NSString *)method URI:(NSString *)path {
-    NSLog(@"---> %@", [request allHeaderFields]);
+//    NSLog(@"---> %@", [request allHeaderFields]);
     GTWSPARQLConfig* cfg = (GTWSPARQLConfig*) config;
     id<GTWModel> model  = cfg.model;
     GTWDataset* dataset = cfg.dataset;
@@ -74,7 +74,7 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
                 NSLog(@"plan:\n%@", plan);
             }
             
-            NSSet* aps  = [plan accessPatterns];
+            NSSet* aps  = [plan spk_accessPatterns];
 //            NSLog(@"Access patterns: %@", aps);
             NSDate* lastModified    = nil;
             for (id<SPKTree> ap in aps) {
@@ -96,8 +96,8 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
             if (ims) {
                 NSDate* lastAccess    = [self dateFromString:ims];
                 if (lastAccess && lastModified) {
-                    NSLog(@"If-Modified-Since: %@", lastAccess);
-                    NSLog(@"Last-Modified: %@", lastModified);
+//                    NSLog(@"If-Modified-Since: %@", lastAccess);
+//                    NSLog(@"Last-Modified: %@", lastModified);
                     if ([lastModified compare:lastAccess] != NSOrderedDescending) {
                         HTTPDataResponse* resp     = [[GTWHTTPCachedResponse alloc] init];
                         return resp;
@@ -113,7 +113,7 @@ static const NSString* ENDPOINT_PATH    = @"/sparql";
             NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
             id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
             
-            NSLog(@"Last-Modified: %@", lastModified);
+//            NSLog(@"Last-Modified: %@", lastModified);
             NSData* data        = [s dataFromResults:e withVariables:variables];
             GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
             
