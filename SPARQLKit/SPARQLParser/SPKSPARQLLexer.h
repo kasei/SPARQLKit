@@ -4,6 +4,7 @@ NSArray* SPKSPARQLKeywords(void);
 
 @interface SPKSPARQLLexer : NSObject {
 	NSFileHandle* _file;
+    NSMutableData* _lookaheadBuffer;
 	NSString* _string;
 	NSUInteger _stringPos;
 	NSUInteger _line;

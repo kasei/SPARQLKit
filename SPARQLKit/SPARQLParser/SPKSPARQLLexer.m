@@ -113,6 +113,7 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 		self.startLine		= 0;
 		self.comments		= YES;
         _linebuffer         = [NSMutableData dataWithCapacity:256];
+        _lookaheadBuffer    = [NSMutableData dataWithCapacity:1024];
         
         NSError* error;
         _multiLineAnonRegex          = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:&error];
@@ -189,25 +190,44 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 - (void) _fillBuffer {
     [_linebuffer setLength:0];
     //	NSLog(@"trying to fill buffer with existing buffer '%@' (%lu)", self.buffer, [self.buffer length]);
+    NSData* nl = [NSData dataWithBytes:"\n" length:1];
+    NSData* cr = [NSData dataWithBytes:"\r" length:1];
+    
 	if ([self.buffer length] == 0) {
     FILL_LOOP:
 		while (1) {
 			if (self.file) {
                 @autoreleasepool {
-                    NSData* data	= [self.file readDataOfLength:1];
-                    if ([data length] == 0) {
+                    NSData* chunk;
+                    if ([_lookaheadBuffer length]) {
+                        chunk   = [_lookaheadBuffer copy];
+                        [_lookaheadBuffer setLength:0];
+                    } else {
+                        chunk   = [self.file readDataOfLength:2048];
+                        if ([chunk length] == 0) {
+                            break;
+                        }
+                    }
+
+                    NSRange chunkRange  = NSMakeRange(0, [chunk length]);
+                    NSRange breakrange  = [chunk rangeOfData:nl options:0 range:chunkRange];
+                    if (breakrange.location == NSNotFound) {
+                        breakrange = [chunk rangeOfData:cr options:0 range:chunkRange];
+                    }
+                    
+                    if (breakrange.location == NSNotFound) {
+                        [_linebuffer appendData:chunk];
+                    } else {
+                        [_linebuffer appendData:[chunk subdataWithRange:NSMakeRange(0, breakrange.location+1)]];
+                        [_lookaheadBuffer setData:[chunk subdataWithRange:NSMakeRange(breakrange.location+1, [chunk length]-breakrange.location-1)]];
                         break;
                     }
-                    [_linebuffer appendData:data];
-                    NSString* c		= [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
-                    if ([c isEqualToString:@"\n"] || [c isEqualToString:@"\r"]) {
-                        break;
-                    }
+                    
                 }
 			} else {
 				if (self.stringPos >= [self.string length])
 					break;
-				NSRange range	= { .location = self.stringPos++, .length = 1 };
+				NSRange range	= NSMakeRange(self.stringPos++, 1);
 				NSString* c		= [self.string substringWithRange:range];
 				NSData* data	= [c dataUsingEncoding:NSUTF8StringEncoding];
 				[_linebuffer appendData:data];
@@ -221,6 +241,7 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
         if ((range.location + range.length) == [line length]) {
             goto FILL_LOOP;
         }
+        
 		[self.buffer appendString:line];
 	}
 }
