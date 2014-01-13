@@ -278,7 +278,8 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     
 cleanup:
     if (error) {
-        *error  = [NSError errorWithDomain:@"us.kasei.sparql.query-parser" code:1 userInfo:@{@"description": [NSString stringWithFormat: @"Parse error: %@", errors]}];
+        NSString* desc  = [errors firstObject];
+        *error  = [NSError errorWithDomain:@"us.kasei.sparql.query-parser" code:1 userInfo:@{@"description": desc}];
     }
     return nil;
 }
@@ -1743,7 +1744,9 @@ cleanup:
         NSMutableSet* intersection  = [seen mutableCopy];
         [intersection intersectSet:blanks];
         if ([intersection count]) {
-            [self errorMessage:[NSString stringWithFormat:@"Forbidden sharing of blank node(s) acorss BGPs: %@", intersection] withErrors:errors];
+            NSArray* items  = [intersection allObjects];
+            NSString* s     = [items componentsJoinedByString:@", "];
+            [self errorMessage:[NSString stringWithFormat:@"Forbidden sharing of blank node(s) across BGPs: %@", s] withErrors:errors];
             return NO;
         }
         [seen addObjectsFromArray:[blanks allObjects]];
