@@ -22,6 +22,7 @@
 #import "NSObject+SPKTree.h"
 #import "GTWHTTPCachedResponse.h"
 #import "GTWHTTPDataResponse.h"
+#import "GTWHTTPErrorResponse.h"
 
 static NSString* ENDPOINT_PATH    = @"/sparql";
 
@@ -57,12 +58,18 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
         NSDictionary* params    = [self parseGetParams];
         NSString* query         = params[@"query"];
         if (query) {
-            BOOL verbose    = NO;
+            NSLog(@"query: %@", query);
+            BOOL verbose    = YES;
             id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
             NSError* error;
             id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base settingPrefixes:nil error:&error];
             if (error) {
                 NSLog(@"parser error: %@", error);
+                NSString* desc  = [[error userInfo] objectForKey:@"description"];
+                return [GTWHTTPErrorResponse requestErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/parser" title:@"Parser Error" detail:desc];
+            }
+            if (!algebra) {
+                return [GTWHTTPErrorResponse requestErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/parser" title:@"Parser Error" detail:@"An unexpected parser error occurred."];
             }
             if (verbose) {
                 NSLog(@"query:\n%@", algebra);
@@ -70,6 +77,9 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
             
             SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
             NSObject<SPKTree,GTWQueryPlan>* plan   = [planner queryPlanForAlgebra:algebra usingDataset:dataset withModel: model optimize:YES options:nil];
+            if (!plan) {
+                return [GTWHTTPErrorResponse serverErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/planner" title:@"Query Planning Error" detail:[error description]];
+            }
             if (verbose) {
                 NSLog(@"plan:\n%@", plan);
             }
@@ -110,17 +120,21 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
                 NSLog(@"executing query...");
             }
             id<GTWQueryEngine> engine           = [[SPKSimpleQueryEngine alloc] init];
-            NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
-            id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
-            
-//            NSLog(@"Last-Modified: %@", lastModified);
-            NSData* data        = [s dataFromResults:e withVariables:variables];
-            GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
-            
-            if (lastModified) {
-                resp.lastModified   = lastModified;
+            if (engine) {
+                NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
+                id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
+                if (e && s) {
+        //            NSLog(@"Last-Modified: %@", lastModified);
+                    NSData* data        = [s dataFromResults:e withVariables:variables];
+                    GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
+                    
+                    if (lastModified) {
+                        resp.lastModified   = lastModified;
+                    }
+                    return resp;
+                }
             }
-            return resp;
+            return [GTWHTTPErrorResponse serverErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/internal" title:@"Internal Error" detail:@"An unexpected error occurred."];
         } else {
             return [self queryForm];
         }
