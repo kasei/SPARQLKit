@@ -16,9 +16,10 @@
     NSRange range   = [string rangeOfString:pat options:NSRegularExpressionSearch];
     while (range.location != NSNotFound) {
         range   = [string rangeOfString:pat options:NSRegularExpressionSearch];
-        NSString* comp  = [string substringToIndex:range.location-1];
+        NSString* comp  = [string substringToIndex:range.location];
         [components addObject:comp];
         string  = [string substringFromIndex:(range.location+range.length)];
+        range   = [string rangeOfString:pat options:NSRegularExpressionSearch];
     }
     [components addObject:string];
     if (max > 0 && [components count] > max) {
