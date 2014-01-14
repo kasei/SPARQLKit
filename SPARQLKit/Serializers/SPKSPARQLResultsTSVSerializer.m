@@ -10,6 +10,26 @@
 
 @implementation SPKSPARQLResultsTSVSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"text/tab-separated-values"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"text/tab-separated-values";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWSPARQLResultsSerializer), nil];
+}
+
 - (NSData*) dataFromResults: (NSEnumerator*) results withVariables: (NSSet*) variables {
     NSMutableData* data = [NSMutableData data];
     NSMutableArray* vars    = [NSMutableArray array];

@@ -10,6 +10,26 @@
 
 @implementation SPKSPARQLResultsXMLSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"application/sparql-results+xml"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"application/sparql-results+xml";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWSPARQLResultsSerializer), nil];
+}
+
 - (NSString*) xmlSimpleEscapeString: (NSString*) string {
     NSMutableString* value  = [NSMutableString stringWithString:string];
     [value replaceOccurrencesOfString:@"&"  withString:@"&amp;"  options:NSLiteralSearch range:NSMakeRange(0, [value length])];

@@ -23,6 +23,8 @@
 #import "GTWHTTPCachedResponse.h"
 #import "GTWHTTPDataResponse.h"
 #import "GTWHTTPErrorResponse.h"
+#import "SPKSPARQLPluginHandler.h"
+#import "GTWConneg.h"
 
 static NSString* ENDPOINT_PATH    = @"/sparql";
 
@@ -58,8 +60,10 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
         NSDictionary* params    = [self parseGetParams];
         NSString* query         = params[@"query"];
         if (query) {
-            NSLog(@"query: %@", query);
-            BOOL verbose    = YES;
+            BOOL verbose    = NO;
+            if (verbose) {
+                NSLog(@"query: %@", query);
+            }
             id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
             NSError* error;
             id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base settingPrefixes:nil error:&error];
@@ -72,7 +76,7 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
                 return [GTWHTTPErrorResponse requestErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/parser" title:@"Parser Error" detail:@"An unexpected parser error occurred."];
             }
             if (verbose) {
-                NSLog(@"query:\n%@", algebra);
+                NSLog(@"algebra:\n%@", algebra);
             }
             
             SPKQueryPlanner* planner        = [[SPKQueryPlanner alloc] init];
@@ -102,15 +106,19 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
                 }
             }
 
-            NSString* ims   = [request headerField:@"If-Modified-Since"];
-            if (ims) {
-                NSDate* lastAccess    = [self dateFromString:ims];
-                if (lastAccess && lastModified) {
-//                    NSLog(@"If-Modified-Since: %@", lastAccess);
-//                    NSLog(@"Last-Modified: %@", lastModified);
-                    if ([lastModified compare:lastAccess] != NSOrderedDescending) {
-                        HTTPDataResponse* resp     = [[GTWHTTPCachedResponse alloc] init];
-                        return resp;
+            // TODO: Make this user-configurable
+            BOOL caching    = YES;
+            if (caching) {
+                NSString* ims   = [request headerField:@"If-Modified-Since"];
+                if (ims) {
+                    NSDate* lastAccess    = [self dateFromString:ims];
+                    if (lastAccess && lastModified) {
+    //                    NSLog(@"If-Modified-Since: %@", lastAccess);
+    //                    NSLog(@"Last-Modified: %@", lastModified);
+                        if ([lastModified compare:lastAccess] != NSOrderedDescending) {
+                            HTTPDataResponse* resp     = [[GTWHTTPCachedResponse alloc] init];
+                            return resp;
+                        }
                     }
                 }
             }
@@ -122,16 +130,52 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
             id<GTWQueryEngine> engine           = [[SPKSimpleQueryEngine alloc] init];
             if (engine) {
                 NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
-                id<GTWSPARQLResultsSerializer> s    = [[SPKSPARQLResultsXMLSerializer alloc] init];
-                if (e && s) {
-        //            NSLog(@"Last-Modified: %@", lastModified);
-                    NSData* data        = [s dataFromResults:e withVariables:variables];
-                    GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
-                    
-                    if (lastModified) {
-                        resp.lastModified   = lastModified;
+//                NSLog(@"results: %@", e);
+                
+                NSArray* classes    = [SPKSPARQLPluginHandler serializerClassesConformingToProtocol:@protocol(GTWSPARQLResultsSerializer)];
+                NSMutableDictionary* variants   = [NSMutableDictionary dictionary];
+                for (Class c in classes) {
+                    NSString* name  = NSStringFromClass(c);
+                    double pref = 1.0;
+                    NSString* mediatype = [c preferredMediaTypes];
+                    if ([mediatype hasPrefix:@"application/"]) {
+                        pref    -= 0.4;
+                    } else if ([mediatype hasPrefix:@"text/"]) {
+                        pref    -= 0.2;
                     }
-                    return resp;
+                    if ([mediatype isEqualToString:@"text/plain"]) {
+                        pref    += 0.1;
+                    }
+                    variants[name]  = GTWMakeVariant(pref, mediatype, nil, nil, nil, 0);
+                }
+                GTWConneg* conneg   = [[GTWConneg alloc] init];
+                NSMutableURLRequest* req    = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@""]];
+                [[request allHeaderFields] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+                    [req setValue:obj forHTTPHeaderField:key];
+                }];
+                NSArray* negotiated = [conneg negotiateWithRequest:req withVariants:variants];
+//                NSLog(@"variants: %@", negotiated);
+                if ([negotiated count]) {
+                    NSString* name  = negotiated[0][0];
+                    Class c         = NSClassFromString(name);
+                    id<GTWSPARQLResultsSerializer> s    = [[c alloc] init];
+//                    NSLog(@"serializer: %@", s);
+                    if (e && s) {
+                        //            NSLog(@"Last-Modified: %@", lastModified);
+                        NSData* data        = [s dataFromResults:e withVariables:variables];
+                        GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
+                        
+                        if (lastModified) {
+                            resp.lastModified   = lastModified;
+                        }
+//                        NSLog(@"response: %@", resp);
+                        return resp;
+                    } else {
+                        NSLog(@"No serializer");
+                    }
+                } else {
+//                    NSLog(@"No acceptable results serializer found matching request: %@", negotiated);
+                    return [[GTWHTTPErrorResponse alloc] initWithDictionary:@{@"type": @"http://kasei.us/2009/sparql/errors/conneg", @"title":@"No acceptable results serializer found matching request", @"detail":negotiated} errorCode:406];
                 }
             }
             return [GTWHTTPErrorResponse serverErrorResponseWithType:@"http://kasei.us/2009/sparql/errors/internal" title:@"Internal Error" detail:@"An unexpected error occurred."];

@@ -11,6 +11,26 @@
 
 @implementation SPKSPARQLResultsTextTableSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"text/plain"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"text/plain";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWSPARQLResultsSerializer), nil];
+}
+
 - (void) serializeResults: (NSEnumerator*) results withVariables: (NSSet*) variables toHandle: (NSFileHandle*) handle {
     NSData* data    = [self dataFromResults:results withVariables:variables];
     [handle writeData:data];

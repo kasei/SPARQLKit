@@ -20,6 +20,7 @@
 // Serializers
 #import <SPARQLKit/SPKSPARQLResultsCSVSerializer.h>
 #import <SPARQLKit/SPKSPARQLResultsTSVSerializer.h>
+#import <SPARQLKit/SPKSPARQLResultsXMLSerializer.h>
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 #import "SPKNTriplesSerializer.h"
@@ -528,12 +529,21 @@ int main(int argc, const char * argv[]) {
     [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsXMLParser class]];
     [SPKSPARQLPluginHandler registerClass:[GTWSPARQLResultsJSONParser class]];
     [SPKSPARQLPluginHandler registerClass:[SPKTurtleParser class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKNQuadsSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKNTriplesSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKSPARQLResultsCSVSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKSPARQLResultsTSVSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKSPARQLResultsTextTableSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKSPARQLResultsXMLSerializer class]];
+    [SPKSPARQLPluginHandler registerClass:[SPKNQuadsSerializer class]];
     
+    BOOL wait           = NO;
     BOOL quiet          = NO;
     NSUInteger verbose  = 0;
     NSUInteger argi     = 1;
     NSString* config    = nil;
     NSString* output    = nil;
+    BOOL readline       = YES;
     NSMutableArray* ops = [NSMutableArray array];
     
     while (argc > argi && argv[argi][0] == '-') {
@@ -553,6 +563,12 @@ int main(int argc, const char * argv[]) {
             [ops addObject:sparql];
         } else if (!strcmp(argv[argi], "-v")) {
             verbose     = 1;
+            argi++;
+        } else if (!strcmp(argv[argi], "-w")) {
+            wait    = YES;
+            argi++;
+        } else if (!strcmp(argv[argi], "-r")) {
+            readline    = NO;
             argi++;
         } else if (!strcmp(argv[argi], "-q")) {
             quiet   = YES;
@@ -605,7 +621,7 @@ int main(int argc, const char * argv[]) {
         }
         return 0;
     }
-    char *line;
+    const char *line;
     NSString* historyPath       = [NSString stringWithFormat:@"Application Support/us.kasei.%@", PRODUCT_NAME];
     NSString* lnHistoryFileName = @"history.linenoise";
     NSArray* prefsPaths         = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSAllDomainsMask - NSSystemDomainMask, YES);
@@ -627,24 +643,45 @@ int main(int argc, const char * argv[]) {
         }
     }
     
+    const char* (^rl)(const char* prompt) = ^const char*(const char* prompt) {
+        if (readline) {
+            return linenoise(prompt);
+        } else {
+            fprintf(stdout, "%s", prompt);
+            fflush(stdout);
+            NSMutableString* input  = [NSMutableString string];
+            char c  = fgetc(stdin);
+            while (c != EOF && c != '\n') {
+                [input appendFormat:@"%c", c];
+                c  = fgetc(stdin);
+            }
+            if (c == EOF)
+                return NULL;
+            return [input UTF8String];
+        }
+    };
+    
     NSString* lnHistoryFile;
-    if (prefsPath) {
-        lnHistoryFile = [prefsPath stringByAppendingPathComponent:lnHistoryFileName];
-        linenoiseHistoryLoad((char*) [lnHistoryFile UTF8String]);
+    if (readline) {
+        if (prefsPath) {
+            lnHistoryFile = [prefsPath stringByAppendingPathComponent:lnHistoryFileName];
+            linenoiseHistoryLoad((char*) [lnHistoryFile UTF8String]);
+        }
+        linenoiseSetCompletionCallback(completion);
     }
     
-    linenoiseSetCompletionCallback(completion);
-    
-    while ((line = linenoise("sparql> ")) != NULL) {
+    while ((line = rl("sparql> ")) != NULL) {
         NSString* sparql    = [NSString stringWithFormat:@"%s", line];
-        free(line);
+        if (readline)
+            free((void*)line);
         if (![sparql length])
             continue;
-        linenoiseHistoryAdd([sparql UTF8String]);
-        if (lnHistoryFile) {
-            linenoiseHistorySave((char*) [lnHistoryFile UTF8String]);
+        if (readline) {
+            linenoiseHistoryAdd([sparql UTF8String]);
+            if (lnHistoryFile) {
+                linenoiseHistorySave((char*) [lnHistoryFile UTF8String]);
+            }
         }
-        
         
         BOOL wait   = NO;
         BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait);
@@ -654,5 +691,6 @@ int main(int argc, const char * argv[]) {
     }
     printf("\n");
 REPL_EXIT:
+    while (wait) sleep(1);
     return 0;
 }

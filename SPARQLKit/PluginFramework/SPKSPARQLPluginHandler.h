@@ -13,8 +13,11 @@
 
 + (NSArray*) dataSourceClasses;
 + (NSArray*) parserClasses;
++ (NSArray*) serializerClasses;
++ (NSArray*) serializerClassesConformingToProtocol:(Protocol*)protocol;
 + (Class) pluginClassWithName: (NSString*) name;
 + (Class) parserForMediaType: (NSString*) mediaType conformingToProtocol: (Protocol*) protocol;
++ (Class) serializerForMediaType: (NSString*) mediaType conformingToProtocol: (Protocol*) protocol;
 + (Class) parserForFilename: (NSString*) filename conformingToProtocol: (Protocol*) protocol;
 + (BOOL) registerClass: (Class) c;
 + (NSArray*) registeredClasses;

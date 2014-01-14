@@ -10,6 +10,26 @@
 
 @implementation SPKNQuadsSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"application/n-quads"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"application/n-quads";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWQuadsSerializer), @protocol(GTWMixedSerializer), nil];
+}
+
 - (SPKNQuadsSerializer*) init {
     if (self = [super init]) {
         self.escapeUnicode  = YES;

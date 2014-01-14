@@ -10,6 +10,26 @@
 
 @implementation SPKSPARQLResultsCSVSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"text/csv"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"text/csv";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWSPARQLResultsSerializer), nil];
+}
+
 - (NSData*) dataFromResults: (NSEnumerator*) results withVariables: (NSSet*) variables {
     NSMutableData* data = [NSMutableData data];
     NSMutableArray* vars    = [NSMutableArray array];

@@ -10,6 +10,26 @@
 
 @implementation SPKNTriplesSerializer
 
++ (unsigned)interfaceVersion {
+    return 0;
+}
+
++ (NSSet*) handledSerializerMediaTypes {
+    return [NSSet setWithObject:@"application/n-triples"];
+}
+
++ (NSString*) preferredMediaTypes {
+    return @"application/n-triples";
+}
+
++ (NSDictionary*) classesImplementingProtocols {
+    return @{ (id)self: [self implementedProtocols] };
+}
+
++ (NSSet*) implementedProtocols {
+    return [NSSet setWithObjects:@protocol(GTWTriplesSerializer), nil];
+}
+
 + (NSString*) nTriplesEncodingOfString: (NSString*) value escapingUnicode:(BOOL)escape {
     NSUInteger length   = [value length];
 //    unichar* string = alloca(1+10*length);

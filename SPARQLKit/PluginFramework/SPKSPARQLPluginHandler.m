@@ -8,6 +8,7 @@
 
 #import <GTWSWBase/GTWSWBase.h>
 #import "SPKSPARQLPluginHandler.h"
+#import "GTWConneg.h"
 
 static NSMutableSet* registeredClasses() {
 	static NSMutableSet *_registeredClasses = nil;
@@ -92,10 +93,58 @@ bad_plugin:
     return parsers;
 }
 
-+ (Class) parserForMediaType: (NSString*) mediaType conformingToProtocol: (Protocol*) protocol {
++ (NSArray*) serializerClasses {
+    [self loadAllPlugins];
+    NSArray* classes    = [self registeredClasses];
+    NSMutableArray* serializers = [NSMutableArray array];
+    for (Class principleClass in classes) {
+        NSDictionary* pluginClasses = [principleClass classesImplementingProtocols];
+        for (Class pluginClass in pluginClasses) {
+            NSSet* protocols    = pluginClasses[pluginClass];
+            if ([protocols containsObject:@protocol(GTWTriplesSerializer)] || [protocols containsObject:@protocol(GTWQuadsSerializer)] || [protocols containsObject:@protocol(GTWSPARQLResultsSerializer)]) {
+                [serializers addObject:pluginClass];
+            }
+        }
+    }
+    return serializers;
+}
+
++ (NSArray*) serializerClassesConformingToProtocol:(Protocol*)protocol {
+    NSArray* classes    = [self serializerClasses];
+    NSMutableArray* matching    = [NSMutableArray array];
+    for (Class c in classes) {
+        if (protocol) {
+            if ([c conformsToProtocol:protocol]) {
+                [matching addObject:c];
+            }
+        } else {
+            [matching addObject:c];
+        }
+    }
+    return matching;
+}
+
++ (Class) parserForMediaType:(NSString*)mediaType conformingToProtocol:(Protocol*)protocol {
     NSArray* classes    = [self parserClasses];
     for (Class c in classes) {
         NSSet* mediaTypes   = [c handledParserMediaTypes];
+        if ([mediaTypes containsObject:mediaType]) {
+            if (protocol) {
+                if ([c conformsToProtocol:protocol]) {
+                    return c;
+                }
+            } else {
+                return c;
+            }
+        }
+    }
+    return nil;
+}
+
++ (Class) serializerForMediaType:(NSString*)mediaType conformingToProtocol:(Protocol*)protocol {
+    NSArray* classes    = [self serializerClasses];
+    for (Class c in classes) {
+        NSSet* mediaTypes   = [c handledSerializerMediaTypes];
         if ([mediaTypes containsObject:mediaType]) {
             if (protocol) {
                 if ([c conformsToProtocol:protocol]) {

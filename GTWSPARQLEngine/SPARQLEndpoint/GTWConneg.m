@@ -99,7 +99,7 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
         }
     }
     
-    BOOL verbose    = YES;
+    BOOL verbose    = NO;
     if (verbose) {
         NSLog(@"Negotiation parameters in the request\n");
         for (id type in accept) {
@@ -267,6 +267,8 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                 NSString* at_type       = pair[0];
                 NSString* at_subtype    = pair[1];
                 
+//                NSLog(@"%@ ne %@", at_type, @"*");
+//                NSLog(@"%@ ne %@", at_type, type);
                 if (![at_type isEqualToString:@"*"] && ![at_type isEqualToString:type])
                     continue;
                 if (![at_subtype isEqualToString:@"*"] && ![at_subtype isEqualToString:subtype])
@@ -277,6 +279,9 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                     specificness++;
                 if (![at_subtype isEqualToString:@"*"])
                     specificness++;
+                if (verbose) {
+                    NSLog(@"param: %@", param);
+                }
                 for (NSString* pk in param) {
                     NSString* pv    = param[pk];
                     if (verbose) {
@@ -307,7 +312,9 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                     }
                 }
             }
-            NSLog(@"SEL_Q: %@", sel_q);
+            if (verbose) {
+                NSLog(@"SEL_Q: %@", sel_q);
+            }
             q   = sel_q ? atof([sel_q UTF8String]) : 0;
             mbx = sel_mbx;
         }
