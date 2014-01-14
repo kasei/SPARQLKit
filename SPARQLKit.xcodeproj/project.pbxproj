@@ -130,7 +130,15 @@
 		37373AD5187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */; };
 		37373AD8187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */; };
 		37373AD9187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */; };
+		374A90AE1884FEB00041263E /* GTWConneg.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90AD1884FEB00041263E /* GTWConneg.m */; };
+		374A90AF1884FEB00041263E /* GTWConneg.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90AD1884FEB00041263E /* GTWConneg.m */; };
+		374A90B2188513AD0041263E /* NSString+GTWUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 374A90B0188513AD0041263E /* NSString+GTWUtilities.h */; };
+		374A90B3188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
+		374A90B4188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
+		374A90B5188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
+		376FC1451883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */; };
+		376FC1461883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */; };
 		377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */; };
 		377F23BB1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 377F23B91853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m */; };
 		3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
@@ -236,7 +244,13 @@
 		37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPCachedResponse.m; sourceTree = "<group>"; };
 		37373AD6187EA03F0062D63D /* GTWHTTPDataResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWHTTPDataResponse.h; sourceTree = "<group>"; };
 		37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPDataResponse.m; sourceTree = "<group>"; };
+		374A90AC1884FEB00041263E /* GTWConneg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWConneg.h; sourceTree = "<group>"; };
+		374A90AD1884FEB00041263E /* GTWConneg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWConneg.m; sourceTree = "<group>"; };
+		374A90B0188513AD0041263E /* NSString+GTWUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+GTWUtilities.h"; path = "SPARQLKit/Utilities/NSString+GTWUtilities.h"; sourceTree = SOURCE_ROOT; };
+		374A90B1188513AD0041263E /* NSString+GTWUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+GTWUtilities.m"; path = "SPARQLKit/Utilities/NSString+GTWUtilities.m"; sourceTree = SOURCE_ROOT; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
+		376FC1431883793A006A3893 /* GTWHTTPErrorResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWHTTPErrorResponse.h; sourceTree = "<group>"; };
+		376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPErrorResponse.m; sourceTree = "<group>"; };
 		377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKPrefixNameSerializerDelegate.h; path = SPARQLKit/Serializers/SPKPrefixNameSerializerDelegate.h; sourceTree = SOURCE_ROOT; };
 		377F23B91853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKPrefixNameSerializerDelegate.m; path = SPARQLKit/Serializers/SPKPrefixNameSerializerDelegate.m; sourceTree = SOURCE_ROOT; };
 		3780594F184C1DDA0029A75E /* GTWSWBase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GTWSWBase.framework; path = ../../../../../Library/Frameworks/GTWSWBase.framework; sourceTree = "<group>"; };
@@ -501,6 +515,8 @@
 				371B341B18400FB900AA75B0 /* SPKBlankNodeRenamer.m */,
 				37832141184E953C0065EEB9 /* SPKMutableURLRequest.h */,
 				37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */,
+				374A90B0188513AD0041263E /* NSString+GTWUtilities.h */,
+				374A90B1188513AD0041263E /* NSString+GTWUtilities.m */,
 			);
 			name = Utilities;
 			path = SPARQLKit/Utilities;
@@ -519,6 +535,10 @@
 				37373AD3187E9C5C0062D63D /* GTWHTTPCachedResponse.m */,
 				37373AD6187EA03F0062D63D /* GTWHTTPDataResponse.h */,
 				37373AD7187EA03F0062D63D /* GTWHTTPDataResponse.m */,
+				376FC1431883793A006A3893 /* GTWHTTPErrorResponse.h */,
+				376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */,
+				374A90AC1884FEB00041263E /* GTWConneg.h */,
+				374A90AD1884FEB00041263E /* GTWConneg.m */,
 			);
 			path = SPARQLEndpoint;
 			sourceTree = "<group>";
@@ -766,6 +786,7 @@
 				371B33E218400E9000AA75B0 /* SPKExpressionEvaluationContext.h in Headers */,
 				371B33E818400EB600AA75B0 /* SPKQueryPlanner.h in Headers */,
 				377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */,
+				374A90B2188513AD0041263E /* NSString+GTWUtilities.h in Headers */,
 				371B33D818400E5600AA75B0 /* SPKTripleModel.h in Headers */,
 				371B33D018400E3A00AA75B0 /* SPKErrorLogger.h in Headers */,
 				371B33D618400E5600AA75B0 /* SPKQuadModel.h in Headers */,
@@ -891,6 +912,7 @@
 				37B8CA9C1852A69E0022F7D0 /* SPKSPARQLResultsCSVSerializer.m in Sources */,
 				37B8CAA11852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.m in Sources */,
 				371B33D718400E5600AA75B0 /* SPKQuadModel.m in Sources */,
+				374A90B3188513AD0041263E /* NSString+GTWUtilities.m in Sources */,
 				371B33D118400E3A00AA75B0 /* SPKErrorLogger.m in Sources */,
 				371B33CD18400E1700AA75B0 /* SPKMemoryQuadStore.m in Sources */,
 				371B341F18400FB900AA75B0 /* NSObject+NSDictionary_QueryBindings.m in Sources */,
@@ -920,6 +942,7 @@
 				37356074184D3B7D003296E6 /* DDLog.m in Sources */,
 				37356075184D3B7D003296E6 /* DDTTYLogger.m in Sources */,
 				37356076184D3B7D003296E6 /* ContextFilterLogFormatter.m in Sources */,
+				376FC1461883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */,
 				37356077184D3B7D003296E6 /* DispatchQueueLogFormatter.m in Sources */,
 				37373AD9187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */,
 				37356078184D3B7D003296E6 /* DDData.m in Sources */,
@@ -931,6 +954,7 @@
 				3735607E184D3B7D003296E6 /* HTTPServer.m in Sources */,
 				3735607F184D3B7D003296E6 /* MultipartFormDataParser.m in Sources */,
 				37356080184D3B7D003296E6 /* MultipartMessageHeader.m in Sources */,
+				374A90B5188513AD0041263E /* NSString+GTWUtilities.m in Sources */,
 				37356081184D3B7D003296E6 /* MultipartMessageHeaderField.m in Sources */,
 				37373AD5187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */,
 				37356082184D3B7D003296E6 /* HTTPAsyncFileResponse.m in Sources */,
@@ -942,6 +966,7 @@
 				37356087184D3B7D003296E6 /* HTTPRedirectResponse.m in Sources */,
 				37356088184D3B7D003296E6 /* WebSocket.m in Sources */,
 				37356089184D3B7D003296E6 /* GTWSPARQLConfig.m in Sources */,
+				374A90AF1884FEB00041263E /* GTWConneg.m in Sources */,
 				3735608A184D3B7D003296E6 /* GTWSPARQLConnection.m in Sources */,
 				3735608B184D3B7D003296E6 /* GTWSPARQLServer.m in Sources */,
 			);
@@ -961,6 +986,7 @@
 				3700DDE0183B160200AF79C7 /* DDFileLogger.m in Sources */,
 				3700DDE1183B160200AF79C7 /* DDLog.m in Sources */,
 				3700DDE2183B160200AF79C7 /* DDTTYLogger.m in Sources */,
+				376FC1451883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */,
 				3700DDE3183B160200AF79C7 /* ContextFilterLogFormatter.m in Sources */,
 				37373AD8187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */,
 				3700DDE4183B160200AF79C7 /* DispatchQueueLogFormatter.m in Sources */,
@@ -972,6 +998,7 @@
 				3700DDEA183B160200AF79C7 /* HTTPMessage.m in Sources */,
 				3700DDEB183B160200AF79C7 /* HTTPServer.m in Sources */,
 				3700DDEC183B160200AF79C7 /* MultipartFormDataParser.m in Sources */,
+				374A90B4188513AD0041263E /* NSString+GTWUtilities.m in Sources */,
 				3700DDED183B160200AF79C7 /* MultipartMessageHeader.m in Sources */,
 				37373AD4187E9C5C0062D63D /* GTWHTTPCachedResponse.m in Sources */,
 				3700DDEE183B160200AF79C7 /* MultipartMessageHeaderField.m in Sources */,
@@ -983,6 +1010,7 @@
 				3700DDF4183B160200AF79C7 /* HTTPRedirectResponse.m in Sources */,
 				3700DDF5183B160200AF79C7 /* WebSocket.m in Sources */,
 				3700DDF6183B160200AF79C7 /* GTWSPARQLConfig.m in Sources */,
+				374A90AE1884FEB00041263E /* GTWConneg.m in Sources */,
 				3700DDF7183B160200AF79C7 /* GTWSPARQLConnection.m in Sources */,
 				3700DDF8183B160200AF79C7 /* GTWSPARQLServer.m in Sources */,
 			);
