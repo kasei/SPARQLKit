@@ -31,7 +31,7 @@ typedef NS_ENUM(NSInteger, SPKTurtleParserState) {
     return [NSSet setWithObjects:@protocol(GTWRDFParser), nil];
 }
 
-+ (NSSet*) handledMediaTypes {
++ (NSSet*) handledParserMediaTypes {
     return [NSSet setWithObjects:@"text/turtle", @"application/x-turtle", nil];
 }
 

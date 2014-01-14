@@ -95,7 +95,7 @@ bad_plugin:
 + (Class) parserForMediaType: (NSString*) mediaType conformingToProtocol: (Protocol*) protocol {
     NSArray* classes    = [self parserClasses];
     for (Class c in classes) {
-        NSSet* mediaTypes   = [c handledMediaTypes];
+        NSSet* mediaTypes   = [c handledParserMediaTypes];
         if ([mediaTypes containsObject:mediaType]) {
             if (protocol) {
                 if ([c conformsToProtocol:protocol]) {
