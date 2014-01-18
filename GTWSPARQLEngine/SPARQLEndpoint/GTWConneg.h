@@ -16,7 +16,7 @@ extern NSString* __strong const kSPKConnegCharacterSet;
 extern NSString* __strong const kSPKConnegLanguage;
 extern NSString* __strong const kSPKConnegSize;
 
-NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSString* characterSet, NSString* langauge, NSInteger size);
+NSDictionary* GTWConnegMakeVariant(double qv, NSString* contentType, id encoding, NSString* characterSet, NSString* langauge, NSInteger size);
 
 @interface GTWConneg : NSObject
 

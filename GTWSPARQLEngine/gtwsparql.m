@@ -96,9 +96,9 @@ id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasourc
     return nil;
 }
 
-GTWSPARQLServer* startEndpoint (id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, UInt16 port) {
+GTWSPARQLServer* startEndpoint (id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, UInt16 port, NSInteger verbose) {
     // Initalize our http server
-    GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
+    GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase verbose:verbose];
     
     // Tell server to use our custom MyHTTPConnection class.
     [httpServer setConnectionClass:[GTWSPARQLConnection class]];
@@ -360,7 +360,7 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
                 const char* s   = [sparql UTF8String];
                 port    = atoi(s+9);
             }
-            GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port);
+            GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port, verbose);
             if (httpServer) {
                 if (!quiet)
                     printf("Endpoint started on port %d\n", port);

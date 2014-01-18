@@ -5,6 +5,7 @@
 //  Created by Gregory Williams on 1/13/14.
 //  Copyright (c) 2014 Gregory Todd Williams. All rights reserved.
 //
+//  Based on the HTTP::Negotiate perl module by Gisle Aas <https://metacpan.org/pod/HTTP::Negotiate>
 
 #import "GTWConneg.h"
 
@@ -17,7 +18,7 @@ NSString* __strong const kSPKConnegSize         = @"Size";
 
 @implementation GTWConneg
 
-NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSString* characterSet, NSString* langauge, NSInteger size) {
+NSDictionary* GTWConnegMakeVariant(double qv, NSString* contentType, id encoding, NSString* characterSet, NSString* langauge, NSInteger size) {
     NSMutableDictionary* v  = [@{
                                 kSPKConnegQuality:@(qv),
                                 kSPKConnegSize:@(size)
@@ -47,7 +48,6 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
         }
         
         val = [[val componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] componentsJoinedByString:@""];
-//        val = [val stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         double default_q = 1.0;
         NSArray* array  = [val componentsSeparatedByString:@","];
         for (NSString* name in array) {
@@ -58,7 +58,7 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                 NSString* p = [name substringFromIndex:range.location+1];
                 NSArray* params = [p componentsSeparatedByString:@";"];
                 for (NSString* string in params) {
-                    NSArray* pair   = [string componentsSeparatedByPattern:@"=" maximumItems:2];
+                    NSArray* pair   = [string gtw_componentsSeparatedByPattern:@"=" maximumItems:2];
                     NSString* pk    = pair[0];
                     NSString* pv    = pair[1];
                     param[[pk lowercaseString]] = pv;
@@ -238,14 +238,14 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                 params  = [ct substringFromIndex:semi_range.location+1];
             }
             
-            NSArray* pair       = [ct componentsSeparatedByPattern:@"/" maximumItems:2];
+            NSArray* pair       = [ct gtw_componentsSeparatedByPattern:@"/" maximumItems:2];
             NSString* type      = pair[0];
             NSString* subtype   = pair[1];
             NSMutableDictionary* param  = [NSMutableDictionary dictionary];
             NSArray* array  = [params componentsSeparatedByString:@";"];
             if ([array count] == 2) {
                 for (NSString* p in array) {
-                    NSArray* pair       = [p componentsSeparatedByPattern:@"=" maximumItems:2];
+                    NSArray* pair       = [p gtw_componentsSeparatedByPattern:@"=" maximumItems:2];
                     NSLog(@"%@ => %@", p, pair);
                     NSString* pk    = pair[0];
                     NSString* pv    = pair[1];
@@ -263,7 +263,7 @@ NSDictionary* GTWMakeVariant(double qv, NSString* contentType, id encoding, NSSt
                 if (verbose) {
                     NSLog(@"Consider %@...\n", at);
                 }
-                NSArray* pair           = [at componentsSeparatedByPattern:@"/" maximumItems:2];
+                NSArray* pair           = [at gtw_componentsSeparatedByPattern:@"/" maximumItems:2];
                 NSString* at_type       = pair[0];
                 NSString* at_subtype    = pair[1];
                 

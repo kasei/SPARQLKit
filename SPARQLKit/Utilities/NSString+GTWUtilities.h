@@ -10,6 +10,6 @@
 
 @interface NSString (GTWUtilities)
 
-- (NSArray*) componentsSeparatedByPattern:(NSString*)pat maximumItems:(NSInteger)max;
+- (NSArray*) gtw_componentsSeparatedByPattern:(NSString*)pat maximumItems:(NSInteger)max;
 
 @end

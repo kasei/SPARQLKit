@@ -15,7 +15,8 @@
 @property id<GTWModel> model;
 @property GTWDataset* dataset;
 @property NSString* base;
+@property BOOL verbose;
 
-- (id)initWithModel:(id<GTWModel>)model dataset:(GTWDataset*)dataset base:(NSString*)base;
+- (id)initWithModel:(id<GTWModel>)model dataset:(GTWDataset*)dataset base:(NSString*)base verbose:(BOOL)verbose;
 
 @end

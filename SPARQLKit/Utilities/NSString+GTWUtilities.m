@@ -10,7 +10,7 @@
 
 @implementation NSString (GTWUtilities)
 
-- (NSArray*) componentsSeparatedByPattern:(NSString*)pat maximumItems:(NSInteger)max {
+- (NSArray*) gtw_componentsSeparatedByPattern:(NSString*)pat maximumItems:(NSInteger)max {
     NSMutableArray* components  = [NSMutableArray array];
     NSString* string    = self;
     NSRange range   = [string rangeOfString:pat options:NSRegularExpressionSearch];

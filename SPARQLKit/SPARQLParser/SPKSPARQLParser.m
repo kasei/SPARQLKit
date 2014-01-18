@@ -66,7 +66,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 - (id<SPKTree>) parseSPARQLQueryFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
     self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
-    return [self parseCheckingEOF:checkEOF error:error];
+    return [self parseCheckingEOF:checkEOF allowUpdates:NO error:error];
 }
 
 - (id<SPKTree>) parseSPARQLUpdate: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error {
@@ -84,7 +84,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 - (id<SPKTree>) parseSPARQLUpdateFromLexer: (SPKSPARQLLexer*) lexer withBaseURI: (NSString*) base checkEOF: (BOOL) checkEOF error: (NSError*__autoreleasing*) error {
     self.lexer      = lexer;
     self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
-    return [self parseCheckingEOF: checkEOF error:error];
+    return [self parseCheckingEOF:checkEOF allowUpdates:YES error:error];
 }
 
 - (SPKSPARQLToken*) peekNextNonCommentToken {
@@ -117,7 +117,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
 //[29]  	Update	  ::=  	Prologue ( Update1 ( ';' Update )? )?
 //[30]  	Update1	  ::=  	Load | Clear | Drop | Add | Move | Copy | Create | InsertData | DeleteData | DeleteWhere | Modify
 
-- (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF error:(NSError*__autoreleasing*) error {
+- (id<SPKTree>) parseCheckingEOF:(BOOL)checkEOF allowUpdates:(BOOL)allowUpdates error:(NSError*__autoreleasing*) error {
     self.namespaces = [NSMutableDictionary dictionary];
 
     SPKSPARQLToken* t;
@@ -160,6 +160,10 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
             if ([errors count])
                 goto cleanup;
         } else if ([t.value rangeOfString:@"^(LOAD|CLEAR|DROP|ADD|MOVE|COPY|CREATE|INSERT|DELETE|WITH)$" options:NSRegularExpressionSearch].location != NSNotFound) {
+            if (!allowUpdates) {
+                [self errorMessage:[NSString stringWithFormat:@"Update operation %@ now allowed while parsing SPARQL Query", t.value] withErrors:errors];
+                goto cleanup;
+            }
             if ([t.value isEqualToString: @"LOAD"]) {
                 algebra     = [self parseLoadWithErrors: errors];
             } else if ([t.value isEqualToString: @"CLEAR"] || [t.value isEqualToString: @"DROP"]) {

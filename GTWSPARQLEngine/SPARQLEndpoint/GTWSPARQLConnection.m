@@ -41,6 +41,34 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
     return [df dateFromString:string];
 }
 
+- (BOOL)supportsMethod:(NSString *)method atPath:(NSString *)path
+{
+	// Override me to support methods such as POST.
+	//
+	// Things you may want to consider:
+	// - Does the given path represent a resource that is designed to accept this method?
+	// - If accepting an upload, is the size of the data being uploaded too big?
+	//   To do this you can check the requestContentLength variable.
+	//
+	// For more information, you can always access the HTTPMessage request variable.
+	//
+	// You should fall through with a call to [super supportsMethod:method atPath:path]
+	//
+	// See also: expectsRequestBodyFromMethod:atPath:
+	
+    if ([path isEqualToString:@"/sparql"]) {
+        if ([method isEqualToString:@"POST"])
+            return YES;
+    }
+    return [super supportsMethod:method atPath:path];
+}
+
+- (void)processBodyData:(NSData *)postDataChunk {
+    NSMutableData* data = [[request body] mutableCopy];
+    [data appendData:postDataChunk];
+    [request setBody:data];
+}
+
 - (NSObject<HTTPResponse> *)httpResponseForMethod:(NSString *)method URI:(NSString *)path {
 //    NSLog(@"---> %@", [request allHeaderFields]);
     GTWSPARQLConfig* cfg = (GTWSPARQLConfig*) config;
@@ -55,18 +83,31 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
 		return nil;
 	}
 	
+    BOOL verbose    = cfg.verbose;
 	NSString *relativePath = [filePath substringFromIndex:[documentRoot length]];
     if ([relativePath isEqualToString:ENDPOINT_PATH]) {
-        NSDictionary* params    = [self parseGetParams];
+        NSDictionary* params;
+        if ([method isEqualToString:@"POST"]) {
+            NSMutableString* body  = [[NSMutableString alloc] initWithData:[request body] encoding:NSUTF8StringEncoding];
+            [body replaceOccurrencesOfString:@"+" withString:@" " options:0 range:NSMakeRange(0, [body length])];
+            params          = [self parseParams:body];
+        } else {
+            params  = [self parseGetParams];
+        }
+        
+        NSString* update        = params[@"update"];
         NSString* query         = params[@"query"];
-        if (query) {
-            BOOL verbose    = NO;
+        id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
+        NSError* error;
+        
+        NSString* sparql    = update ? update : query;
+        if (sparql) {
             if (verbose) {
-                NSLog(@"query: %@", query);
+                NSLog(@"%@: %@", (update ? @"update" : @"query"), sparql);
             }
-            id<SPKSPARQLParser> parser  = [[SPKSPARQLParser alloc] init];
-            NSError* error;
-            id<SPKTree> algebra    = [parser parseSPARQLQuery:query withBaseURI:cfg.base settingPrefixes:nil error:&error];
+            id<SPKTree> algebra    = update
+                ? [parser parseSPARQLUpdate:sparql withBaseURI:cfg.base settingPrefixes:nil error:&error]
+                : [parser parseSPARQLQuery:sparql withBaseURI:cfg.base settingPrefixes:nil error:&error];
             if (error) {
                 NSLog(@"parser error: %@", error);
                 NSString* desc  = [[error userInfo] objectForKey:@"description"];
@@ -130,25 +171,27 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
             id<GTWQueryEngine> engine           = [[SPKSimpleQueryEngine alloc] init];
             if (engine) {
                 NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
-//                NSLog(@"results: %@", e);
-                
                 NSArray* classes    = [SPKSPARQLPluginHandler serializerClassesConformingToProtocol:@protocol(GTWSPARQLResultsSerializer)];
                 NSMutableDictionary* variants   = [NSMutableDictionary dictionary];
                 for (Class c in classes) {
                     NSString* name  = NSStringFromClass(c);
                     double pref = 1.0;
                     NSString* mediatype = [c preferredMediaTypes];
+                    
+                    // Prefer text-based serializations
                     if ([mediatype hasPrefix:@"application/"]) {
-                        pref    -= 0.4;
-                    } else if ([mediatype hasPrefix:@"text/"]) {
                         pref    -= 0.2;
+                    } else if ([mediatype hasPrefix:@"text/"]) {
+                        pref    -= 0.1;
                     }
                     if ([mediatype isEqualToString:@"text/plain"]) {
                         pref    += 0.1;
                     }
-                    variants[name]  = GTWMakeVariant(pref, mediatype, nil, nil, nil, 0);
+                    variants[name]  = GTWConnegMakeVariant(pref, mediatype, nil, nil, nil, 0);
                 }
                 GTWConneg* conneg   = [[GTWConneg alloc] init];
+                
+                // Create  a fake URLRequest so that we can do conneg. Maybe the conneg API should change to just require a headers NSDictionary?
                 NSMutableURLRequest* req    = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@""]];
                 [[request allHeaderFields] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
                     [req setValue:obj forHTTPHeaderField:key];

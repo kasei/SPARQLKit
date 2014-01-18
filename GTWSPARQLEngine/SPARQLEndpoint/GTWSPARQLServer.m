@@ -12,8 +12,9 @@
 
 @implementation GTWSPARQLServer
 
-- (id)initWithModel:(id<GTWModel>)model dataset:(GTWDataset*)dataset base:(NSString*)base {
+- (id)initWithModel:(id<GTWModel>)model dataset:(GTWDataset*)dataset base:(NSString*)base verbose:(BOOL)verbose {
     if (self = [super init]) {
+        self.verbose    = verbose;
         self.dataset    = dataset;
         self.model      = model;
         self.base       = base;
@@ -24,7 +25,9 @@
 
 - (HTTPConfig *)config
 {
-	return [[GTWSPARQLConfig alloc] initWithServer:self model:self.model dataset:self.dataset base:self.base documentRoot:documentRoot queue:connectionQueue];
+	GTWSPARQLConfig* config     = [[GTWSPARQLConfig alloc] initWithServer:self model:self.model dataset:self.dataset base:self.base documentRoot:documentRoot queue:connectionQueue];
+    config.verbose              = self.verbose;
+    return config;
 }
 
 @end
