@@ -25,6 +25,7 @@
 #import "GTWHTTPErrorResponse.h"
 #import "SPKSPARQLPluginHandler.h"
 #import "GTWConneg.h"
+#import "SPKServiceDescriptionGenerator.h"
 
 static NSString* ENDPOINT_PATH    = @"/sparql";
 
@@ -170,13 +171,13 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
             }
             id<GTWQueryEngine> engine           = [[SPKSimpleQueryEngine alloc] init];
             if (engine) {
-                NSEnumerator* e                     = [engine evaluateQueryPlan:plan withModel:model];
-                NSArray* classes    = [SPKSPARQLPluginHandler serializerClassesConformingToProtocol:@protocol(GTWSPARQLResultsSerializer)];
+                NSEnumerator* e                 = [engine evaluateQueryPlan:plan withModel:model];
+                NSArray* classes                = [SPKSPARQLPluginHandler serializerClassesConformingToProtocol:@protocol(GTWSPARQLResultsSerializer)];
                 NSMutableDictionary* variants   = [NSMutableDictionary dictionary];
                 for (Class c in classes) {
-                    NSString* name  = NSStringFromClass(c);
-                    double pref = 1.0;
-                    NSString* mediatype = [c preferredMediaTypes];
+                    NSString* name              = NSStringFromClass(c);
+                    double pref                 = 1.0;
+                    NSString* mediatype         = [c preferredMediaTypes];
                     
                     // Prefer text-based serializations
                     if ([mediatype hasPrefix:@"application/"]) {
@@ -233,7 +234,34 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
 - (NSObject<HTTPResponse>*) queryForm {
     // Request for /sparql without a ?query parameter
     // TODO: return a query template html form
-    return [[HTTPErrorResponse alloc] initWithErrorCode:400];
+    
+    GTWSPARQLConfig* cfg = (GTWSPARQLConfig*) config;
+    id<GTWModel> model  = cfg.model;
+    GTWDataset* dataset = cfg.dataset;
+    
+    NSMutableDictionary* variants   = [NSMutableDictionary dictionary];
+    // TODO: when the query form is being produced and has the service description in RDFa(?), change its quality back to 1.0
+    variants[@"html"] = GTWConnegMakeVariant(0.75, @"text/html", nil, nil, nil, 0);
+    variants[@"srvd"] = GTWConnegMakeVariant(1.0, @"text/turtle", nil, nil, nil, 0);
+    
+    GTWConneg* conneg   = [[GTWConneg alloc] init];
+    NSMutableURLRequest* req    = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@""]];
+    [[request allHeaderFields] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [req setValue:obj forHTTPHeaderField:key];
+    }];
+    
+    
+    NSArray* negotiated = [conneg negotiateWithRequest:req withVariants:variants];
+    if ([negotiated count] && [negotiated[0][0] isEqualToString:@"html"]) {
+        return [[HTTPErrorResponse alloc] initWithErrorCode:400];
+    } else {
+        // TODO: make the quantile value for SD generation user-configurable
+        NSUInteger quant   = 75;
+        SPKServiceDescriptionGenerator* sdg  = [[SPKServiceDescriptionGenerator alloc] init];
+        NSString* sd        = [sdg serviceDescriptionStringForModel:model dataset:dataset quantile:quant];
+        NSData* data        = [sd dataUsingEncoding:NSUTF8StringEncoding];
+        return [[HTTPDataResponse alloc] initWithData:data];
+    }
 }
 
 - (NSData *)preprocessResponse:(HTTPMessage *)response {

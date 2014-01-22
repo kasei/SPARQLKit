@@ -71,6 +71,14 @@
     return nil;
 }
 
+- (NSUInteger) countQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError *__autoreleasing*)error {
+    if ([self.store respondsToSelector:@selector(countQuadsMatchingSubject:predicate:object:graph:error:)]) {
+        return [self.store countQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
+    } else {
+        return [super countQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
+    }
+}
+
 #pragma mark - Mutable Model Methods
 
 - (BOOL) addQuad: (id<GTWQuad>) q error:(NSError*__autoreleasing*)error {

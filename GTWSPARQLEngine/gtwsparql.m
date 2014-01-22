@@ -25,6 +25,7 @@
 #import <SPARQLKit/SPKNQuadsSerializer.h>
 #import "SPKNTriplesSerializer.h"
 #import "SPKPrefixNameSerializerDelegate.h"
+#import "SPKServiceDescriptionGenerator.h"
 
 #include <sys/stat.h>
 
@@ -437,6 +438,15 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
             
             printf("Query Plan:\n%s\n", [[plan longDescription] UTF8String]);
             return YES;
+        } else if ([sparql hasPrefix:@"stats"]) {
+            NSUInteger quant   = 90;
+            if ([sparql rangeOfString:@"^stats (\\d+)$" options:NSRegularExpressionSearch].location != NSNotFound) {
+                const char* s   = [sparql UTF8String];
+                quant  = atoi(s+6);
+            }
+//            NSLog(@"Quantile: %lu", (unsigned long)quant);
+            SPKServiceDescriptionGenerator* sdg  = [[SPKServiceDescriptionGenerator alloc] init];
+            [sdg printServiceDescriptionToFile:stdout forModel:model dataset:dataset quantile:quant];
         } else if ([sparql isEqualToString:@"help"]) {
             printf("Commands:\n");
             printf("    endpoint [PORT]        Start  SPARQL endpoint on PORT (defaults to 8080).\n");

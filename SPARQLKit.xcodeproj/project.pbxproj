@@ -153,6 +153,9 @@
 		37B8CA9D1852A6A80022F7D0 /* SPKSPARQLResultsCSVSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 37B8CA991852A4E50022F7D0 /* SPKSPARQLResultsCSVSerializer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37B8CAA01852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.h in Headers */ = {isa = PBXBuildFile; fileRef = 37B8CA9E1852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37B8CAA11852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 37B8CA9F1852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.m */; };
+		37F05D57188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 37F05D55188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h */; };
+		37F05D58188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F05D56188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m */; };
+		37F05D59188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 37F05D56188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -328,6 +331,8 @@
 		37E3D5E3172D647A00F54DC9 /* GTWSPARQLEngine */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = GTWSPARQLEngine; sourceTree = BUILT_PRODUCTS_DIR; };
 		37E3D5E6172D647A00F54DC9 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		37E3D5E9172D647A00F54DC9 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		37F05D55188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKServiceDescriptionGenerator.h; path = SPARQLKit/Utilities/SPKServiceDescriptionGenerator.h; sourceTree = SOURCE_ROOT; };
+		37F05D56188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKServiceDescriptionGenerator.m; path = SPARQLKit/Utilities/SPKServiceDescriptionGenerator.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -517,6 +522,8 @@
 				37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */,
 				374A90B0188513AD0041263E /* NSString+GTWUtilities.h */,
 				374A90B1188513AD0041263E /* NSString+GTWUtilities.m */,
+				37F05D55188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h */,
+				37F05D56188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m */,
 			);
 			name = Utilities;
 			path = SPARQLKit/Utilities;
@@ -770,6 +777,7 @@
 				371B341418400F9700AA75B0 /* SPKTree.h in Headers */,
 				371B33F618400F5E00AA75B0 /* SPKSPARQLParser.h in Headers */,
 				371B342318400FD700AA75B0 /* SPARQLKit.h in Headers */,
+				37F05D57188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h in Headers */,
 				371B33F818400F5E00AA75B0 /* SPKSPARQLToken.h in Headers */,
 				371B340618400F7E00AA75B0 /* SPKSPARQLResultsTextTableSerializer.h in Headers */,
 				371B33CC18400E1700AA75B0 /* SPKMemoryQuadStore.h in Headers */,
@@ -922,6 +930,7 @@
 				371B33F918400F5E00AA75B0 /* SPKSPARQLToken.m in Sources */,
 				371B33DD18400E7400AA75B0 /* SPKSPARQLPluginHandler.m in Sources */,
 				371B33D918400E5600AA75B0 /* SPKTripleModel.m in Sources */,
+				37F05D58188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m in Sources */,
 				371B341518400F9700AA75B0 /* SPKTree.m in Sources */,
 				371B341118400F9700AA75B0 /* NSObject+SPKTree.m in Sources */,
 				371B33E918400EB600AA75B0 /* SPKQueryPlanner.m in Sources */,
@@ -988,6 +997,7 @@
 				3700DDE2183B160200AF79C7 /* DDTTYLogger.m in Sources */,
 				376FC1451883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */,
 				3700DDE3183B160200AF79C7 /* ContextFilterLogFormatter.m in Sources */,
+				37F05D59188F2BA400662AF2 /* SPKServiceDescriptionGenerator.m in Sources */,
 				37373AD8187EA03F0062D63D /* GTWHTTPDataResponse.m in Sources */,
 				3700DDE4183B160200AF79C7 /* DispatchQueueLogFormatter.m in Sources */,
 				3700DDE5183B160200AF79C7 /* DDData.m in Sources */,
