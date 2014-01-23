@@ -11,6 +11,7 @@
 
 @interface SPKServiceDescriptionGenerator : NSObject
 
+- (NSEnumerator*) serviceDescriptionTriplesForModel:(id<GTWModel>)model dataset:(id<GTWDataset>)dataset quantile:(NSUInteger)quantile;
 - (NSString*) serviceDescriptionStringForModel:(id<GTWModel>)model dataset:(id<GTWDataset>)dataset quantile:(NSUInteger)quantile;
 - (void) printServiceDescriptionToFile:(FILE*)f forModel:(id<GTWModel>)model dataset:(id<GTWDataset>)dataset quantile:(NSUInteger)quantile;
 

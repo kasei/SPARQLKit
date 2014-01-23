@@ -351,6 +351,23 @@ BOOL print_sources ( NSDictionary* datasources ) {
     return YES;
 }
 
+void start_endpoint(UInt16 port, id dataset, id model, dispatch_queue_t queue, BOOL wait, NSMutableArray *jobs, NSUInteger verbose, BOOL quiet) {
+    GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port, verbose);
+    if (httpServer) {
+        if (!quiet)
+            printf("Endpoint started on port %d\n", port);
+        jobs[[jobs count]]  = @[ httpServer, @(port) ];
+        __weak GTWSPARQLServer* server  = httpServer;
+        
+        void (*dispatch)(dispatch_queue_t, void(^)())   = wait ? dispatch_sync : dispatch_async;
+        dispatch(queue, ^{
+            while (server) {
+                sleep(1);
+            }
+        });
+    }
+}
+
 BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait ) {
     @autoreleasepool {
         NSString* sparql    = cmd;
@@ -361,20 +378,8 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
                 const char* s   = [sparql UTF8String];
                 port    = atoi(s+9);
             }
-            GTWSPARQLServer* httpServer = startEndpoint(model, dataset, port, verbose);
-            if (httpServer) {
-                if (!quiet)
-                    printf("Endpoint started on port %d\n", port);
-                jobs[[jobs count]]  = @[ httpServer, @(port) ];
-                __weak GTWSPARQLServer* server  = httpServer;
-                
-                void (*dispatch)(dispatch_queue_t, void(^)())   = wait ? dispatch_sync : dispatch_async;
-                dispatch(queue, ^{
-                    while (server) {
-                        sleep(1);
-                    }
-                });
-            }
+            
+            start_endpoint(port, dataset, model, queue, wait, jobs, verbose, quiet);
             return YES;
         } else if ([sparql hasPrefix:@"sources"]) {
             return print_sources(datasources);

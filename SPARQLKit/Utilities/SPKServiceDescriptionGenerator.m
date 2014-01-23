@@ -10,6 +10,7 @@
 #import <GTWSWBase/GTWVariable.h>
 #import <GTWSWBase/GTWIRI.h>
 #import "NSDate+W3CDTFSupport.h"
+#import "SPKTurtleParser.h"
 
 #define PLURAL_INT_ARGS(p) (int)p, ((p > 1) ? @"s" : @"")
 
@@ -81,6 +82,17 @@ static void _generate_service_description ( id<GTWModel>model, id<GTWIRI> graph,
 	}
 }
 
+- (NSEnumerator*) serviceDescriptionTriplesForModel:(id<GTWModel>)model dataset:(id<GTWDataset>)dataset quantile:(NSUInteger)quantile {
+    NSString* turtle    = [self serviceDescriptionStringForModel:model dataset:dataset quantile:quantile];
+    SPKTurtleParser* p  = [[SPKTurtleParser alloc] initWithData:[turtle dataUsingEncoding:NSUTF8StringEncoding] base:[[GTWIRI alloc] initWithValue:@"http://base.example.org/"]];
+    NSMutableArray* triples = [NSMutableArray array];
+    NSError* error;
+    [p enumerateTriplesWithBlock:^(id<GTWTriple> t) {
+        [triples addObject:t];
+    } error:&error];
+    return [triples objectEnumerator];
+}
+
 - (NSString*) serviceDescriptionStringForModel:(id<GTWModel>)model dataset:(id<GTWDataset>)dataset quantile:(NSUInteger)quantile {
     // TODO: produce output for all graphs in the dataset
     NSArray* dg         = [dataset defaultGraphs];
@@ -110,7 +122,7 @@ static void _generate_service_description ( id<GTWModel>model, id<GTWIRI> graph,
     
     NSDate* date    = [model lastModifiedDateForQuadsMatchingSubject:nil predicate:nil object:nil graph:nil error:&error];
 	[turtle appendFormat:@"[] a sd:Service ;\n\tsd:endpoint <> ;\n\tsd:supportedLanguage sd:SPARQL11Query ;\n"];
-	[turtle appendFormat:@"\tsd:defaultDataset [\n\t\ta sd:Dataset ;\n\t\tsd:defaultGraph <#default>\n\t\tdcterms:modified \"%@\" ;\n\t] .\n\n", [date getW3CDTFString]];
+	[turtle appendFormat:@"\tsd:defaultDataset [\n\t\ta sd:Dataset ;\n\t\tsd:defaultGraph <#default> ;\n\t\tdcterms:modified \"%@\" ;\n\t] .\n\n", [date getW3CDTFString]];
 	
 	[turtle appendFormat:@"<#default> a sd:Graph, void:Dataset ;\n"];
 	[turtle appendFormat:@"\tvoid:triples %llu ;\n", (unsigned long long)count];
