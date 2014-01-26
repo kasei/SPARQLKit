@@ -2727,6 +2727,9 @@ cleanup:
             default:
                 return nil;
         }
+        if (!(expr && rhs)) {
+            return [self errorMessage:@"Failed to parse relational expression" withErrors:errors];
+        }
         expr    = [[SPKTree alloc] initWithType:type arguments:@[expr, rhs]];
     } else if (t && t.type == KEYWORD && [t.value isEqualToString: @"IN"]) {
         [self nextNonCommentToken];
