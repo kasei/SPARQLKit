@@ -8,6 +8,7 @@
 #import <SPARQLKit/SPKTripleModel.h>
 #import <SPARQLKit/SPKSPARQLPluginHandler.h>
 #import <SPARQLKit/SPKTree.h>
+#import <SPARQLKit/SPKOperation.h>
 #import <SPARQLKit/SPKQuery.h>
 
 // Shared user-agent to load prefixes from prefix.cc
@@ -475,12 +476,16 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
         }
         
         NSError* error;
-        SPKQuery* query = [[SPKQuery alloc] initWithQueryString:sparql baseURI:kDefaultBase];
-        query.verbose   = verbose;
-        NSEnumerator* e = [query executeWithModel:model error:&error];
-        NSSet* variables= query.variables;
+        SPKOperation* op    = [[SPKOperation alloc] initWithString:sparql baseURI:kDefaultBase];
+        op.verbose   = verbose;
+        NSEnumerator* e = [op executeWithModel:model error:&error];
         
-        Class resultClass   = query.resultClass;
+        if (!e) {
+            return NO;
+        }
+        
+        NSSet* variables= op.variables;
+        Class resultClass   = op.resultClass;
         if ([resultClass isEqual:[NSNumber class]]) {
             NSNumber* result    = [e nextObject];
             if (!quiet) {
@@ -506,7 +511,7 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
                 s   = [[SPKSPARQLResultsTSVSerializer alloc] init];
             } else {
 //                NSLog(@"Serializing with prefixes: %@", query.prefixes);
-                SPKPrefixNameSerializerDelegate* d  = [[SPKPrefixNameSerializerDelegate alloc] initWithNamespaceDictionary:query.prefixes];
+                SPKPrefixNameSerializerDelegate* d  = [[SPKPrefixNameSerializerDelegate alloc] initWithNamespaceDictionary:op.prefixes];
                 SPKSPARQLResultsTextTableSerializer* ser   = [[SPKSPARQLResultsTextTableSerializer alloc] init];
                 ser.delegate    = d;
                 s   = ser;

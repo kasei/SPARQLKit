@@ -51,6 +51,20 @@ typedef NS_ENUM(NSInteger, SPKSPARQLParserState) {
     return self;
 }
 
+- (id<SPKTree>) parseSPARQLOperation: (NSString*) opString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error {
+    NSString *unescaped = [opString mutableCopy];
+    CFStringRef transform = CFSTR("Any-Hex/Java");
+    CFStringTransform((__bridge CFMutableStringRef)unescaped, NULL, transform, YES);
+    SPKSPARQLLexer* lexer   = [[SPKSPARQLLexer alloc] initWithString:unescaped];
+    self.lexer      = lexer;
+    self.baseIRI    = [[GTWIRI alloc] initWithValue:base];
+    id<SPKTree> query   = [self parseCheckingEOF:YES allowUpdates:YES error:error];
+    if (prefixes) {
+        [prefixes addEntriesFromDictionary:self.namespaces];
+    }
+    return query;
+}
+
 - (id<SPKTree>) parseSPARQLQuery: (NSString*) queryString withBaseURI: (NSString*) base settingPrefixes:(NSMutableDictionary*)prefixes error: (NSError*__autoreleasing*) error {
     NSString *unescaped = [queryString mutableCopy];
     CFStringRef transform = CFSTR("Any-Hex/Java");

@@ -7,26 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "SPARQLKit.h"
+#import "SPKOperation.h"
 
-@interface SPKQuery : NSObject
-
-@property BOOL verbose;
-@property (retain) NSString* queryString;
-@property (retain) NSString* queryBase;
-@property (retain) id<SPKSPARQLParser> parser;
-@property (retain) id<SPKQueryPlanner> planner;
-@property (retain) id<GTWQueryEngine> engine;
-@property (retain) id<GTWDataset> dataset;
-@property (retain) NSSet* variables;
-@property (retain) Class resultClass;
-@property (retain) id<SPKTree> algebra;
-@property (retain) id<GTWQueryPlan> plan;
-@property (retain) NSMutableDictionary* prefixes;
+@interface SPKQuery : SPKOperation
 
 - (SPKQuery*) initWithQueryString: (NSString*) queryString baseURI: (NSString*) base;
-- (NSEnumerator*) executeWithModel:(id<GTWModel>) model error: (NSError*__autoreleasing*) error;
 - (id<SPKTree>) parseWithError: (NSError*__autoreleasing*) error;
-- (id<GTWQueryPlan>) planWithModel:(id<GTWModel>) model error: (NSError*__autoreleasing*) error;
 
 @end

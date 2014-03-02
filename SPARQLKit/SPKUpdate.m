@@ -1,22 +1,22 @@
 //
-//  SPKQuery.m
+//  SPKUpdate.m
 //  SPARQLKit
 //
-//  Created by Gregory Williams on 12/6/13.
-//  Copyright (c) 2013 Gregory Williams. All rights reserved.
+//  Created by Gregory Williams on 2/28/14.
+//  Copyright (c) 2014 Gregory Williams. All rights reserved.
 //
 
-#import "SPKQuery.h"
+#import "SPKUpdate.h"
 #import "SPKSPARQLParser.h"
 #import "SPKSimpleQueryEngine.h"
 #import "SPKQueryPlanner.h"
 
-@implementation SPKQuery
+@implementation SPKUpdate
 
-- (SPKQuery*) initWithQueryString: (NSString*) queryString baseURI: (NSString*) base {
+- (SPKUpdate*) initWithUpdateString: (NSString*) updateString baseURI: (NSString*) base {
     if (self = [self init]) {
-        self.opString    = [queryString copy];
-        self.opBase      = [base copy];
+        self.opString       = [updateString copy];
+        self.opBase         = [base copy];
         self.parser         = [[SPKSPARQLParser alloc] init];
         self.engine         = [[SPKSimpleQueryEngine alloc] init];
         self.planner        = [[SPKQueryPlanner alloc] init];
@@ -29,9 +29,7 @@
 
 - (id<SPKTree>) parseWithError: (NSError*__autoreleasing*) error {
     NSError* e;
-    id<SPKTree> algebra;
-    
-    algebra = [self.parser parseSPARQLQuery:self.opString withBaseURI:self.opBase settingPrefixes:self.prefixes error:&e];
+    id<SPKTree> algebra = [self.parser parseSPARQLUpdate:self.opString withBaseURI:self.opBase settingPrefixes:self.prefixes error:&e];
     
     if (e) {
         NSLog(@"parser error: %@", e);
@@ -40,7 +38,7 @@
         return nil;
     }
     if (self.verbose) {
-        NSLog(@"query:\n%@", algebra);
+        NSLog(@"update:\n%@", algebra);
     }
     
     self.algebra    = algebra;

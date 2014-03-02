@@ -38,6 +38,8 @@
 		3700DDF6183B160200AF79C7 /* GTWSPARQLConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5A183AD0BA00AF79C7 /* GTWSPARQLConfig.m */; };
 		3700DDF7183B160200AF79C7 /* GTWSPARQLConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5C183AD0BA00AF79C7 /* GTWSPARQLConnection.m */; };
 		3700DDF8183B160200AF79C7 /* GTWSPARQLServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3700DD5E183AD0BA00AF79C7 /* GTWSPARQLServer.m */; };
+		370C5E4F18C2C49600F25C87 /* SPKOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 370C5E4D18C2C49600F25C87 /* SPKOperation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		370C5E5018C2C49600F25C87 /* SPKOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 370C5E4E18C2C49600F25C87 /* SPKOperation.m */; };
 		371B33CC18400E1700AA75B0 /* SPKMemoryQuadStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 371B33CA18400E1700AA75B0 /* SPKMemoryQuadStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		371B33CD18400E1700AA75B0 /* SPKMemoryQuadStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 371B33CB18400E1700AA75B0 /* SPKMemoryQuadStore.m */; };
 		371B33D018400E3A00AA75B0 /* SPKErrorLogger.h in Headers */ = {isa = PBXBuildFile; fileRef = 371B33CE18400E3A00AA75B0 /* SPKErrorLogger.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -136,10 +138,12 @@
 		374A90B3188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
 		374A90B4188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
 		374A90B5188513AD0041263E /* NSString+GTWUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 374A90B1188513AD0041263E /* NSString+GTWUtilities.m */; };
+		374EE8BE18C15B8A004F5DC7 /* SPKUpdate.m in Sources */ = {isa = PBXBuildFile; fileRef = 374EE8BC18C15B6C004F5DC7 /* SPKUpdate.m */; };
+		374EE8BF18C15CC5004F5DC7 /* SPKUpdate.h in Headers */ = {isa = PBXBuildFile; fileRef = 374EE8BB18C15B6C004F5DC7 /* SPKUpdate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3757ADC5183DA9AD0062E484 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3757ADC4183DA9AD0062E484 /* libz.dylib */; };
 		376FC1451883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */; };
 		376FC1461883793A006A3893 /* GTWHTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */; };
-		377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */; };
+		377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 377F23B81853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		377F23BB1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 377F23B91853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m */; };
 		3780598B184C33C30029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
 		3780598C184C33D80029A75E /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3780598A184C33C30029A75E /* GTWSWBase.framework */; };
@@ -195,6 +199,8 @@
 		3700DD72183AD32900AF79C7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		3700DD74183AD32900AF79C7 /* SPARQLKit-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SPARQLKit-Prefix.pch"; sourceTree = "<group>"; };
 		3700DDDA183B15C100AF79C7 /* SPARQLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SPARQLKit.framework; path = ../../../../../Library/Frameworks/SPARQLKit.framework; sourceTree = "<group>"; };
+		370C5E4D18C2C49600F25C87 /* SPKOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKOperation.h; path = SPARQLKit/SPKOperation.h; sourceTree = SOURCE_ROOT; };
+		370C5E4E18C2C49600F25C87 /* SPKOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKOperation.m; path = SPARQLKit/SPKOperation.m; sourceTree = SOURCE_ROOT; };
 		371B33CA18400E1700AA75B0 /* SPKMemoryQuadStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKMemoryQuadStore.h; path = SPARQLKit/DataSources/SPKMemoryQuadStore.h; sourceTree = SOURCE_ROOT; };
 		371B33CB18400E1700AA75B0 /* SPKMemoryQuadStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKMemoryQuadStore.m; path = SPARQLKit/DataSources/SPKMemoryQuadStore.m; sourceTree = SOURCE_ROOT; };
 		371B33CE18400E3A00AA75B0 /* SPKErrorLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKErrorLogger.h; path = SPARQLKit/Loggers/SPKErrorLogger.h; sourceTree = SOURCE_ROOT; };
@@ -251,6 +257,8 @@
 		374A90AD1884FEB00041263E /* GTWConneg.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWConneg.m; sourceTree = "<group>"; };
 		374A90B0188513AD0041263E /* NSString+GTWUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+GTWUtilities.h"; path = "SPARQLKit/Utilities/NSString+GTWUtilities.h"; sourceTree = SOURCE_ROOT; };
 		374A90B1188513AD0041263E /* NSString+GTWUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+GTWUtilities.m"; path = "SPARQLKit/Utilities/NSString+GTWUtilities.m"; sourceTree = SOURCE_ROOT; };
+		374EE8BB18C15B6C004F5DC7 /* SPKUpdate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SPKUpdate.h; path = SPARQLKit/SPKUpdate.h; sourceTree = SOURCE_ROOT; };
+		374EE8BC18C15B6C004F5DC7 /* SPKUpdate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SPKUpdate.m; path = SPARQLKit/SPKUpdate.m; sourceTree = SOURCE_ROOT; };
 		3757ADC4183DA9AD0062E484 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/lib/libz.dylib; sourceTree = DEVELOPER_DIR; };
 		376FC1431883793A006A3893 /* GTWHTTPErrorResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTWHTTPErrorResponse.h; sourceTree = "<group>"; };
 		376FC1441883793A006A3893 /* GTWHTTPErrorResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GTWHTTPErrorResponse.m; sourceTree = "<group>"; };
@@ -565,8 +573,12 @@
 				3700DD25183ACFC300AF79C7 /* SPARQLParser */,
 				3700DD2C183ACFC300AF79C7 /* Trees */,
 				3700DD33183ACFC300AF79C7 /* Utilities */,
+				370C5E4D18C2C49600F25C87 /* SPKOperation.h */,
+				370C5E4E18C2C49600F25C87 /* SPKOperation.m */,
 				37B8CA9518529AC50022F7D0 /* SPKQuery.h */,
 				37B8CA9618529AC50022F7D0 /* SPKQuery.m */,
+				374EE8BB18C15B6C004F5DC7 /* SPKUpdate.h */,
+				374EE8BC18C15B6C004F5DC7 /* SPKUpdate.m */,
 			);
 			name = SPARQLKit;
 			sourceTree = "<group>";
@@ -777,7 +789,6 @@
 				371B341418400F9700AA75B0 /* SPKTree.h in Headers */,
 				371B33F618400F5E00AA75B0 /* SPKSPARQLParser.h in Headers */,
 				371B342318400FD700AA75B0 /* SPARQLKit.h in Headers */,
-				37F05D57188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h in Headers */,
 				371B33F818400F5E00AA75B0 /* SPKSPARQLToken.h in Headers */,
 				371B340618400F7E00AA75B0 /* SPKSPARQLResultsTextTableSerializer.h in Headers */,
 				371B33CC18400E1700AA75B0 /* SPKMemoryQuadStore.h in Headers */,
@@ -793,16 +804,19 @@
 				371B33EC18400F3E00AA75B0 /* SPKTurtleParser.h in Headers */,
 				371B33E218400E9000AA75B0 /* SPKExpressionEvaluationContext.h in Headers */,
 				371B33E818400EB600AA75B0 /* SPKQueryPlanner.h in Headers */,
-				377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */,
 				374A90B2188513AD0041263E /* NSString+GTWUtilities.h in Headers */,
 				371B33D818400E5600AA75B0 /* SPKTripleModel.h in Headers */,
 				371B33D018400E3A00AA75B0 /* SPKErrorLogger.h in Headers */,
 				371B33D618400E5600AA75B0 /* SPKQuadModel.h in Headers */,
 				37B8CA9D1852A6A80022F7D0 /* SPKSPARQLResultsCSVSerializer.h in Headers */,
+				374EE8BF18C15CC5004F5DC7 /* SPKUpdate.h in Headers */,
+				370C5E4F18C2C49600F25C87 /* SPKOperation.h in Headers */,
+				377F23BA1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.h in Headers */,
 				37832143184E953C0065EEB9 /* SPKMutableURLRequest.h in Headers */,
 				37B8CAA01852AAB20022F7D0 /* SPKSPARQLResultsTSVSerializer.h in Headers */,
 				37B8CA9718529AC50022F7D0 /* SPKQuery.h in Headers */,
 				371B341E18400FB900AA75B0 /* NSObject+NSDictionary_QueryBindings.h in Headers */,
+				37F05D57188F2BA400662AF2 /* SPKServiceDescriptionGenerator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -905,7 +919,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				374EE8BE18C15B8A004F5DC7 /* SPKUpdate.m in Sources */,
 				371B341318400F9700AA75B0 /* SPKExpression.m in Sources */,
+				370C5E5018C2C49600F25C87 /* SPKOperation.m in Sources */,
 				371B33F718400F5E00AA75B0 /* SPKSPARQLParser.m in Sources */,
 				377F23BB1853D57F00B2DC9D /* SPKPrefixNameSerializerDelegate.m in Sources */,
 				371B342118400FB900AA75B0 /* SPKBlankNodeRenamer.m in Sources */,
