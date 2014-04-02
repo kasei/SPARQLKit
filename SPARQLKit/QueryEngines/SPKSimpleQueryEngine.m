@@ -21,17 +21,28 @@
 
 @implementation SPKSimpleQueryEngine
 
+- (SPKSimpleQueryEngine*) init {
+    if (self = [super init]) {
+        self.functionImplementations    = [NSMutableDictionary dictionary];
+    }
+    return self;
+}
+
 - (NSEnumerator*) evaluateHashJoin:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     NSMutableArray* results = [NSMutableArray array];
 
     id<SPKTree,GTWQueryPlan> lhsPlan    = plan.arguments[0];
     id<SPKTree,GTWQueryPlan> rhsPlan    = plan.arguments[1];
     
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
+    
     @autoreleasepool {
         NSMutableDictionary* hash   = [NSMutableDictionary dictionary];
         NSSet* joinVars = plan.value;
         @autoreleasepool {
+            [progress becomeCurrentWithPendingUnitCount:1];
             NSEnumerator* rhs    = [self _evaluateQueryPlan:rhsPlan withModel:model];
+            [progress resignCurrent];
             for (NSDictionary* result in rhs) {
                 NSMutableDictionary* joinKey   = [NSMutableDictionary dictionary];
                 for (id<GTWVariable> var in joinVars) {
@@ -53,7 +64,11 @@
 //        NSLog(@"HashJoin hash has %lu buckets", [hash count]);
 
         @autoreleasepool {
+            [progress becomeCurrentWithPendingUnitCount:1];
             NSEnumerator* lhs    = [self _evaluateQueryPlan:lhsPlan withModel:model];
+            [progress resignCurrent];
+            
+            [progress becomeCurrentWithPendingUnitCount:1];
             for (NSDictionary* result in lhs) {
                 NSMutableDictionary* joinKey   = [NSMutableDictionary dictionary];
                 for (id<GTWVariable> var in joinVars) {
@@ -74,6 +89,7 @@
                     }
                 }
             }
+            [progress resignCurrent];
         }
     }
     return [results objectEnumerator];
@@ -81,16 +97,36 @@
 
 - (NSEnumerator*) evaluateNLJoin:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     BOOL leftJoin       = ([plan.type isEqual:kPlanNLLeftJoin]);
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
+
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* lhs   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSArray* rhs        = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     id<SPKTree> expr    = plan.treeValue;
     NSEnumerator* results   = [self joinResultsEnumerator:lhs withResults:rhs leftJoin: leftJoin filter: expr withModel:model];
+    [progress resignCurrent];
+    
     return results;
 }
 
 - (NSEnumerator*) evaluateMinus:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
+
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* lhs   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSArray* rhs        = [[self _evaluateQueryPlan:plan.arguments[1] withModel:model] allObjects];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSMutableArray* results = [NSMutableArray array];
     for (NSDictionary* result in lhs) {
         BOOL ok = YES;
@@ -108,6 +144,8 @@
             [results addObject:result];
         }
     }
+    [progress resignCurrent];
+
     return [results objectEnumerator];
 }
 
@@ -138,15 +176,27 @@
 }
 
 - (NSEnumerator*) evaluateAsk:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:2];
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* results   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSDictionary* result    = [results nextObject];
     GTWLiteral* l   = [[GTWLiteral alloc] initWithValue:(result ? @"true" : @"false") datatype:@"http://www.w3.org/2001/XMLSchema#boolean"];
     NSDictionary* r = @{ @".bool": l };
+    [progress resignCurrent];
+    
     return [@[r] objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateDistinct:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:2];
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* results   = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSMutableArray* distinct    = [NSMutableArray array];
     NSMutableSet* seen  = [NSMutableSet set];
     for (id r in results) {
@@ -155,11 +205,18 @@
             [seen addObject:r];
         }
     }
+    [progress resignCurrent];
+    
     return [distinct objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateProject:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:2];
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSArray* results   = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSMutableArray* projected   = [NSMutableArray arrayWithCapacity:[results count]];
     id<SPKTree> listtree   = plan.treeValue;
     NSArray* list       = listtree.arguments;
@@ -181,6 +238,7 @@
         }
         [projected addObject:newResult];
     }
+    [progress resignCurrent];
     return [projected objectEnumerator];
 }
 
@@ -196,7 +254,12 @@
 }
 
 - (NSEnumerator*) evaluateOrder:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:2];
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSArray* results    = [[self _evaluateQueryPlan:plan.arguments[0] withModel:model] allObjects];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     id<SPKTree> list    = plan.treeValue;
     NSMutableArray* orderTerms  = [NSMutableArray array];
     NSInteger i;
@@ -223,18 +286,31 @@
         }
         return NSOrderedSame;
     }];
+    [progress resignCurrent];
+    
     return [ordered objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateUnion:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* lhs    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* rhs    = [self _evaluateQueryPlan:plan.arguments[1] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSMutableArray* results = [NSMutableArray arrayWithArray:[lhs allObjects]];
     [results addObjectsFromArray:[rhs allObjects]];
+    [progress resignCurrent];
+    
     return [results objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateGroupPlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
     id<SPKTree> groupData   = plan.treeValue;
     id<SPKTree> groupList   = groupData.arguments[0];
     id<SPKTree> aggListTree = groupData.arguments[1];
@@ -249,7 +325,12 @@
 //    NSLog(@"aggregates: %@", aggregates);
 
     NSMutableDictionary* resultGroups   = [NSMutableDictionary dictionary];
+
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* results    = [self _evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     for (NSDictionary* result in results) {
         NSMutableDictionary* groupKeyDict   = [NSMutableDictionary dictionary];
         for (id<SPKTree> g in groupList.arguments) {
@@ -276,6 +357,7 @@
         }
         [resultGroups[groupKey] addObject:result];
     }
+    [progress resignCurrent];
     
     // There is always at least one group.
     if ([resultGroups count] == 0) {
@@ -283,6 +365,8 @@
     }
     
 //    NSLog(@"-------------\nGroups:%@", resultGroups);
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSMutableArray* finalResults    = [NSMutableArray array];
     for (id groupKey in resultGroups) {
         NSArray* groupResults   = resultGroups[groupKey];
@@ -296,6 +380,8 @@
         }
         [finalResults addObject:result];
     }
+    [progress resignCurrent];
+    
     return [finalResults objectEnumerator];
 }
 
@@ -447,8 +533,10 @@
     } error:nil];
 //    NSLog(@"GRAPHs: %@", graphs);
     if ([graphs count]) {
+        NSProgress *progress = [NSProgress progressWithTotalUnitCount:[graphs count]];
         NSMutableArray* results = [NSMutableArray array];
         for (id<GTWTerm> g in graphs) {
+            [progress becomeCurrentWithPendingUnitCount:1];
             if ([g isEqual:term]) {
                 return [self evaluateQueryPlan:subplan withModel:model];
             } else if ([term isKindOfClass:[GTWVariable class]]) {
@@ -460,6 +548,7 @@
                 NSEnumerator* rhs   = [self evaluateExtend:extend withModel:model];
                 [results addObjectsFromArray:[rhs allObjects]];
             }
+            [progress resignCurrent];
         }
         return [results objectEnumerator];
     } else {
@@ -470,13 +559,18 @@
 - (NSEnumerator*) evaluateFilter:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
     id<SPKTree> expr       = plan.treeValue;
     id<SPKTree,GTWQueryPlan> subplan    = plan.arguments[0];
+    
+    // TODO: _evaluateQueryPlan should be accounted for in an NSProgress
     NSArray* results    = [[self _evaluateQueryPlan:subplan withModel:model] allObjects];
     NSMutableArray* filtered   = [NSMutableArray arrayWithCapacity:[results count]];
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:[results count]];
     for (id result in results) {
+        [progress becomeCurrentWithPendingUnitCount:1];
         id<GTWTerm> f   = [self.evalctx evaluateExpression:expr withResult:result usingModel: model];
         if ([f effectiveBooleanValueWithError:nil]) {
             [filtered addObject:result];
         }
+        [progress resignCurrent];
     }
     return [filtered objectEnumerator];
 }
@@ -805,12 +899,15 @@ MORE_LOOP:
         if (error) {
             NSLog(@"Error enumerating graphs for DROP: %@", error);
         }
+        NSProgress *progress = [NSProgress progressWithTotalUnitCount:[graphs count]];
         for (id<GTWIRI> graph in graphs) {
 //            NSLog(@"DROPing graph %@", graph);
+            [progress becomeCurrentWithPendingUnitCount:1];
             [mmodel dropGraph:graph error:&error];
             if (error) {
                 NSLog(@"Error dropping graph: %@", error);
             }
+            [progress resignCurrent];
         }
     }
     NSNumber* r = [NSNumber numberWithBool:YES];
@@ -841,8 +938,13 @@ MORE_LOOP:
     id<SPKTree> delete  = plan.arguments[0];
     id<SPKTree> insert  = plan.arguments[1];
     id<SPKTree, GTWQueryPlan> subplan   = plan.arguments[2];
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:3];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* e     = [self evaluateQueryPlan:subplan withModel:model];
     NSArray* results    = [e allObjects];
+    [progress resignCurrent];
+    
 //    NSLog(@"Modify matched results: %@", results);
     
     if (![model conformsToProtocol:@protocol(GTWMutableModel)]) {
@@ -866,6 +968,7 @@ MORE_LOOP:
     id<GTWMutableModel> mmodel  = (id<GTWMutableModel>) model;
     
 //    NSLog(@"DELETE pattern: %@", delete);
+    [progress becomeCurrentWithPendingUnitCount:1];
     for (NSDictionary* result in results) {
         NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
         for (NSString* varname in result) {
@@ -886,6 +989,9 @@ MORE_LOOP:
             }
         }
     }
+    [progress resignCurrent];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
 //    NSLog(@"INSERT pattern: %@", insert);
     NSUInteger updateNumber = ++_updateOperationCounter;
     for (NSDictionary* result in results) {
@@ -914,13 +1020,19 @@ MORE_LOOP:
             }
         }
     }
+    [progress resignCurrent];
     
     NSNumber* r = [NSNumber numberWithBool:YES];
     return [@[r] objectEnumerator];
 }
 
 - (NSEnumerator*) evaluateConstructPlan:(id<SPKTree, GTWQueryPlan>)plan withModel:(id<GTWModel>)model {
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:2];
+    
+    [progress becomeCurrentWithPendingUnitCount:1];
     NSEnumerator* results   = [self evaluateQueryPlan:plan.arguments[0] withModel:model];
+    [progress resignCurrent];
+    
     NSMutableArray* triples = [NSMutableArray array];
     NSArray* template       = plan.value;
 
@@ -934,6 +1046,7 @@ MORE_LOOP:
         }
     }
 //    NSLog(@"pattern blanks: %@", blanks);
+    [progress becomeCurrentWithPendingUnitCount:1];
     for (NSDictionary* result in results) {
         NSUInteger loopCount    = counter++;
         NSMutableDictionary* mapping    = [NSMutableDictionary dictionary];
@@ -956,6 +1069,7 @@ MORE_LOOP:
             }
         }
     }
+    [progress resignCurrent];
     return [triples objectEnumerator];
 }
 
@@ -1050,8 +1164,12 @@ MORE_LOOP:
         return [self evaluateLoad:plan withModel:model];
     } else if ([type isEqual:kPlanSequence]) {
         NSEnumerator* e;
+        NSProgress *progress = [NSProgress progressWithTotalUnitCount:[plan.arguments count]];
+        
         for (id<GTWQueryPlan> p in plan.arguments) {
+            [progress becomeCurrentWithPendingUnitCount:1];
             e   = [self evaluateQueryPlan:p withModel:model];
+            [progress resignCurrent];
         }
         
         if (!e) {
@@ -1084,9 +1202,18 @@ MORE_LOOP:
 }
 
 - (NSEnumerator*) evaluateQueryPlan: (id<SPKTree, GTWQueryPlan>) plan withModel: (id<GTWModel>) model {
-    self.evalctx    = [[SPKExpressionEvaluationContext alloc] init];
+    NSDictionary* impls = [self.functionImplementations copy];
+    self.evalctx    = [[SPKExpressionEvaluationContext alloc] initWithFunctionImplementations:impls];
     self.evalctx.queryengine    = self;
-    return [self _evaluateQueryPlan:plan withModel:model];
+    NSProgress *progress = [NSProgress progressWithTotalUnitCount:1];
+    [progress becomeCurrentWithPendingUnitCount:1];
+    NSEnumerator* e     = [self _evaluateQueryPlan:plan withModel:model];
+    [progress resignCurrent];
+    return e;
+}
+
+- (void) registerFunction:(NSString*)iri withBlock:(id<GTWTerm>(^)(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* args))block {
+    self.functionImplementations[iri]   = block;
 }
 
 @end

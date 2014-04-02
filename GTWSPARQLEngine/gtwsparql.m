@@ -1,4 +1,5 @@
 #import <objc/runtime.h>
+#import <Foundation/Foundation.h>
 
 #import <SPARQLKit/SPARQLKit.h>
 #import <GTWSWBase/GTWQuad.h>
@@ -38,6 +39,30 @@
 #import "DDTTYLogger.h"
 
 #import "linenoise.h"
+
+static void *ProgressObserverContext = &ProgressObserverContext;
+
+
+@interface GTWProgressLogger : NSObject
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context;
+@end
+@implementation GTWProgressLogger
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if (context == ProgressObserverContext) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            NSProgress *progress = object;
+            NSLog(@"%.1lf %@", progress.fractionCompleted, progress.localizedDescription);
+        });
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+@end
+
+
+
 
 static NSString* PRODUCT_NAME   = @"gtwsparql";
 static NSString* kDefaultBase   = @"http://base.example.com/";
@@ -288,7 +313,7 @@ NSDictionary* prefixes (void) {
 void completion(const char *buf, linenoiseCompletions *lc) {
     NSError* error;
     NSString* s = [NSString stringWithFormat:@"%s", buf];
-    NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"PREFIX (\\w+):$" options:0 error:&error];
+    NSRegularExpression* regex  = [NSRegularExpression regularExpressionWithPattern:@"PREFIX (\\w+):$" options:NSRegularExpressionCaseInsensitive error:&error];
     NSRange rangeOfFirstMatch   = [regex rangeOfFirstMatchInString:s options:0 range:NSMakeRange(0, [s length])];
     if (rangeOfFirstMatch.location != NSNotFound) {
         NSDictionary* p = prefixes();
@@ -369,7 +394,7 @@ void start_endpoint(UInt16 port, id dataset, id model, dispatch_queue_t queue, B
     }
 }
 
-BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait ) {
+BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, NSMutableArray* jobs, dispatch_queue_t queue, NSString* format, NSUInteger verbose, BOOL quiet, BOOL wait, BOOL progress ) {
     @autoreleasepool {
         NSString* sparql    = cmd;
         if ([sparql hasPrefix:@"endpoint"]) {
@@ -478,7 +503,39 @@ BOOL run_command ( NSString* cmd, NSDictionary* datasources, id<GTWModel,GTWMuta
         NSError* error;
         SPKOperation* op    = [[SPKOperation alloc] initWithString:sparql baseURI:kDefaultBase];
         op.verbose   = verbose;
+        
+        
+        if (NO) {
+            // Example of adding user-defined functions to the runtime:
+            [op.engine registerFunction:@"http://example.org/square" withBlock:^id(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* argv) {
+                id<GTWTerm,GTWLiteral> term    = argv[0];
+                NSInteger value = [term integerValue];
+                return [GTWLiteral integerLiteralWithValue:value*value];
+            }];
+            [op.engine registerFunction:@"http://example.org/cube" withBlock:^id(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* argv) {
+                id<GTWTerm,GTWLiteral> term    = argv[0];
+                NSInteger value = [term integerValue];
+                return [GTWLiteral integerLiteralWithValue:value*value*value];
+            }];
+        }
+        
+        
+        NSProgress *overallProgress = [NSProgress progressWithTotalUnitCount:1];
+        [overallProgress becomeCurrentWithPendingUnitCount:1];
+        GTWProgressLogger* logger   = [[GTWProgressLogger alloc] init];
+        if (progress) {
+            [overallProgress addObserver:logger
+                              forKeyPath:NSStringFromSelector(@selector(fractionCompleted))
+                                 options:NSKeyValueObservingOptionInitial
+                                 context:ProgressObserverContext];
+        }
         NSEnumerator* e = [op executeWithModel:model error:&error];
+        if (progress) {
+            [overallProgress removeObserver:logger
+                          forKeyPath:NSStringFromSelector(@selector(fractionCompleted))
+                             context:ProgressObserverContext];
+        }
+        [overallProgress resignCurrent];
         
         if (!e) {
             return NO;
@@ -541,7 +598,7 @@ int main(int argc, const char * argv[]) {
     if (argc == 2) {
         if (!strcmp(argv[1], "--help")) {
             return usage(argc, argv);
-        } else if (!strcmp(argv[1], "--version") || !strcmp(argv[1], "-v")) {
+        } else if (!strcmp(argv[1], "--version")) {
             return version(argc, argv);
         }
     }
@@ -557,6 +614,7 @@ int main(int argc, const char * argv[]) {
     [SPKSPARQLPluginHandler registerClass:[SPKSPARQLResultsXMLSerializer class]];
     [SPKSPARQLPluginHandler registerClass:[SPKNQuadsSerializer class]];
     
+    BOOL progress       = NO;
     BOOL wait           = NO;
     BOOL quiet          = NO;
     NSUInteger verbose  = 0;
@@ -581,6 +639,9 @@ int main(int argc, const char * argv[]) {
             NSString* qfile = [NSString stringWithFormat:@"%s", argv[argi++]];
             NSString* sparql    = fileContents(qfile);
             [ops addObject:sparql];
+        } else if (!strcmp(argv[argi], "-p")) {
+            progress     = YES;
+            argi++;
         } else if (!strcmp(argv[argi], "-v")) {
             verbose     = 1;
             argi++;
@@ -634,7 +695,7 @@ int main(int argc, const char * argv[]) {
     if ([ops count]) {
         for (NSString* sparql in ops) {
             BOOL wait   = YES;
-            BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait);
+            BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait, progress);
             if (!ok) {
                 return 1;
             }
@@ -690,6 +751,7 @@ int main(int argc, const char * argv[]) {
         linenoiseSetCompletionCallback(completion);
     }
     
+    
     while ((line = rl("sparql> ")) != NULL) {
         NSString* sparql    = [NSString stringWithFormat:@"%s", line];
         if (readline)
@@ -704,7 +766,7 @@ int main(int argc, const char * argv[]) {
         }
         
         BOOL wait   = NO;
-        BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait);
+        BOOL ok = run_command(sparql, datasources, model, dataset, jobs, queue, output, verbose, quiet, wait, progress);
         if (!ok) {
             goto REPL_EXIT;
         }

@@ -96,12 +96,6 @@
         }
         [data appendData:[@"\t</result>\n" dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    for (id<GTWTerm> t in vars) {
-        
-    }
-    for (NSDictionary* d in results) {
-        
-    }
     [data appendData:[@"</results>\n</sparql>\n" dataUsingEncoding:NSUTF8StringEncoding]];
     return data;
 }

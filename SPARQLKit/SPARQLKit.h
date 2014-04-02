@@ -105,6 +105,7 @@ typedef NSString* SPKTreeType;
 
 @protocol GTWQueryEngine
 - (NSEnumerator*) evaluateQueryPlan: (id<GTWQueryPlan>) plan withModel: (id<GTWModel>) model;
+- (void) registerFunction:(NSString*)iri withBlock:(id<GTWTerm>(^)(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* args))block;
 @end
 
 

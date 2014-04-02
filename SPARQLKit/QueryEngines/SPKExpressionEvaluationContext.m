@@ -30,6 +30,13 @@ static BOOL isNumeric(id<GTWTerm> term) {
 
 @implementation SPKExpressionEvaluationContext
 
+- (SPKExpressionEvaluationContext*) initWithFunctionImplementations: (NSDictionary*) impls {
+    if (self = [self init]) {
+        self.functionImplementations    = [impls copy];
+    }
+    return self;
+}
+
 - (id<GTWTerm>) evaluateExpression: (id<SPKTree>) expr withResult: (NSDictionary*) result usingModel: (id<GTWModel>) model {
     return [self evaluateExpression:expr withResult:result usingModel:model resultIdentity:result];
 }
@@ -888,7 +895,20 @@ static BOOL isNumeric(id<GTWTerm> term) {
                 }
             }
         } else {
-            NSLog(@"No implementation for function %@", iri.value);
+            id (^block)(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* argv) = self.functionImplementations[iri.value];
+            if (block) {
+                NSArray* args = expr.arguments;
+                NSMutableArray* terms   = [NSMutableArray arrayWithCapacity:[args count]];
+                for (id expr in args) {
+                    id<GTWTerm> term    = [self evaluateExpression:expr withResult:result usingModel:model];
+                    [terms addObject:term];
+                }
+                id<GTWQueryEngine> queryengine  = self.queryengine;
+                id value = block(queryengine, model, terms);
+                return value;
+            } else {
+                NSLog(@"No implementation for function %@", iri.value);
+            }
         }
         return nil;
     } else if (expr.type == kExprSameTerm) {

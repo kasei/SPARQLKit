@@ -15,5 +15,6 @@
 @property NSUInteger updateOperationCounter;
 @property SPKExpressionEvaluationContext* evalctx;
 @property NSUInteger bnodeCounter;
+@property NSMutableDictionary* functionImplementations;
 
 @end
