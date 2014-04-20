@@ -31,4 +31,10 @@ static NSString* OSVersionNumber ( void ) {
     return req;
 }
 
+- (void) addUserAgentTokenName: (NSString*) name version: (NSString*) version {
+	NSString* userAgent	= [self valueForHTTPHeaderField:@"User-Agent"];
+    NSString* newAgent  = [NSString stringWithFormat:@"%@/%@ %@", name, version, userAgent];
+	[self setValue:newAgent forHTTPHeaderField:@"User-Agent"];
+}
+
 @end
