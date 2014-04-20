@@ -10,4 +10,6 @@
 
 @interface SPKMutableURLRequest : NSMutableURLRequest
 
+- (void) addUserAgentTokenName: (NSString*) name version: (NSString*) version;
+
 @end
