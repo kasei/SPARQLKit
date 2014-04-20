@@ -33,7 +33,7 @@
 + (NSString*) nTriplesEncodingOfString: (NSString*) value escapingUnicode:(BOOL)escape {
     NSUInteger length   = [value length];
 //    unichar* string = alloca(1+10*length);
-    char* string = calloc(sizeof(char), 1+10*length);
+    char* string = alloca(1+10*length);
     NSUInteger src  = 0;
     NSUInteger dst  = 0;
     char buffer[9]  = {0,0,0,0,0,0,0,0,0};
@@ -137,7 +137,7 @@
     NSString* s     = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     
 //    NSString* s     = [NSString stringWithCharacters:string length:dst];
-    free(string);
+//    free(string);
     return s;
 }
 
