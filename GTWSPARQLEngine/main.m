@@ -315,7 +315,7 @@ id<GTWDataSource> storeFromSourceWithConfigurationString(NSDictionary* datasourc
 
 GTWSPARQLServer* startEndpoint (id<GTWModel,GTWMutableModel> model, id<GTWDataset> dataset, UInt16 port) {
     // Initalize our http server
-    GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase];
+    GTWSPARQLServer* httpServer = [[GTWSPARQLServer alloc] initWithModel:model dataset:dataset base:kDefaultBase verbose:NO];
     
     // Tell server to use our custom MyHTTPConnection class.
     [httpServer setConnectionClass:[GTWSPARQLConnection class]];
