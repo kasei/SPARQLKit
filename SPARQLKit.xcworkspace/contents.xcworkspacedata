@@ -2,9 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:../GTWSWBase/GTWSWBase.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "container:SPARQLKit.xcodeproj">
    </FileRef>
 </Workspace>

@@ -876,8 +876,9 @@
 		37E3D5DB172D647A00F54DC9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				CLASSPREFIX = GTW;
 				LastUpgradeCheck = 0510;
-				ORGANIZATIONNAME = "Gregory Williams";
+				ORGANIZATIONNAME = "Gregory Todd Williams";
 			};
 			buildConfigurationList = 37E3D5DE172D647A00F54DC9 /* Build configuration list for PBXProject "SPARQLKit" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1066,7 +1067,7 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_LOCATION = NO;
 				DSTROOT = /;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1075,7 +1076,6 @@
 					"$(USER_LIBRARY_DIR)/Frameworks",
 					/usr/local/Frameworks,
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/SPARQL_Client-bhosfhbevipaoufflvwcdgfggwww/Build/Products/Debug",
-					/Users/greg/data/prog/git/sparql/GTWSWBase/build/Debug,
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -1132,7 +1132,7 @@
 				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_LOCATION = NO;
 				DSTROOT = /;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1142,7 +1142,6 @@
 					"$(USER_LIBRARY_DIR)/Frameworks",
 					/usr/local/Frameworks,
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/SPARQL_Client-bhosfhbevipaoufflvwcdgfggwww/Build/Products/Debug",
-					/Users/greg/data/prog/git/sparql/GTWSWBase/build/Debug,
 				);
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
