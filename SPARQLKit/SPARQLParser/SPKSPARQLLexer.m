@@ -239,7 +239,12 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 		NSString* line	= [[NSString alloc] initWithData:_linebuffer encoding:NSUTF8StringEncoding];
         NSRange range   = [_multiLineAnonRegex rangeOfFirstMatchInString:line options:0 range:NSMakeRange(0, [line length])];
         if ((range.location + range.length) == [line length]) {
-            goto FILL_LOOP;
+            if (self.stringPos < [self.string length]) {
+                goto FILL_LOOP;
+            } else {
+                return;
+                
+            }
         }
         
 		[self.buffer appendString:line];
@@ -616,6 +621,12 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 //			NSString* pat		= @"[^\"\\\\]+";
 //			NSRange range		= [self.buffer rangeOfString:pat options:NSRegularExpressionSearch];
 			NSString* c			= [self _peekChar];
+			if ([self.buffer length] == 0) {
+				[self _fillBuffer];
+				if ([self.buffer length] == 0) {
+					return [self throwError: @"Found EOF in string literal" withError:error];
+				}
+			}
 			if ([[self.buffer substringToIndex:1] isEqualToString:@"\\"]) {
 				[self _getCharSafe:@"\\" error:error];
 				NSString* esc	= [self _getChar];
