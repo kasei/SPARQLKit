@@ -140,7 +140,6 @@
 		37832143184E953C0065EEB9 /* SPKMutableURLRequest.h in Headers */ = {isa = PBXBuildFile; fileRef = 37832141184E953C0065EEB9 /* SPKMutableURLRequest.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37832144184E953C0065EEB9 /* SPKMutableURLRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 37832142184E953C0065EEB9 /* SPKMutableURLRequest.m */; };
 		37A2E1CC1756963C0086CBE7 /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 37A2E1CB1756963C0086CBE7 /* libxml2.dylib */; };
-		37B46E5F190660ED00DC2190 /* GTWSWBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 37B46E5E190660ED00DC2190 /* GTWSWBase.framework */; };
 		37B700C4184AE41900029FF0 /* linenoise.c in Sources */ = {isa = PBXBuildFile; fileRef = 37B700C2184AE41900029FF0 /* linenoise.c */; };
 		37B8CA9718529AC50022F7D0 /* SPKQuery.h in Headers */ = {isa = PBXBuildFile; fileRef = 37B8CA9518529AC50022F7D0 /* SPKQuery.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		37B8CA9818529AC50022F7D0 /* SPKQuery.m in Sources */ = {isa = PBXBuildFile; fileRef = 37B8CA9618529AC50022F7D0 /* SPKQuery.m */; };
@@ -333,7 +332,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37B46E5F190660ED00DC2190 /* GTWSWBase.framework in Frameworks */,
 				3700DD92183AD37E00AF79C7 /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1083,6 +1081,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUN_CLANG_STATIC_ANALYZER = NO;
+				SKIP_INSTALL = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -1147,6 +1146,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				RUN_CLANG_STATIC_ANALYZER = NO;
+				SKIP_INSTALL = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;

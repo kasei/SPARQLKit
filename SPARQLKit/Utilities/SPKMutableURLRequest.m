@@ -21,12 +21,17 @@ static NSString* OSVersionNumber ( void ) {
 
 @implementation SPKMutableURLRequest
 
++ (NSString*) userAgentTokens {
+    NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
+    return user_agent;
+}
+
 + (NSMutableURLRequest*) requestWithURL: (NSURL*) url {
     SPKMutableURLRequest* req   = [super requestWithURL:url];
 	[req setCachePolicy:NSURLRequestReturnCacheDataElseLoad];
     //	[req setTimeoutInterval:5.0];
     
-	NSString* user_agent	= [NSString stringWithFormat:@"%@/%@ Darwin/%@", SPARQLKIT_NAME, SPARQLKIT_VERSION, OSVersionNumber()];
+    NSString* user_agent    = [self userAgentTokens];
 	[req setValue:user_agent forHTTPHeaderField:@"User-Agent"];
     return req;
 }
