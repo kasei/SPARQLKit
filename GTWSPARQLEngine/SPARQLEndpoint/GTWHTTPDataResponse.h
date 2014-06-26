@@ -11,5 +11,6 @@
 @interface GTWHTTPDataResponse : HTTPDataResponse
 
 @property (readwrite) NSDate* lastModified;
+@property (retain) NSString* contentType;
 
 @end

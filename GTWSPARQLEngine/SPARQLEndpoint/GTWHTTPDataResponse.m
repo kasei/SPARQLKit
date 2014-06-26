@@ -46,15 +46,20 @@
 }
 
 - (NSDictionary *)httpHeaders {
+    NSMutableDictionary* headers    = [NSMutableDictionary dictionary];
+    if (self.contentType) {
+        headers[@"Content-Type"]    = self.contentType;
+    }
+    
 //    NSLog(@"LAST MODIFIED %@", self.lastModified);
 	if (self.lastModified) {
-        return @{
+        [headers addEntriesFromDictionary: @{
                  @"Last-Modified": [self dateAsString:self.lastModified],
                  @"Expires": [self dateAsString:[NSDate date]],
                  @"Cache-Control": @"max-age=0"
-                 };
+        }];
     }
-    return @{};
+    return headers;
 }
 
 @end

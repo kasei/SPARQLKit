@@ -208,6 +208,7 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
                         //            NSLog(@"Last-Modified: %@", lastModified);
                         NSData* data        = [s dataFromResults:e withVariables:variables];
                         GTWHTTPDataResponse* resp     = [[GTWHTTPDataResponse alloc] initWithData:data];
+                        resp.contentType = [c preferredMediaTypes];
                         
                         if (lastModified) {
                             resp.lastModified   = lastModified;
@@ -265,7 +266,7 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
 }
 
 - (NSData *)preprocessResponse:(HTTPMessage *)response {
-//    NSLog(@"preprocessResponse: %@", response);
+//    NSLog(@"preprocessResponse: %@", [response allHeaderFields]);
     NSString* ae    = [request headerField:@"Accept-Encoding"];
     if (ae) {
         NSRange range   = [ae rangeOfString:@"gzip" options:NSRegularExpressionSearch];
@@ -281,9 +282,17 @@ static NSString* ENDPOINT_PATH    = @"/sparql";
                     if ([httpResponse respondsToSelector:@selector(lastModified)]) {
                         lastModified    = [(GTWHTTPDataResponse*)httpResponse lastModified];
                     }
+                    NSDictionary* headers   = @{};
+                    if ([httpResponse respondsToSelector:@selector(httpHeaders)]) {
+                        headers   = [httpResponse httpHeaders];
+                    }
                     GTWHTTPDataResponse* resp   = [[GTWHTTPDataResponse alloc] initWithData:compressed];
                     if (lastModified) {
                         resp.lastModified   = lastModified;
+                    }
+                    for (NSString* k in headers) {
+                        NSString* v = headers[k];
+                        [response setHeaderField:k value:v];
                     }
                     httpResponse    = resp;
                     [response setHeaderField:@"Content-Encoding" value:@"gzip"];

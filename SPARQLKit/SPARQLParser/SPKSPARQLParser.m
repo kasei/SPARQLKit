@@ -1825,7 +1825,7 @@ cleanup:
             [results addObject:result];
         }
         
-        return [[SPKTree alloc] initWithType:kTreeResultSet arguments:results];
+        return [[SPKTree alloc] initWithType:kTreeResultSet treeValue: nil arguments:results];
     } else {
         NSArray* vars;
         if (t.type == NIL) {
