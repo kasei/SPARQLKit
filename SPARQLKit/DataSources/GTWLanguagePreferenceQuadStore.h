@@ -8,11 +8,14 @@
 
 #import <Foundation/Foundation.h>
 #import <GTWSWBase/GTWSWBase.h>
+#import "SPKLanguagePreference.h"
 
-@interface GTWLanguagePreferenceQuadStore : NSObject<GTWQuadStore>
+@interface GTWLanguagePreferenceQuadStore : NSProxy<GTWQuadStore> {
+    NSObject<GTWQuadStore>* _store;
+}
 
-@property NSDictionary* prefLanguages;
-@property id<GTWQuadStore> store;
+@property SPKLanguagePreference* langPref;
+//@property NSDictionary* prefLanguages;
 
 + (NSSet*) implementedProtocols;
 

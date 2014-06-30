@@ -1,6 +1,6 @@
 //
-//  GTWLanguagePreferenceQuadStore.h
-//  GTWLangaugePreferenceQuadStore
+//  GTWLanguagePreferenceTripleStore.h
+//  GTWLangaugePreferenceTripleStore
 //
 //  Created by Gregory Todd Williams on 6/27/14.
 //  Copyright (c) 2014 Gregory Todd Williams. All rights reserved.
@@ -10,12 +10,11 @@
 #import <GTWSWBase/GTWSWBase.h>
 #import "SPKLanguagePreference.h"
 
-@interface GTWLanguagePreferenceQuadStore : NSProxy<GTWQuadStore> {
-    NSObject<GTWQuadStore>* _store;
+@interface GTWLanguagePreferenceTripleStore : NSProxy<GTWTripleStore> {
+    NSObject<GTWTripleStore>* _store;
 }
 
 @property SPKLanguagePreference* langPref;
-//@property NSDictionary* prefLanguages;
 
 + (NSSet*) implementedProtocols;
 

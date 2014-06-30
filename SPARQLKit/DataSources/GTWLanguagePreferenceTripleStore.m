@@ -1,36 +1,35 @@
 //
-//  GTWLanguagePreferenceQuadStore.m
-//  GTWLangaugePreferenceQuadStore
+//  GTWLanguagePreferenceTripleStore.m
+//  GTWLanguagePreferenceTripleStore
 //
 //  Created by Gregory Todd Williams on 6/27/14.
 //  Copyright (c) 2014 Gregory Todd Williams. All rights reserved.
 //
 
-#import "GTWLanguagePreferenceQuadStore.h"
+#import "GTWLanguagePreferenceTripleStore.h"
 #import <SPARQLKit/SPKSPARQLPluginHandler.h>
-#import <SPARQLKit/SPKMemoryQuadStore.h>
 #import <SPARQLKit/SPKLanguagePreference.h>
 
-@implementation GTWLanguagePreferenceQuadStore
+@implementation GTWLanguagePreferenceTripleStore
 
 + (NSString*) usage {
     return @"{ \"store\": <sub-store config> }";
 }
 
 + (NSDictionary*) classesImplementingProtocols {
-    NSSet* set  = [NSSet setWithObjects:@protocol(GTWQuadStore), nil];
-    return @{ (id)[GTWLanguagePreferenceQuadStore class]: set };
+    NSSet* set  = [NSSet setWithObjects:@protocol(GTWTripleStore), nil];
+    return @{ (id)[GTWLanguagePreferenceTripleStore class]: set };
 }
 
 + (NSSet*) implementedProtocols {
-    return [NSSet setWithObjects:@protocol(GTWQuadStore), nil];
+    return [NSSet setWithObjects:@protocol(GTWTripleStore), nil];
 }
 
 - (NSSet*) requiredInitKeys {
     return [NSSet setWithArray:@[@"store"]];
 }
 
-- (instancetype) initWithStore:(id<GTWQuadStore>)store preferringLanguages:(NSDictionary*)prefLanguages {
+- (instancetype) initWithStore:(id<GTWTripleStore>)store preferringLanguages:(NSDictionary*)prefLanguages {
     _store          = store;
     _langPref       = [[SPKLanguagePreference alloc] initWithPreferredLanguages:prefLanguages];
     
@@ -52,7 +51,6 @@
     NSMutableDictionary* datasources    = [NSMutableDictionary dictionary];
     NSArray* plugins    = [SPKSPARQLPluginHandler dataSourceClasses];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
-    [datasourcelist addObject:[SPKMemoryQuadStore class]];
     
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
@@ -69,15 +67,14 @@
     NSDictionary* pluginClasses = [c classesImplementingProtocols];
     for (Class pluginClass in pluginClasses) {
         NSSet* protocols    = pluginClasses[pluginClass];
-        if ([protocols containsObject:@protocol(GTWQuadStore)]) {
-            id<GTWDataSource,GTWQuadStore> store = [[pluginClass alloc] initWithDictionary:dict];
+        if ([protocols containsObject:@protocol(GTWTripleStore)]) {
+            id<GTWDataSource,GTWTripleStore> store = [[pluginClass alloc] initWithDictionary:dict];
             if (!store) {
                 NSLog(@"Failed to create triple store from source '%@'", pluginClass);
                 return nil;
             }
-//                *class  = pluginClass;
+//            *class  = pluginClass;
             _store  = store;
-//                NSLog(@"constructed sub-store: %@", store);
             return self;
         }
     }
@@ -86,23 +83,23 @@
 
 #pragma mark -
 
-- (NSArray*) getQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g error:(NSError*__autoreleasing*)error {
-    NSArray* quads  = [_store getQuadsMatchingSubject:s predicate:p object:o graph:g error:error];
+- (NSArray*) getTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o error:(NSError * __autoreleasing*)error {
+    NSArray* triples  = [_store getTriplesMatchingSubject:s predicate:p object:o error:error];
     NSMutableArray* filtered    = [NSMutableArray array];
-    for (id<GTWQuad> q in quads) {
-        if ([_langPref languagePreferenceAllowsQuad:q fromStore:_store]) {
-            [filtered addObject:q];
+    for (id<GTWTriple> t in triples) {
+        if ([_langPref languagePreferenceAllowsTriple:t fromStore:_store]) {
+            [filtered addObject:t];
         }
     }
     return filtered;
 }
 
-- (BOOL) enumerateQuadsMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o graph: (id<GTWTerm>) g usingBlock: (void (^)(id<GTWQuad> q)) block error:(NSError*__autoreleasing*)error {
-    NSObject<GTWQuadStore>* store   = _store;
+- (BOOL) enumerateTriplesMatchingSubject: (id<GTWTerm>) s predicate: (id<GTWTerm>) p object: (id<GTWTerm>) o usingBlock: (void (^)(id<GTWTriple> t)) block error:(NSError *__autoreleasing*)error {
+    NSObject<GTWTripleStore>* store   = _store;
     SPKLanguagePreference* langPref = _langPref;
-    return [_store enumerateQuadsMatchingSubject:s predicate:p object:o graph:g usingBlock:^(id<GTWQuad> q) {
-        if ([langPref languagePreferenceAllowsQuad:q fromStore:store]) {
-            block(q);
+    return [_store enumerateTriplesMatchingSubject:s predicate:p object:o usingBlock:^(id<GTWTriple> t) {
+        if ([langPref languagePreferenceAllowsTriple:t fromStore:store]) {
+            block(t);
         }
     } error:error];
 }
