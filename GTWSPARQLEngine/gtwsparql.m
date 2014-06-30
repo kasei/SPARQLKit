@@ -11,6 +11,7 @@
 #import <SPARQLKit/SPKTree.h>
 #import <SPARQLKit/SPKOperation.h>
 #import <SPARQLKit/SPKQuery.h>
+#import <SPARQLKit/GTWLanguagePreferenceQuadStore.h>
 
 // Shared user-agent to load prefixes from prefix.cc
 #import <SPARQLKit/SPKMutableURLRequest.h>
@@ -589,7 +590,8 @@ int main(int argc, const char * argv[]) {
     NSArray* plugins    = [SPKSPARQLPluginHandler dataSourceClasses];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
     [datasourcelist addObject:[SPKMemoryQuadStore class]];
-    
+    [datasourcelist addObject:[GTWLanguagePreferenceQuadStore class]];
+
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
     }
