@@ -23,7 +23,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLTokenType) {
 	EQUALS,
 	NOTEQUALS,
 	BANG,
-	IRIREF,
+//	IRIREF,
 	LE,
 	GE,
 	LT,
@@ -67,5 +67,7 @@ typedef NS_ENUM(NSInteger, SPKSPARQLTokenType) {
 - (BOOL) isString;
 - (BOOL) isRelationalOperator;
 // - (id) asNode;
+
+- (NSString*) sparqlStringWithDefinedPrefixes:(NSDictionary*)prefixes;
 
 @end

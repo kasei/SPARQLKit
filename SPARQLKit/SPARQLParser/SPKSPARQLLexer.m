@@ -98,6 +98,11 @@ static NSCharacterSet* SPARQLPrefixNameStartChar() {
 static NSString* r_PNAME_LN	= @"((((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|[:0-9]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2}))(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})|[:.])*((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[:]|((?:\\\\([-~.!&'()*+,;=/?#@%_\\$]))|%[0-9A-Fa-f]{2})))?))";
 static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}])(((([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}])|[.])*(([_]|([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}-\\x{00F6}]|[\\x{00F8}-\\x{02FF}]|[\\x{0370}-\\x{037D}]|[\\x{037F}-\\x{1FFF}]|[\\x{200C}-\\x{200D}]|[\\x{2070}-\\x{218F}]|[\\x{2C00}-\\x{2FEF}]|[\\x{3001}-\\x{D7FF}]|[\\x{F900}-\\x{FDCF}]|[\\x{FDF0}-\\x{FFFD}]|[\\x{10000}-\\x{EFFFF}]))|-|[0-9]|\\x{00B7}|[\\x{0300}-\\x{036F}]|[\\x{203F}-\\x{2040}]))?))?:)";
 
+NSString* __strong const r_DOUBLE   = @"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))";
+NSString* __strong const r_DECIMAL  = @"[0-9]*[.][0-9]+";
+NSString* __strong const r_INTEGER  = @"[0-9]+";
+
+
 @implementation SPKSPARQLLexer
 
 - (SPKSPARQLLexer*) init {
@@ -126,9 +131,9 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
         _iriRegex           = [NSRegularExpression regularExpressionWithPattern:@"<([^<>\"{}|^`\\x{00}-\\x{20}])*>" options:0 error:&error];
         _unescapedIRIRegex  = [NSRegularExpression regularExpressionWithPattern:@"[^>\\\\]+" options:0 error:&error];
         _nilRegex           = [NSRegularExpression regularExpressionWithPattern:@"[(][ \r\n\t]*[)]" options:0 error:&error];
-        _doubleRegex        = [NSRegularExpression regularExpressionWithPattern:@"(([0-9]+[.][0-9]*[eE][+-]?[0-9]+)|([.][0-9]+[eE][+-]?[0-9]+)|([0-9]+[eE][+-]?[0-9]+))" options:0 error:&error];
-        _decimalRegex       = [NSRegularExpression regularExpressionWithPattern:@"[0-9]*[.][0-9]+" options:0 error:&error];
-        _integerRegex       = [NSRegularExpression regularExpressionWithPattern:@"[0-9]+" options:0 error:&error];
+        _doubleRegex        = [NSRegularExpression regularExpressionWithPattern:r_DOUBLE options:0 error:&error];
+        _decimalRegex       = [NSRegularExpression regularExpressionWithPattern:r_DECIMAL options:0 error:&error];
+        _integerRegex       = [NSRegularExpression regularExpressionWithPattern:r_INTEGER options:0 error:&error];
         _anonRegex          = [NSRegularExpression regularExpressionWithPattern:@"\\[[ \x0a\x0d\x09]*\\]" options:0 error:&error];
 
         if (error) {
@@ -434,10 +439,10 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 		NSString* c	= [self _peekChar];
 		if ([c isEqualToString:@"-"]) {
 			[self _getChar];
-			return [self newTokenOfType:MINUS withArgs:@[]];
+			return [self newTokenOfType:MINUS withArgs:@[@"-"]];
 		} else if ([c isEqualToString:@"+"]) {
 			[self _getChar];
-			return [self newTokenOfType:PLUS withArgs:@[]];
+			return [self newTokenOfType:PLUS withArgs:@[@"+"]];
 		} else {
 			return [self throwError:@"Expected number" withError:error];
 		}
@@ -450,7 +455,7 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
     
 	if (range.location != 0) {
 		if ([c isEqualToString:@"?"]) {
-			return [self newTokenOfType:QUESTION withArgs:@[]];
+			return [self newTokenOfType:QUESTION withArgs:@[@"?"]];
 		} else {
 			return [self throwError:@"Expected variable name" withError:error];
 		}
@@ -488,26 +493,26 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
 - (SPKSPARQLToken*) getBangWithError:(NSError*__autoreleasing*)error {
 	if ([self.buffer hasPrefix:@"!="]) {
 		if ([self _readWord:@"!=" error:error]) {
-			return [self newTokenOfType:NOTEQUALS withArgs:@[]];
+			return [self newTokenOfType:NOTEQUALS withArgs:@[@"!="]];
 		} else {
 			return nil;
 		}
 	} else {
 		[self _getCharSafe:@"!" error:error];
-		return [self newTokenOfType:BANG withArgs:@[]];
+		return [self newTokenOfType:BANG withArgs:@[@"!"]];
 	}
 }
 
 - (SPKSPARQLToken*) getOrWithError:(NSError*__autoreleasing*)error {
 	if ([self.buffer hasPrefix:@"||"]) {
 		if ([self _readWord:@"||" error:error]) {
-			return [self newTokenOfType:OROR withArgs:@[]];
+			return [self newTokenOfType:OROR withArgs:@[@"||"]];
 		} else {
 			return nil;
 		}
 	} else {
 		[self _getCharSafe:@"|" error:error];
-		return [self newTokenOfType:OR withArgs:@[]];
+		return [self newTokenOfType:OR withArgs:@[@"|"]];
 	}
 }
 
@@ -926,18 +931,18 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
             NSString* c	= [self _peekChar];
             if ([c isEqualToString:@"="]) {
                 [self _getCharSafe:@"=" error:error];
-                return [self newTokenOfType:LE withArgs:@[]];
+                return [self newTokenOfType:LE withArgs:@[@"<="]];
             } else {
-                return [self newTokenOfType:LT withArgs:@[]];
+                return [self newTokenOfType:LT withArgs:@[@"<"]];
             }
         } else {
             [self _getCharSafe:@">" error:error];
             NSString* c	= [self _peekChar];
             if ([c isEqualToString:@"="]) {
                 [self _getCharSafe:@"=" error:error];
-                return [self newTokenOfType:GE withArgs:@[]];
+                return [self newTokenOfType:GE withArgs:@[@">="]];
             } else {
-                return [self newTokenOfType:GT withArgs:@[]];
+                return [self newTokenOfType:GT withArgs:@[@">"]];
             }
         }
 	}
@@ -1023,14 +1028,14 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
             NSRange nil_range		= [_nilRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
             if (nil_range.location == 0) {
                 [self _readLength:nil_range.length error:error];
-                return [self newTokenOfType:NIL withArgs:@[]];
+                return [self newTokenOfType:NIL withArgs:@[@"()"]];
             }
             
             // ANON
             NSRange anon_range      = [_anonRegex rangeOfFirstMatchInString:self.buffer options:0 range:bufferLength];
             if (anon_range.location == 0) {
                 [self _readLength:anon_range.length error:error];
-                return [self newTokenOfType:ANON withArgs:@[]];
+                return [self newTokenOfType:ANON withArgs:@[@"[]"]];
             }
             
             // Direct mapping:
@@ -1122,13 +1127,13 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
             if ([c isEqualToString:@"^"]) {
                 if ([self.buffer hasPrefix:@"^^"]) {
                     if ([self _readWord: @"^^" error:error]) {
-                        return [self newTokenOfType:HATHAT withArgs:@[]];
+                        return [self newTokenOfType:HATHAT withArgs:@[@"^^"]];
                     } else {
                         return nil;
                     }
                 } else {
                     if ([self _readWord: @"^" error:error]) {
-                        return [self newTokenOfType:HAT withArgs:@[]];
+                        return [self newTokenOfType:HAT withArgs:@[@"^"]];
                     } else {
                         return nil;
                     }
@@ -1138,7 +1143,7 @@ static NSString* r_PNAME_NS	= @"(((([A-Z]|[a-z]|[\\x{00C0}-\\x{00D6}]|[\\x{00D8}
             // - ANDAND
             else if ([c isEqualToString:@"&"]) {
                 if ([self _readWord: @"&&" error:error]) {
-                    return [self newTokenOfType:ANDAND withArgs:@[]];
+                    return [self newTokenOfType:ANDAND withArgs:@[@"&&"]];
                 } else {
                     return nil;
                 }

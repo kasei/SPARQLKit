@@ -1,4 +1,5 @@
 #import "SPKSPARQLToken.h"
+#import "SPKSPARQLLexer.h"
 
 static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
 	switch (t) {
@@ -38,8 +39,8 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
 			return "NOTEQUALS";
 		case BANG:
 			return "BANG";
-		case IRIREF:
-			return "IRIREF";
+//		case IRIREF:
+//			return "IRIREF";
 		case LE:
 			return "LE";
 		case GE:
@@ -143,6 +144,126 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
 	}
 	NSString* d	= [args componentsJoinedByString:@", "];
 	return [NSString stringWithFormat:@"%s\t%@", sparql_token_type_name(self.type), d];
+}
+
+- (NSString*) sparqlIRIStringWithResource:(NSString*)iri prefixes:(NSDictionary*)prefixes {
+    // TODO: check prefixes
+    // TODO: escape
+    return [NSString stringWithFormat:@"<%@>", iri];
+}
+
+- (NSString*) sparqlLiteralString {
+    NSString *value, *escaped;
+    SPKSPARQLTokenType t    = self.type;
+    switch (t) {
+        case STRING3D:
+            // TODO: escape
+            return [NSString stringWithFormat: @"\"\"\"%@\"\"\"", self.args[0]];
+        case STRING3S:
+            // TODO: escape
+            return [NSString stringWithFormat: @"'''%@'''", self.args[0]];
+        case STRING1D:
+            value   = self.args[0];
+            escaped = [value stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""];
+            return [NSString stringWithFormat: @"\"%@\"", escaped];
+        case STRING1S:
+            value   = self.args[0];
+            escaped = [value stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
+            return [NSString stringWithFormat: @"'%@'", self.args[0]];
+        default:
+            return nil;
+    }
+}
+
+- (NSString*) sparqlStringWithDefinedPrefixes:(NSDictionary*)prefixes {
+    NSError* error;
+    NSRegularExpression* _doubleRegex        = [NSRegularExpression regularExpressionWithPattern:r_DOUBLE options:0 error:&error];
+    NSRegularExpression* _decimalRegex       = [NSRegularExpression regularExpressionWithPattern:r_DECIMAL options:0 error:&error];
+    NSRegularExpression* _integerRegex       = [NSRegularExpression regularExpressionWithPattern:r_INTEGER options:0 error:&error];
+    NSString* value;
+    SPKSPARQLTokenType t    = self.type;
+    NSRange range;
+    switch (t) {
+        case WS:
+            return @" ";
+        case KEYWORD:
+            return [self.args[0] uppercaseString];
+        case STAR:
+        case HATHAT:
+        case HAT:
+        case LBRACE:
+        case RBRACE:
+        case LBRACKET:
+        case RBRACKET:
+        case LPAREN:
+        case RPAREN:
+        case EQUALS:
+        case NOTEQUALS:
+        case BANG:
+        case LE:
+        case GE:
+        case LT:
+        case GT:
+        case ANDAND:
+        case OROR:
+        case PLUS:
+        case MINUS:
+        case DOT:
+        case COMMA:
+        case SLASH:
+        case QUESTION:
+        case SEMICOLON:
+        case OR:
+            return self.args[0];
+        case LANG:
+            return [NSString stringWithFormat: @"@%@", self.args[0]];
+        case VAR:
+            return [NSString stringWithFormat: @"?%@", self.args[0]];
+        case BNODE:
+            return [NSString stringWithFormat: @"_:%@", self.args[0]];
+        case COMMENT:
+            return [NSString stringWithFormat: @"#%@", self.args[0]];
+        case BOOLEAN:
+            value   = self.args[0];
+            if ([value isEqualToString:@"true"] || [value isEqualToString:@"false"]) {
+                return value;
+            } else {
+                return [NSString stringWithFormat: @"\"%@\"^^%@", self.args[0], [self sparqlIRIStringWithResource:@"http://www.w3.org/2001/XMLSchema#boolean" prefixes:prefixes]];
+            }
+        case DOUBLE:
+            range	= [_doubleRegex rangeOfFirstMatchInString:self.args[0] options:0 range:NSMakeRange(0, [self.args[0] length])];
+            if (range.location == 0) {
+                return self.args[0];
+            } else {
+                return [NSString stringWithFormat: @"\"%@\"^^%@", self.args[0], [self sparqlIRIStringWithResource:@"http://www.w3.org/2001/XMLSchema#double" prefixes:prefixes]];
+            }
+        case DECIMAL:
+            range	= [_decimalRegex rangeOfFirstMatchInString:self.args[0] options:0 range:NSMakeRange(0, [self.args[0] length])];
+            if (range.location == 0) {
+                return self.args[0];
+            } else {
+                return [NSString stringWithFormat: @"\"%@\"^^%@", self.args[0], [self sparqlIRIStringWithResource:@"http://www.w3.org/2001/XMLSchema#decimal" prefixes:prefixes]];
+            }
+        case INTEGER:
+            range	= [_integerRegex rangeOfFirstMatchInString:self.args[0] options:0 range:NSMakeRange(0, [self.args[0] length])];
+            if (range.location == 0) {
+                return self.args[0];
+            } else {
+                return [NSString stringWithFormat: @"\"%@\"^^%@", self.args[0], [self sparqlIRIStringWithResource:@"http://www.w3.org/2001/XMLSchema#integer" prefixes:prefixes]];
+            }
+        case PREFIXNAME:
+            return [NSString stringWithFormat: @"%@:%@", self.args[0], self.args[1]];
+        case IRI:
+            return [self sparqlIRIStringWithResource:self.args[0] prefixes:prefixes];
+        case STRING3D:
+        case STRING3S:
+        case STRING1D:
+        case STRING1S:
+            return [self sparqlLiteralString];
+        default:
+            NSLog(@"Unexpected token type %s seen in sparqlStringWithDefinedPrefixes:", sparql_token_type_name(self.type));
+            return nil;
+    }
 }
 
 

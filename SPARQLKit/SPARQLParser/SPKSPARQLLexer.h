@@ -2,6 +2,10 @@
 
 NSArray* SPKSPARQLKeywords(void);
 
+extern NSString* __strong const r_DOUBLE;
+extern NSString* __strong const r_DECIMAL;
+extern NSString* __strong const r_INTEGER;
+
 @interface SPKSPARQLLexer : NSObject {
 	NSFileHandle* _file;
     NSMutableData* _lookaheadBuffer;
