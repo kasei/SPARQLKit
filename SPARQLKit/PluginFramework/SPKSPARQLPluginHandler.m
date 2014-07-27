@@ -39,10 +39,12 @@ static NSString *appSupportSubpath = @"Application Support/SPARQLKit/PlugIns";
 }
 
 + (BOOL)plugInClassIsValid:(Class)plugInClass {
-    if (![plugInClass respondsToSelector: @selector(interfaceVersion)])
+    if (![plugInClass respondsToSelector: @selector(interfaceVersion)]) {
         goto bad_plugin;
-    if (![plugInClass respondsToSelector: @selector(classesImplementingProtocols)])
+    }
+    if (![plugInClass respondsToSelector: @selector(classesImplementingProtocols)]) {
         goto bad_plugin;
+    }
     return YES;
 bad_plugin:
     NSLog(@"%@ is not a valid plugin class", plugInClass);
