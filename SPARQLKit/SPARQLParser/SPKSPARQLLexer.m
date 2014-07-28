@@ -119,6 +119,7 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 		self.comments		= YES;
         _linebuffer         = [NSMutableData dataWithCapacity:256];
         _lookaheadBuffer    = [NSMutableData dataWithCapacity:1024];
+        _errorBuffer        = [NSMutableString stringWithCapacity:64];
         
         NSError* error;
         _multiLineAnonRegex          = [NSRegularExpression regularExpressionWithPattern:@"(\\[|\\()[\\t\\r\\n ]*$" options:NSRegularExpressionAnchorsMatchLines error:&error];
@@ -189,6 +190,7 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 	NSUInteger start	= self.startCharacter;
 	NSUInteger length	= self.character - start;
 	NSRange range	= { .location = start, .length = length };
+    [_errorBuffer setString:@""];
 	return [[SPKSPARQLToken alloc] initTokenOfType:type withArguments:args fromRange:range];
 }
 
@@ -269,6 +271,7 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 
 - (NSString*) _getChar {
 	NSString* c	= [self.buffer substringToIndex:1];
+    [_errorBuffer appendString:c];
 	NSRange range	= NSMakeRange(0, 1);
 	[self.buffer deleteCharactersInRange:range];
 	self.character++;
@@ -297,6 +300,7 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 		}
 	}
 	NSString* c	= [self.buffer substringToIndex:1];
+    [_errorBuffer appendString:c];
 	NSRange range	= { 0, 1 };
 	[self.buffer deleteCharactersInRange:range];
 	self.character++;
@@ -325,7 +329,9 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 	}
 	
 	NSMutableString* mword	= [NSMutableString stringWithString: word];
-	NSRange range	= {0, [mword length]};
+    [_errorBuffer appendString:mword];
+
+    NSRange range	= {0, [mword length]};
 	NSUInteger lines	= [mword replaceOccurrencesOfString:@"\n" withString:@"\n" options:NSLiteralSearch range:range];
 	
 	self.line	+= lines;
@@ -348,6 +354,7 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
 	
 	NSRange range;
 	NSString* word	= [self.buffer substringToIndex:length];
+    [_errorBuffer appendString:word];
 	range.location	= 0;
 	range.length	= [word length];
 	[self.buffer deleteCharactersInRange:range];
@@ -1167,6 +1174,18 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
     //	NSLog(@"%lu:%lu: %@\n", self.line, (unsigned long)self.column, message);
     //	NSLog(@"buffer: '%@'", self.buffer);
 	return nil;
+}
+
+- (NSString*) remainingContent {
+    NSMutableString* seen  = [_errorBuffer mutableCopy];
+    [_errorBuffer setString:@""];
+    [self _fillBuffer];
+    while ([self.buffer length]) {
+        [seen appendString:self.buffer];
+        [self.buffer setString:@""];
+        [self _fillBuffer];
+    }
+    return seen;
 }
 
 @end

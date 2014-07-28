@@ -9,6 +9,7 @@ extern NSString* __strong const r_INTEGER;
 @interface SPKSPARQLLexer : NSObject {
 	NSFileHandle* _file;
     NSMutableData* _lookaheadBuffer;
+    NSMutableString* _errorBuffer;
 	NSString* _string;
 	NSUInteger _stringPos;
 	NSUInteger _line;
@@ -54,5 +55,6 @@ extern NSString* __strong const r_INTEGER;
 - (SPKSPARQLLexer*) reinitWithString: (NSString*) string;
 - (SPKSPARQLToken*) getTokenWithError:(NSError*__autoreleasing*)error;
 - (SPKSPARQLToken*) peekTokenWithError:(NSError*__autoreleasing*)error;
+- (NSString*) remainingContent;
 
 @end
