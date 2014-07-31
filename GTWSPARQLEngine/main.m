@@ -553,6 +553,7 @@ int main(int argc, const char * argv[]) {
     NSArray* plugins    = [SPKSPARQLPluginHandler dataSourceClasses];
     NSMutableArray* datasourcelist  = [NSMutableArray arrayWithArray:plugins];
     [datasourcelist addObject:[SPKMemoryQuadStore class]];
+    [datasourcelist addObject:[GTWLanguagePreferenceQuadStore class]];
     
     for (Class d in datasourcelist) {
         [datasources setObject:d forKey:[d description]];
