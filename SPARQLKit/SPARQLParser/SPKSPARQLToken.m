@@ -187,6 +187,9 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
         case WS:
             return @" ";
         case KEYWORD:
+            if ([self.args[0] isEqualTo:@"A"]) {
+                return @"a";
+            }
             return [self.args[0] uppercaseString];
         case STAR:
         case HATHAT:
