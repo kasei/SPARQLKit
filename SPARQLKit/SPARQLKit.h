@@ -4,7 +4,7 @@
 #import <GTWSWBase/GTWBlank.h>
 
 #define SPARQLKIT_NAME  @"SPARQLKit"
-#define SPARQLKIT_VERSION @"0.0.3"
+#define SPARQLKIT_VERSION @"0.0.3-62-g7293eec"
 
 @protocol GTWLogger
 - (void) logData:(id) data forKey:(NSString*) key inDomain:(NSString*) domain;
@@ -108,7 +108,10 @@ typedef NSString* SPKTreeType;
 - (void) registerFunction:(NSString*)iri withBlock:(id<GTWTerm>(^)(id<GTWQueryEngine> engine, id<GTWModel> model, NSArray* args))block;
 @end
 
-
-
 typedef GTWBlank*(^IDGenerator)(NSString* name);
+
+
+#import "SPKSPARQLLexer.h"
+#import "SPKSPARQLParser.h"
+#import "SPKSPARQLToken.h"
 
