@@ -114,4 +114,5 @@ typedef GTWBlank*(^IDGenerator)(NSString* name);
 #import "SPKSPARQLLexer.h"
 #import "SPKSPARQLParser.h"
 #import "SPKSPARQLToken.h"
-
+#import "SPKSPARQLResultsXMLSerializer.h"
+#import "SPKMutableURLRequest.h"
