@@ -18,6 +18,7 @@
 #import <GTWSWBase/GTWSPARQLResultsXMLParser.h>
 #import "SPKSPARQLPluginHandler.h"
 #import "SPKMutableURLRequest.h"
+#import "SPKTurtleParser.h"
 
 @implementation SPKSimpleQueryEngine
 
@@ -803,7 +804,7 @@ MORE_LOOP:
     GTWIRI* base            = iri;
     NSURL* url              = [NSURL URLWithString:iri.value];
     SPKMutableURLRequest* req   = [SPKMutableURLRequest requestWithURL:url];
-//	[req setValue:@"application/sparql-results+xml" forHTTPHeaderField:@"Accept"];
+	[req setValue:@"text/turtle, text/n-triples, */*;q=0.1" forHTTPHeaderField:@"Accept"];
     
 	NSHTTPURLResponse* resp	= nil;
 //	NSLog(@"request: %@", req);
@@ -832,7 +833,23 @@ MORE_LOOP:
         }
     }
     
+
+    if (RDFParserClass == nil) {
+        NSString* ct    = [[resp allHeaderFields] valueForKey:@"Content-Type"];
+        if ([ct containsString:@"text/turtle"]) {
+            RDFParserClass  = [SPKTurtleParser class];
+        } else {
+            NSLog(@"****************************** no rdf parser class for %@", ct);
+            if (!ct) {
+                NSLog(@"%@", resp);
+            }
+            return [@[] objectEnumerator];
+        }
+    }
+    
+    
     id<GTWRDFParser> parser = [[RDFParserClass alloc] initWithData:data base:base];
+//    NSLog(@"parser: %@", parser);
     __block NSUInteger count    = 0;
     [parser enumerateTriplesWithBlock:^(id<GTWTriple> t) {
         GTWQuad* q  = [GTWQuad quadFromTriple:t withGraph:graph];
