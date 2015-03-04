@@ -169,7 +169,7 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
         case STRING1S:
             value   = self.args[0];
             escaped = [value stringByReplacingOccurrencesOfString:@"'" withString:@"\\'"];
-            return [NSString stringWithFormat: @"'%@'", self.args[0]];
+            return [NSString stringWithFormat: @"'%@'", escaped];
         default:
             return nil;
     }
