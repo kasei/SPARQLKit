@@ -2876,6 +2876,7 @@ cleanup:
             ASSERT_EMPTY(errors);
             if (!expr) {
                 NSLog(@"no expression in parseIRIOrFunctionWithErrors:");
+                return nil;
             }
             NSMutableArray* list    = [NSMutableArray arrayWithObject: expr];
 
