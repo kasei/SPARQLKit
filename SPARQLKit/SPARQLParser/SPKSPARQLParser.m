@@ -2581,6 +2581,8 @@ cleanup:
 
 // [106]  	VarOrTerm	  ::=  	Var | GraphTerm
 - (BOOL) tokenIsTerm: (SPKSPARQLToken*) t {
+    if (t.type == VAR)
+        return YES;
     switch (t.type) {
         case NIL:
         case IRI:
@@ -2607,10 +2609,6 @@ cleanup:
         default:
             return NO;
     }
-    if (t.type == VAR)
-        return YES;
-    
-    return NO;
 }
 
 - (BOOL) tokenIsVarOrTerm: (SPKSPARQLToken*) t {
@@ -3326,8 +3324,6 @@ cleanup:
     } else {
         return [self errorMessage:[NSString stringWithFormat:@"Expecting KEYWORD but got %@", t] withErrors:errors];
     }
-    NSLog(@"parseGraphPatternNotTriplesWithError: not implemented yet");
-    return nil;
 }
 
 

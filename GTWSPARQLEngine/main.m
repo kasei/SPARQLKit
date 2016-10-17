@@ -15,6 +15,7 @@
 #import <SPARQLKit/SPKSimpleQueryEngine.h>
 #import <SPARQLKit/SPKSPARQLResultsTextTableSerializer.h>
 #import <SPARQLKit/SPKNQuadsSerializer.h>
+#import <SPARQLKit/GTWLanguagePreferenceQuadStore.h>
 
 #import "GTWSPARQLTestHarness.h"
 #import "SPKNTriplesSerializer.h"
