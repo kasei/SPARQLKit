@@ -183,6 +183,7 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
     NSString* value;
     SPKSPARQLTokenType t    = self.type;
     NSRange range;
+    NSLog(@"sparqling: %s", sparql_token_type_name(t));
     switch (t) {
         case WS:
             return @" ";
@@ -217,8 +218,11 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
         case QUESTION:
         case SEMICOLON:
         case OR:
-        case NIL:
             return self.args[0];
+        case ANON:
+            return self.args[0];
+        case NIL:
+            return @"()";
         case LANG:
             return [NSString stringWithFormat: @"@%@", self.args[0]];
         case VAR:
@@ -264,8 +268,6 @@ static const char* sparql_token_type_name( SPKSPARQLTokenType t ) {
         case STRING1D:
         case STRING1S:
             return [self sparqlLiteralString];
-        case ANON:
-            return @"[]";
         default:
             NSLog(@"Unexpected token type %s seen in sparqlStringWithDefinedPrefixes:", sparql_token_type_name(self.type));
             return nil;
