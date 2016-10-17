@@ -974,6 +974,9 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
     BOOL ok = [self _lookaheadWithError:error];
     if (!ok)
         return nil;
+    if (!self.lookahead) {
+        *error  = [[NSError alloc] initWithDomain:@"us.kasei.sparqlkit.stop-iteration" code:0 userInfo:@{}];
+    }
     return self.lookahead;
 }
 
@@ -981,6 +984,9 @@ NSString* __strong const r_INTEGER  = @"[0-9]+";
     [self _lookaheadWithError:error];
     SPKSPARQLToken* t   = self.lookahead;
     self.lookahead      = nil;
+    if (!t) {
+        *error  = [[NSError alloc] initWithDomain:@"us.kasei.sparqlkit.stop-iteration" code:0 userInfo:@{}];
+    }
     return t;
 }
 
